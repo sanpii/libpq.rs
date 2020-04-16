@@ -1,9 +1,22 @@
 [package]
-name = "psql"
+name = "libpq"
 version = "0.1.0"
 authors = ["Sanpi <sanpi@homecomputing.fr>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+repository = "https://github.com/sanpii/libpq.rs"
+description = "Safe binding for libpq"
+keywords = ["database", "postgres", "postgresql", "sql"]
+categories = ["database"]
+readme = "README.md"
 
 [dependencies]
+libc = "0.2"
+pq-sys = "0.4"
+postgres-types = "0.1"
+
+[dev-dependencies]
+tempfile = "3.1"
+
+[badges]
+gitlab = { repository = "sanpi/libpq.rs", branch = "master" }

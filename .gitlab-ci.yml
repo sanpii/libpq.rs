@@ -1,0 +1,44 @@
+image: "rust:latest"
+
+stages:
+    - lint
+    - test
+
+lint:fmt:
+    stage: lint
+    before_script:
+        - rustup component add rustfmt
+    script:
+        - cargo fmt
+        - if test $(git ls-files --modified | wc -l) -ne 0;
+          then
+              echo 'You have introduced some unformated code:';
+              git ls-files --modified | sed 's/^/* /';
+              echo 'Please run `cargo fmt` and amend your PR.';
+              exit 1;
+          fi
+
+lint:clippy:
+    stage: lint
+    before_script:
+        - rustup component add clippy
+    script: cargo clippy -- --deny warnings
+    allow_failure: true
+
+.test: &test
+    stage: test
+    before_script:
+        - apt update
+        - apt install sudo postgresql postgresql-server-dev-11 -y
+        - sudo -u postgres pg_ctlcluster 11 main start
+        - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234';";
+        - sudo -u postgres psql --command "create database root with owner root;";
+        - export PQ_DSN='host=localhost password=1234'
+
+test:debug:
+    <<: *test
+    script: cargo test
+
+test:release:
+    <<: *test
+    script: cargo test --release
