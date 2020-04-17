@@ -148,8 +148,14 @@ impl Result {
      *
      * See [PQfmod](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFMOD).
      */
-    pub fn field_mod(&self, column: i32) -> i32 {
-        unsafe { pq_sys::PQfmod(self.into(), column) }
+    pub fn field_mod(&self, column: i32) -> Option<i32> {
+        let raw = unsafe { pq_sys::PQfmod(self.into(), column) };
+
+        if raw < 0 {
+            None
+        } else {
+            Some(raw)
+        }
     }
 
     /**
