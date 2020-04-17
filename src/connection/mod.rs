@@ -255,8 +255,8 @@ impl Connection {
      *
      * See [PQbackendPID](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQBACKENDPID).
      */
-    pub fn backend_pid(&self) -> i32 {
-        unsafe { pq_sys::PQbackendPID(self.into()) }
+    pub fn backend_pid(&self) -> u32 {
+        unsafe { pq_sys::PQbackendPID(self.into()) as u32 }
     }
 
     /**
