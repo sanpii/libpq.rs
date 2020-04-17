@@ -75,8 +75,14 @@ impl Result {
      *
      * See [PQfname](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFNAME).
      */
-    pub fn field_name(&self, number: usize) -> String {
-        crate::ffi::to_string(unsafe { pq_sys::PQfname(self.into(), number as i32) })
+    pub fn field_name(&self, number: usize) -> Option<String> {
+        let raw = unsafe { pq_sys::PQfname(self.into(), number as i32) };
+
+        if raw.is_null() {
+            None
+        } else {
+            Some(crate::ffi::to_string(raw))
+        }
     }
 
     /**
