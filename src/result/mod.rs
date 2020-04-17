@@ -124,7 +124,7 @@ impl Result {
      *
      * See [PQfformat](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFFORMAT).
      */
-    pub fn field_format(&self, column: i32) -> i32 {
+    pub fn field_format(&self, column: i32) -> crate::result::Format {
         unsafe { pq_sys::PQfformat(self.into(), column) }
     }
 
