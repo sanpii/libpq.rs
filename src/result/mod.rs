@@ -161,10 +161,18 @@ impl Result {
     /**
      * Returns the size in bytes of the column associated with the given column number.
      *
+     * `None` indicates the data type is variable-length.
+     *
      * See [PQfsize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFSIZE).
      */
-    pub fn field_size(&self, column: i32) -> i32 {
-        unsafe { pq_sys::PQfsize(self.into(), column) }
+    pub fn field_size(&self, column: usize) -> Option<usize> {
+        let raw = unsafe { pq_sys::PQfsize(self.into(), column as i32) };
+
+        if raw < 0 {
+            None
+        } else {
+            Some(raw)
+        }
     }
 
     /**
