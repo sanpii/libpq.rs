@@ -1160,8 +1160,8 @@ mod test {
         assert_eq!(results.ntuples(), 2);
         assert_eq!(results.nfields(), 2);
 
-        assert_eq!(results.value(0, 0), "1".to_string());
-        assert_eq!(results.value(0, 1), "2".to_string());
+        assert_eq!(results.value(0, 0), Some("1".to_string()));
+        assert_eq!(results.value(0, 1), Some("2".to_string()));
     }
 
     #[test]
@@ -1176,7 +1176,7 @@ mod test {
         );
         assert_eq!(results.status(), crate::Status::TupplesOk);
 
-        assert_eq!(results.value(0, 0), "fooo".to_string());
+        assert_eq!(results.value(0, 0), Some("fooo".to_string()));
     }
 
     #[test]
@@ -1194,7 +1194,7 @@ mod test {
             &[],
             crate::result::Format::Text,
         );
-        assert_eq!(results.value(0, 0), "fooo".to_string());
+        assert_eq!(results.value(0, 0), Some("fooo".to_string()));
     }
 
     #[test]
@@ -1205,7 +1205,7 @@ mod test {
 
         loop {
             if let Some(result) = conn.result() {
-                assert_eq!(result.value(0, 0), "1".to_string());
+                assert_eq!(result.value(0, 0), Some("1".to_string()));
             } else {
                 break;
             }
@@ -1228,7 +1228,7 @@ mod test {
 
         assert!(conn.set_single_row_mode().is_ok());
 
-        assert_eq!(conn.result().unwrap().value(0, 0), "fooo".to_string());
+        assert_eq!(conn.result().unwrap().value(0, 0), Some("fooo".to_string()));
     }
 
     #[test]
@@ -1240,7 +1240,7 @@ mod test {
 
         conn.send_query_prepared(None, &[Some(b"fooo\0")], &[], crate::result::Format::Text)
             .unwrap();
-        assert_eq!(conn.result().unwrap().value(0, 0), "fooo".to_string());
+        assert_eq!(conn.result().unwrap().value(0, 0), Some("fooo".to_string()));
         assert!(conn.result().is_none());
 
         conn.send_describe_prepared(None).unwrap();

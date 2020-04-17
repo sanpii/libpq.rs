@@ -176,8 +176,14 @@ impl Result {
      *
      * See [PQgetvalue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE).
      */
-    pub fn value(&self, row: i32, column: i32) -> String {
-        crate::ffi::to_string(unsafe { pq_sys::PQgetvalue(self.into(), row, column) })
+    pub fn value(&self, row: i32, column: i32) -> Option<String> {
+        let raw = unsafe { pq_sys::PQgetvalue(self.into(), row, column) };
+
+        if raw.is_null() {
+            None
+        } else {
+            Some(crate::ffi::to_string(raw))
+        }
     }
 
     /**
