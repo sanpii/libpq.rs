@@ -234,10 +234,6 @@ impl Connection {
     /**
      * Obtains the file descriptor number of the connection socket to the server.
      *
-     * A valid descriptor will be greater than or equal to 0; a result of -1 indicates that no
-     * server connection is currently open. (This will not change during normal operation, but
-     * could change during connection setup or reset.)
-     *
      * See [PQsocket](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSOCKET).
      */
     pub fn socket(&self) -> std::result::Result<i32, ()> {
