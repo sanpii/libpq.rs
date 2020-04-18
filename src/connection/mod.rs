@@ -430,7 +430,7 @@ impl Connection {
         &self,
         command: &str,
         param_types: &[crate::Type],
-        param_values: &[Option<&[u8]>],
+        param_values: &[Option<Vec<u8>>],
         param_formats: &[i32],
         result_format: crate::result::Format,
     ) -> crate::Result {
@@ -502,7 +502,7 @@ impl Connection {
     pub fn exec_prepared(
         &self,
         name: Option<&str>,
-        params: &[Option<&[u8]>],
+        params: &[Option<Vec<u8>>],
         param_formats: &[i32],
         result_format: crate::result::Format,
     ) -> crate::Result {
@@ -530,7 +530,7 @@ impl Connection {
         .into()
     }
 
-    fn param_values(param_values: &[Option<&[u8]>]) -> Vec<*const i8> {
+    fn param_values(param_values: &[Option<Vec<u8>>]) -> Vec<*const i8> {
         param_values
             .iter()
             .map(|x| {
@@ -541,7 +541,7 @@ impl Connection {
             .collect()
     }
 
-    fn param_lengths(param_values: &[Option<&[u8]>]) -> Vec<i32> {
+    fn param_lengths(param_values: &[Option<Vec<u8>>]) -> Vec<i32> {
         param_values
             .iter()
             .map(|x| x.as_ref().map(|x| x.len() as i32).unwrap_or(0))
@@ -709,7 +709,7 @@ impl Connection {
         &self,
         command: &str,
         param_types: &[crate::Type],
-        param_values: &[Option<&[u8]>],
+        param_values: &[Option<Vec<u8>>],
         param_formats: &[i32],
         result_format: crate::result::Format,
     ) -> std::result::Result<(), String> {
@@ -792,7 +792,7 @@ impl Connection {
     pub fn send_query_prepared(
         &self,
         name: Option<&str>,
-        params: &[Option<&[u8]>],
+        params: &[Option<Vec<u8>>],
         param_formats: &[i32],
         result_format: crate::result::Format,
     ) -> std::result::Result<(), String> {
@@ -1166,7 +1166,7 @@ mod test {
         let results = conn.exec_params(
             "SELECT $1",
             &[crate::Type::TEXT],
-            &[Some(b"fooo\0")],
+            &[Some(b"fooo\0".to_vec())],
             &[],
             crate::result::Format::Text,
         );
@@ -1186,7 +1186,7 @@ mod test {
 
         let results = conn.exec_prepared(
             Some("test1"),
-            &[Some(b"fooo\0")],
+            &[Some(b"fooo\0".to_vec())],
             &[],
             crate::result::Format::Text,
         );
@@ -1216,7 +1216,7 @@ mod test {
         conn.send_query_params(
             "SELECT $1",
             &[crate::Type::TEXT],
-            &[Some(b"fooo\0")],
+            &[Some(b"fooo\0".to_vec())],
             &[],
             crate::result::Format::Text,
         )
@@ -1234,7 +1234,7 @@ mod test {
             .unwrap();
         while conn.result().is_some() {}
 
-        conn.send_query_prepared(None, &[Some(b"fooo\0")], &[], crate::result::Format::Text)
+        conn.send_query_prepared(None, &[Some(b"fooo\0".to_vec())], &[], crate::result::Format::Text)
             .unwrap();
         assert_eq!(conn.result().unwrap().value(0, 0), Some("fooo".to_string()));
         assert!(conn.result().is_none());
