@@ -198,11 +198,12 @@ impl Result {
      */
     pub fn value(&self, row: usize, column: usize) -> Option<String> {
         let raw = unsafe { pq_sys::PQgetvalue(self.into(), row as i32, column as i32) };
+        let str = crate::ffi::to_string(raw);
 
-        if raw.is_null() {
+        if str.is_empty() && self.is_null(row, column) {
             None
         } else {
-            Some(crate::ffi::to_string(raw))
+            Some(str)
         }
     }
 

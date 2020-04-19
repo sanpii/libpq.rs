@@ -1161,6 +1161,14 @@ mod test {
     }
 
     #[test]
+    fn exec_null() {
+        let conn = crate::test::new_conn();
+        let results = conn.exec("SELECT null");
+
+        assert_eq!(results.value(0, 0), None);
+    }
+
+    #[test]
     fn exec_params() {
         let conn = crate::test::new_conn();
         let results = conn.exec_params(
