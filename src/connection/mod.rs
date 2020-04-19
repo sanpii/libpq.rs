@@ -506,18 +506,17 @@ impl Connection {
             };
             types.push(oid);
 
-            let v = value
-                .as_ref()
-                .map(|x| x.as_ptr() as *const i8)
-                .unwrap_or(std::ptr::null());
-            values.push(v);
-
             let format = param_formats.get(x).unwrap_or(&crate::Format::Text);
             formats.push(format.into());
 
             if let Some(v) = value {
+                if format == &crate::Format::Text && v.last() != Some(&b'\0') {
+                    panic!("Param value as text should be null terminated");
+                }
+                values.push(v.as_ptr() as *const i8);
                 lengths.push(v.len() as i32);
             } else {
+                values.push(std::ptr::null());
                 lengths.push(0);
             }
         }
@@ -1210,6 +1209,19 @@ mod test {
             crate::Format::Text,
         );
         assert_eq!(results.status(), crate::Status::FatalError);
+    }
+
+    #[test]
+    #[should_panic]
+    fn exec_text() {
+        let conn = crate::test::new_conn();
+        let _ = conn.exec_params(
+            "SELECT $1",
+            &[],
+            &[Some(b"foo".to_vec())],
+            &[],
+            crate::Format::Text,
+        );
     }
 
     #[test]
