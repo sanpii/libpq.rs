@@ -434,30 +434,29 @@ impl Connection {
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> crate::Result {
-        let types = Self::param_types(param_types);
-        let param_lengths = Self::param_lengths(param_values);
-        let param_formats = Self::param_formats(param_formats);
+        let (types, values, formats, lengths) =
+            Self::transform_params(param_types, param_values, param_formats);
 
         unsafe {
             pq_sys::PQexecParams(
                 self.into(),
                 crate::cstr!(command),
-                param_values.len() as i32,
+                values.len() as i32,
                 if types.is_empty() {
                     std::ptr::null()
                 } else {
                     types.as_ptr()
                 },
-                Self::param_values(param_values).as_ptr(),
-                if param_lengths.is_empty() {
+                values.as_ptr(),
+                if lengths.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_lengths.as_ptr()
+                    lengths.as_ptr()
                 },
-                if param_formats.is_empty() {
+                if formats.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_formats.as_ptr()
+                    formats.as_ptr()
                 },
                 result_format as i32,
             )
@@ -476,7 +475,7 @@ impl Connection {
         query: &str,
         param_types: &[crate::Type],
     ) -> crate::Result {
-        let types = Self::param_types(param_types);
+        let types = param_types.iter().map(|x| x.oid()).collect::<Vec<_>>();
 
         unsafe {
             pq_sys::PQprepare(
@@ -490,12 +489,40 @@ impl Connection {
         .into()
     }
 
-    fn param_types(param_types: &[crate::Type]) -> Vec<u32> {
-        param_types.iter().map(|x| x.oid()).collect()
-    }
+    fn transform_params(
+        param_types: &[crate::Type],
+        param_values: &[Option<Vec<u8>>],
+        param_formats: &[crate::Format],
+    ) -> (Vec<u32>, Vec<*const i8>, Vec<i32>, Vec<i32>) {
+        let mut types = Vec::new();
+        let mut values = Vec::new();
+        let mut formats = Vec::new();
+        let mut lengths = Vec::new();
 
-    fn param_formats(param_formats: &[crate::Format]) -> Vec<i32> {
-        param_formats.iter().map(|x| x.into()).collect()
+        for (x, value) in param_values.iter().enumerate() {
+            let oid = match param_types.get(x) {
+                Some(ty) => ty.oid(),
+                None => 0,
+            };
+            types.push(oid);
+
+            let v = value
+                .as_ref()
+                .map(|x| x.as_ptr() as *const i8)
+                .unwrap_or(std::ptr::null());
+            values.push(v);
+
+            let format = param_formats.get(x).unwrap_or(&crate::Format::Text);
+            formats.push(format.into());
+
+            if let Some(v) = value {
+                lengths.push(v.len() as i32);
+            } else {
+                lengths.push(0);
+            }
+        }
+
+        (types, values, formats, lengths)
     }
 
     /**
@@ -507,51 +534,33 @@ impl Connection {
     pub fn exec_prepared(
         &self,
         name: Option<&str>,
-        params: &[Option<Vec<u8>>],
+        param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> crate::Result {
-        let param_lengths = Self::param_lengths(params);
-        let param_formats = Self::param_formats(param_formats);
+        let (_, values, formats, lengths) =
+            Self::transform_params(&[], param_values, param_formats);
 
         unsafe {
             pq_sys::PQexecPrepared(
                 self.into(),
                 crate::cstr!(name.unwrap_or_default()),
-                params.len() as i32,
-                Self::param_values(params).as_ptr(),
-                if param_lengths.is_empty() {
+                values.len() as i32,
+                values.as_ptr(),
+                if lengths.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_lengths.as_ptr()
+                    lengths.as_ptr()
                 },
-                if param_formats.is_empty() {
+                if formats.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_formats.as_ptr()
+                    formats.as_ptr()
                 },
                 result_format as i32,
             )
         }
         .into()
-    }
-
-    fn param_values(param_values: &[Option<Vec<u8>>]) -> Vec<*const i8> {
-        param_values
-            .iter()
-            .map(|x| {
-                x.as_ref()
-                    .map(|x| x.as_ptr() as *const i8)
-                    .unwrap_or(std::ptr::null())
-            })
-            .collect()
-    }
-
-    fn param_lengths(param_values: &[Option<Vec<u8>>]) -> Vec<i32> {
-        param_values
-            .iter()
-            .map(|x| x.as_ref().map(|x| x.len() as i32).unwrap_or(0))
-            .collect()
     }
 
     /**
@@ -719,30 +728,29 @@ impl Connection {
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> std::result::Result<(), String> {
-        let types = Self::param_types(param_types);
-        let param_lengths = Self::param_lengths(param_values);
-        let param_formats = Self::param_formats(param_formats);
+        let (types, values, formats, lengths) =
+            Self::transform_params(param_types, param_values, param_formats);
 
         let success = unsafe {
             pq_sys::PQsendQueryParams(
                 self.into(),
                 crate::cstr!(command),
-                param_values.len() as i32,
+                values.len() as i32,
                 if types.is_empty() {
                     std::ptr::null()
                 } else {
                     types.as_ptr()
                 },
-                Self::param_values(param_values).as_ptr(),
-                if param_lengths.is_empty() {
+                values.as_ptr(),
+                if lengths.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_lengths.as_ptr()
+                    lengths.as_ptr()
                 },
-                if param_formats.is_empty() {
+                if formats.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_formats.as_ptr()
+                    formats.as_ptr()
                 },
                 result_format as i32,
             )
@@ -770,7 +778,7 @@ impl Connection {
         query: &str,
         param_types: &[crate::Type],
     ) -> std::result::Result<(), String> {
-        let types = Self::param_types(param_types);
+        let types = param_types.iter().map(|x| x.oid()).collect::<Vec<_>>();
 
         let success = unsafe {
             pq_sys::PQsendPrepare(
@@ -799,28 +807,28 @@ impl Connection {
     pub fn send_query_prepared(
         &self,
         name: Option<&str>,
-        params: &[Option<Vec<u8>>],
+        param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> std::result::Result<(), String> {
-        let param_lengths = Self::param_lengths(params);
-        let param_formats = Self::param_formats(param_formats);
+        let (_, values, formats, lengths) =
+            Self::transform_params(&[], param_values, param_formats);
 
         let success = unsafe {
             pq_sys::PQsendQueryPrepared(
                 self.into(),
                 crate::cstr!(name.unwrap_or_default()),
-                params.len() as i32,
-                Self::param_values(params).as_ptr(),
-                if param_lengths.is_empty() {
+                values.len() as i32,
+                values.as_ptr(),
+                if lengths.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_lengths.as_ptr()
+                    lengths.as_ptr()
                 },
-                if param_formats.is_empty() {
+                if formats.is_empty() {
                     std::ptr::null()
                 } else {
-                    param_formats.as_ptr()
+                    formats.as_ptr()
                 },
                 result_format as i32,
             )
@@ -1186,7 +1194,7 @@ mod test {
             &[],
             crate::Format::Text,
         );
-        assert_eq!(dbg!(&results).status(), crate::Status::TupplesOk);
+        assert_eq!(results.status(), crate::Status::TupplesOk);
 
         assert_eq!(results.value(0, 0), Some("1".to_string()));
     }
