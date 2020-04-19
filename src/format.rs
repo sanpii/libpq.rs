@@ -10,3 +10,9 @@ impl From<i32> for Format {
         unsafe { std::mem::transmute(format) }
     }
 }
+
+impl Into<i32> for &Format {
+    fn into(self) -> i32 {
+        unsafe { std::mem::transmute(*self) }
+    }
+}

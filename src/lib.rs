@@ -13,6 +13,7 @@ pub mod ssl;
 pub mod transaction;
 
 mod encoding;
+mod format;
 mod oid;
 mod status;
 mod ty;
@@ -20,6 +21,7 @@ mod verbosity;
 
 pub use connection::Connection;
 pub use encoding::*;
+pub use format::*;
 pub use oid::*;
 pub use result::Result;
 pub use status::*;

@@ -1,10 +1,8 @@
 mod attribute;
 mod error_field;
-mod format;
 
 pub use attribute::*;
 pub use error_field::*;
-pub use format::*;
 
 pub struct Result {
     result: *mut pq_sys::PGresult,
@@ -130,7 +128,7 @@ impl Result {
      *
      * See [PQfformat](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFFORMAT).
      */
-    pub fn field_format(&self, column: usize) -> crate::result::Format {
+    pub fn field_format(&self, column: usize) -> crate::Format {
         unsafe { pq_sys::PQfformat(self.into(), column as i32) }.into()
     }
 

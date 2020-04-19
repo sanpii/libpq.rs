@@ -431,11 +431,12 @@ impl Connection {
         command: &str,
         param_types: &[crate::Type],
         param_values: &[Option<Vec<u8>>],
-        param_formats: &[i32],
-        result_format: crate::result::Format,
+        param_formats: &[crate::Format],
+        result_format: crate::Format,
     ) -> crate::Result {
         let types = Self::param_types(param_types);
         let param_lengths = Self::param_lengths(param_values);
+        let param_formats = Self::param_formats(param_formats);
 
         unsafe {
             pq_sys::PQexecParams(
@@ -493,6 +494,10 @@ impl Connection {
         param_types.iter().map(|x| x.oid()).collect()
     }
 
+    fn param_formats(param_formats: &[crate::Format]) -> Vec<i32> {
+        param_formats.iter().map(|x| x.into()).collect()
+    }
+
     /**
      * Sends a request to execute a prepared statement with given parameters, and waits for the
      * result.
@@ -503,10 +508,11 @@ impl Connection {
         &self,
         name: Option<&str>,
         params: &[Option<Vec<u8>>],
-        param_formats: &[i32],
-        result_format: crate::result::Format,
+        param_formats: &[crate::Format],
+        result_format: crate::Format,
     ) -> crate::Result {
         let param_lengths = Self::param_lengths(params);
+        let param_formats = Self::param_formats(param_formats);
 
         unsafe {
             pq_sys::PQexecPrepared(
@@ -710,11 +716,12 @@ impl Connection {
         command: &str,
         param_types: &[crate::Type],
         param_values: &[Option<Vec<u8>>],
-        param_formats: &[i32],
-        result_format: crate::result::Format,
+        param_formats: &[crate::Format],
+        result_format: crate::Format,
     ) -> std::result::Result<(), String> {
         let types = Self::param_types(param_types);
         let param_lengths = Self::param_lengths(param_values);
+        let param_formats = Self::param_formats(param_formats);
 
         let success = unsafe {
             pq_sys::PQsendQueryParams(
@@ -793,10 +800,11 @@ impl Connection {
         &self,
         name: Option<&str>,
         params: &[Option<Vec<u8>>],
-        param_formats: &[i32],
-        result_format: crate::result::Format,
+        param_formats: &[crate::Format],
+        result_format: crate::Format,
     ) -> std::result::Result<(), String> {
         let param_lengths = Self::param_lengths(params);
+        let param_formats = Self::param_formats(param_formats);
 
         let success = unsafe {
             pq_sys::PQsendQueryPrepared(
@@ -1196,7 +1204,7 @@ mod test {
             Some("test1"),
             &[Some(b"fooo\0".to_vec())],
             &[],
-            crate::result::Format::Text,
+            crate::Format::Text,
         );
         assert_eq!(results.value(0, 0), Some("fooo".to_string()));
     }
@@ -1226,7 +1234,7 @@ mod test {
             &[crate::Type::TEXT],
             &[Some(b"fooo\0".to_vec())],
             &[],
-            crate::result::Format::Text,
+            crate::Format::Text,
         )
         .unwrap();
 
@@ -1242,7 +1250,7 @@ mod test {
             .unwrap();
         while conn.result().is_some() {}
 
-        conn.send_query_prepared(None, &[Some(b"fooo\0".to_vec())], &[], crate::result::Format::Text)
+        conn.send_query_prepared(None, &[Some(b"fooo\0".to_vec())], &[], crate::Format::Text)
             .unwrap();
         assert_eq!(conn.result().unwrap().value(0, 0), Some("fooo".to_string()));
         assert!(conn.result().is_none());
