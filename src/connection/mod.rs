@@ -1181,14 +1181,27 @@ mod test {
         let conn = crate::test::new_conn();
         let results = conn.exec_params(
             "SELECT $1",
-            &[crate::Type::TEXT],
-            &[Some(b"fooo\0".to_vec())],
+            &[crate::Type::INT4],
+            &[Some(b"1\0".to_vec())],
             &[],
-            crate::result::Format::Text,
+            crate::Format::Text,
         );
-        assert_eq!(results.status(), crate::Status::TupplesOk);
+        assert_eq!(dbg!(&results).status(), crate::Status::TupplesOk);
 
-        assert_eq!(results.value(0, 0), Some("fooo".to_string()));
+        assert_eq!(results.value(0, 0), Some("1".to_string()));
+    }
+
+    #[test]
+    fn exec_invalid_type() {
+        let conn = crate::test::new_conn();
+        let results = conn.exec_params(
+            "SELECT $1",
+            &[crate::Type::INT4],
+            &[Some(b"foo\0".to_vec())],
+            &[],
+            crate::Format::Text,
+        );
+        assert_eq!(results.status(), crate::Status::FatalError);
     }
 
     #[test]
