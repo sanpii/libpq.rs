@@ -137,14 +137,10 @@ impl Result {
      *
      * See [PQftype](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTYPE).
      */
-    pub fn field_type(&self, column: usize) -> Option<crate::Oid> {
+    pub fn field_type(&self, column: usize) -> Option<crate::Type> {
         let oid = unsafe { pq_sys::PQftype(self.into(), column as i32) };
 
-        if oid == crate::oid::INVALID {
-            None
-        } else {
-            Some(oid)
-        }
+        crate::Type::from_oid(oid)
     }
 
     /**
