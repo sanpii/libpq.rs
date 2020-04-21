@@ -11,12 +11,12 @@ pub mod poll;
 pub mod result;
 pub mod ssl;
 pub mod transaction;
+pub mod ty;
 
 mod encoding;
 mod format;
 mod oid;
 mod status;
-mod ty;
 mod verbosity;
 
 pub use connection::Connection;
@@ -25,7 +25,7 @@ pub use format::*;
 pub use oid::*;
 pub use result::Result;
 pub use status::*;
-pub use ty::*;
+pub use ty::Type;
 pub use verbosity::*;
 
 /**

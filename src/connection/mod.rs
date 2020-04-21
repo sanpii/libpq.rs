@@ -475,7 +475,7 @@ impl Connection {
         query: &str,
         param_types: &[crate::Type],
     ) -> crate::Result {
-        let types = param_types.iter().map(|x| x.oid()).collect::<Vec<_>>();
+        let types = param_types.iter().map(|x| x.oid).collect::<Vec<_>>();
 
         unsafe {
             pq_sys::PQprepare(
@@ -501,7 +501,7 @@ impl Connection {
 
         for (x, value) in param_values.iter().enumerate() {
             let oid = match param_types.get(x) {
-                Some(ty) => ty.oid(),
+                Some(ty) => ty.oid,
                 None => 0,
             };
             types.push(oid);
@@ -777,7 +777,7 @@ impl Connection {
         query: &str,
         param_types: &[crate::Type],
     ) -> std::result::Result<(), String> {
-        let types = param_types.iter().map(|x| x.oid()).collect::<Vec<_>>();
+        let types = param_types.iter().map(|x| x.oid).collect::<Vec<_>>();
 
         let success = unsafe {
             pq_sys::PQsendPrepare(
@@ -1188,7 +1188,7 @@ mod test {
         let conn = crate::test::new_conn();
         let results = conn.exec_params(
             "SELECT $1",
-            &[crate::Type::INT4],
+            &[crate::ty::INT4],
             &[Some(b"1\0".to_vec())],
             &[],
             crate::Format::Text,
@@ -1203,7 +1203,7 @@ mod test {
         let conn = crate::test::new_conn();
         let results = conn.exec_params(
             "SELECT $1",
-            &[crate::Type::INT4],
+            &[crate::ty::INT4],
             &[Some(b"foo\0".to_vec())],
             &[],
             crate::Format::Text,
@@ -1227,7 +1227,7 @@ mod test {
     #[test]
     fn exec_prepared() {
         let conn = crate::test::new_conn();
-        let results = conn.prepare(Some("test1"), "SELECT $1", &[crate::Type::TEXT]);
+        let results = conn.prepare(Some("test1"), "SELECT $1", &[crate::ty::TEXT]);
         assert_eq!(results.status(), crate::Status::CommandOk);
 
         let results = conn.describe_prepared(Some("test1"));
@@ -1264,7 +1264,7 @@ mod test {
 
         conn.send_query_params(
             "SELECT $1",
-            &[crate::Type::TEXT],
+            &[crate::ty::TEXT],
             &[Some(b"fooo\0".to_vec())],
             &[],
             crate::Format::Text,
@@ -1279,7 +1279,7 @@ mod test {
     #[test]
     fn send_prepare() {
         let conn = crate::test::new_conn();
-        conn.send_prepare(None, "SELECT $1", &[crate::Type::TEXT])
+        conn.send_prepare(None, "SELECT $1", &[crate::ty::TEXT])
             .unwrap();
         while conn.result().is_some() {}
 
@@ -1295,9 +1295,9 @@ mod test {
     #[test]
     fn send_error() {
         let conn = crate::test::new_conn();
-        conn.send_prepare(None, "SELECT $1", &[crate::Type::TEXT])
+        conn.send_prepare(None, "SELECT $1", &[crate::ty::TEXT])
             .unwrap();
-        let result = conn.send_prepare(None, "SELECT $1", &[crate::Type::TEXT]);
+        let result = conn.send_prepare(None, "SELECT $1", &[crate::ty::TEXT]);
         assert_eq!(
             result,
             Err("another command is already in progress\n".to_string())

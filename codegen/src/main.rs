@@ -10,8 +10,7 @@ mod sqlstate;
 mod type_gen;
 
 fn main() {
-    sqlstate::build();
-    type_gen::build();
+    type_gen::build(concat!(env!("CARGO_MANIFEST_DIR"), "/../src/ty/gen.rs"));
 }
 
 fn snake_to_camel(s: &str) -> String {

@@ -13,10 +13,13 @@ readme = "README.md"
 [dependencies]
 libc = "0.2"
 pq-sys = "0.4"
-postgres-types = "0.1"
 
 [dev-dependencies]
 tempfile = "3.1"
+
+[build-dependencies.codegen]
+version = "0.1"
+path = "codegen"
 
 [badges]
 gitlab = { repository = "sanpi/libpq.rs", branch = "master" }
