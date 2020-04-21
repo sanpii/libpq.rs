@@ -1,11 +1,3 @@
-#![warn(clippy::all)]
-#![allow(clippy::write_with_newline)]
-
-extern crate linked_hash_map;
-extern crate marksman_escape;
-extern crate phf_codegen;
-extern crate regex;
-
 mod sqlstate;
 mod type_gen;
 
