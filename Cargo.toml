@@ -14,9 +14,6 @@ readme = "README.md"
 libc = "0.2"
 pq-sys = "0.4"
 
-[dev-dependencies]
-tempfile = "3.1"
-
 [build-dependencies.codegen]
 version = "0.1"
 path = "codegen"
