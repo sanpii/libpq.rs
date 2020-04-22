@@ -388,6 +388,10 @@ impl Result {
     }
 }
 
+unsafe impl Send for Result {}
+
+unsafe impl Sync for Result {}
+
 impl Drop for Result {
     fn drop(&mut self) {
         unsafe { pq_sys::PQclear(self.into()) };
