@@ -10,6 +10,10 @@ pub use status::*;
 
 use std::convert::TryInto;
 
+pub type NoticeProcessor = pq_sys::PQnoticeProcessor;
+pub type NoticeReceiver = pq_sys::PQnoticeReceiver;
+
+#[derive(Clone)]
 pub struct Connection {
     conn: *mut pq_sys::PGconn,
 }
@@ -321,7 +325,7 @@ impl Connection {
      *
      * # Safety
      *
-     * This function return a `void*` pointer.
+     * This function returns a `void*` pointer.
      */
     pub unsafe fn ssl_struct(&self, struct_name: &str) -> *const std::ffi::c_void {
         pq_sys::PQsslStruct(self.into(), crate::cstr!(struct_name))
@@ -334,7 +338,7 @@ impl Connection {
      *
      * # Safety
      *
-     * This function return a `void*` pointer.
+     * This function returns a `void*` pointer.
      */
     pub unsafe fn ssl(&self) -> *const std::ffi::c_void {
         pq_sys::PQgetssl(self.into())
@@ -1072,6 +1076,36 @@ impl Connection {
             0 => Err("COPY still in progress".to_string()),
             _ => Ok(crate::ffi::to_string(buffer)),
         }
+    }
+
+    /**
+     * See [Notice Processing](https://www.postgresql.org/docs/12/libpq-notice-processing.html).
+     *
+     * # Safety
+     *
+     * This function takes a `void*` pointer as argument.
+     */
+    pub unsafe fn set_notice_processor(
+        &self,
+        proc: NoticeProcessor,
+        arg: *mut libc::c_void,
+    ) -> NoticeProcessor {
+        pq_sys::PQsetNoticeProcessor(self.into(), proc, arg)
+    }
+
+    /**
+     * See [Notice Processing](https://www.postgresql.org/docs/12/libpq-notice-processing.html).
+     *
+     * # Safety
+     *
+     * This function takes a `void*` pointer as argument.
+     */
+    pub unsafe fn set_notice_receiver(
+        &self,
+        proc: NoticeReceiver,
+        arg: *mut libc::c_void,
+    ) -> NoticeReceiver {
+        pq_sys::PQsetNoticeReceiver(self.into(), proc, arg)
     }
 }
 
