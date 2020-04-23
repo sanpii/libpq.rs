@@ -26,6 +26,8 @@ impl Connection {
      * [PQconnectdb](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTDB).
      */
     pub fn new(dsn: &str) -> std::result::Result<Self, String> {
+        log::debug!("Connecting to '{}'", dsn);
+
         unsafe { pq_sys::PQconnectdb(crate::cstr!(dsn)) }.try_into()
     }
 
@@ -38,6 +40,8 @@ impl Connection {
         params: &std::collections::HashMap<&str, &str>,
         expand_dbname: bool,
     ) -> std::result::Result<Self, String> {
+        log::debug!("Connecting with params {:?}", params);
+
         let mut keywords = params.keys().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
         keywords.push(std::ptr::null());
 
@@ -56,6 +60,7 @@ impl Connection {
      * See [PQconnectStart](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTSTART).
      */
     pub fn start(conninfo: &str) -> std::result::Result<Self, String> {
+        log::debug!("Starting connection to '{}'", conninfo);
         unsafe { pq_sys::PQconnectStart(crate::cstr!(conninfo)) }.try_into()
     }
 
@@ -68,6 +73,8 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> std::result::Result<Self, String> {
+        log::debug!("Starting connection with params {:?}", params);
+
         let mut keywords = params.keys().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
         keywords.push(std::ptr::null());
 
@@ -391,6 +398,8 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> crate::ping::Status {
+        log::debug!("Ping with params {:?}", params);
+
         let mut keywords = params.keys().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
         keywords.push(std::ptr::null());
 
@@ -412,6 +421,8 @@ impl Connection {
      * See [PQping](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQPING).
      */
     pub fn ping(dsn: &str) -> crate::ping::Status {
+        log::debug!("Ping '{}'", dsn);
+
         unsafe { pq_sys::PQping(crate::cstr!(dsn)) }.into()
     }
 
@@ -421,6 +432,8 @@ impl Connection {
      * See [PQexec](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQEXEC).
      */
     pub fn exec(&self, query: &str) -> crate::Result {
+        log::debug!("Execute query '{}'", query);
+
         unsafe { pq_sys::PQexec(self.into(), crate::cstr!(query)) }.into()
     }
 
@@ -440,6 +453,23 @@ impl Connection {
     ) -> crate::Result {
         let (types, values, formats, lengths) =
             Self::transform_params(param_types, param_values, param_formats);
+
+        if log::log_enabled!(log::Level::Debug) {
+            let mut p = Vec::new();
+
+            for (x, value) in param_values.iter().enumerate() {
+                let v = if let Some(s) = value {
+                    String::from_utf8(s.to_vec()).unwrap_or_else(|_| "?".to_string())
+                } else {
+                    "null".to_string()
+                };
+                let t = param_types.get(x).unwrap_or_else(|| &crate::ty::TEXT);
+
+                p.push(format!("'{}'::{}", v, t.name));
+            }
+
+            log::debug!("Execute query '{}' with params [{}]", command, p.join(", "));
+        }
 
         unsafe {
             pq_sys::PQexecParams(
@@ -479,6 +509,17 @@ impl Connection {
         query: &str,
         param_types: &[crate::Type],
     ) -> crate::Result {
+        log::debug!(
+            "Prepare {} query '{}' with param types [{}]",
+            name.unwrap_or("anonymous"),
+            query,
+            param_types
+                .iter()
+                .map(|x| x.name)
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
         let types = param_types.iter().map(|x| x.oid).collect::<Vec<_>>();
 
         unsafe {
@@ -505,8 +546,8 @@ impl Connection {
 
         for (x, value) in param_values.iter().enumerate() {
             let oid = match param_types.get(x) {
+                None | Some(&crate::ty::TEXT) => 0,
                 Some(ty) => ty.oid,
-                None => 0,
             };
             types.push(oid);
 
@@ -541,6 +582,24 @@ impl Connection {
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> crate::Result {
+        log::debug!(
+            "Execute {} prepared query with params [{}]",
+            name.unwrap_or("anonymous"),
+            param_values.iter()
+                .map(|x|
+                    if let Some(s) = x {
+                        match String::from_utf8(s.to_vec()) {
+                            Ok(str) => format!("'{}'", str),
+                            Err(_) => "?".to_string(),
+                        }
+                    } else {
+                        "null".to_string()
+                    }
+                )
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
         let (_, values, formats, lengths) =
             Self::transform_params(&[], param_values, param_formats);
 
@@ -643,6 +702,8 @@ impl Connection {
      * See [PQsetClientEncoding](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETCLIENTENCODING).
      */
     pub fn set_client_encoding(&self, encoding: crate::Encoding) {
+        log::debug!("Setting client encoding to '{:?}'", encoding);
+
         unsafe {
             pq_sys::PQsetClientEncoding(self.into(), crate::cstr!(&encoding.to_string()));
         }
@@ -655,6 +716,8 @@ impl Connection {
      * See [PQsetErrorVerbosity](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETERRORVERBOSITY).
      */
     pub fn set_error_verbosity(&self, verbosity: crate::Verbosity) -> crate::Verbosity {
+        log::debug!("Setting client encoding to '{:?}'", verbosity);
+
         unsafe { pq_sys::PQsetErrorVerbosity(self.into(), verbosity.into()) }.into()
     }
 
@@ -665,6 +728,8 @@ impl Connection {
      */
     pub fn trace(&self, file: std::fs::File) {
         use std::os::unix::io::IntoRawFd;
+
+        log::debug!("Enable trace");
 
         unsafe {
             let stream = libc::fdopen(file.into_raw_fd(), crate::cstr!("w"));
@@ -678,6 +743,8 @@ impl Connection {
      * See [PQuntrace](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQUNTRACE).
      */
     pub fn untrace(&self) {
+        log::debug!("Disable trace");
+
         unsafe {
             pq_sys::PQuntrace(self.into());
         }
@@ -706,6 +773,8 @@ impl Connection {
      * [PQsendQuery](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDQUERY).
      */
     pub fn send_query(&self, command: &str) -> std::result::Result<(), String> {
+        log::debug!("Sending query '{}'", command);
+
         let success = unsafe { pq_sys::PQsendQuery(self.into(), crate::cstr!(command)) };
 
         if success == 1 {
@@ -733,6 +802,23 @@ impl Connection {
     ) -> std::result::Result<(), String> {
         let (types, values, formats, lengths) =
             Self::transform_params(param_types, param_values, param_formats);
+
+        if log::log_enabled!(log::Level::Debug) {
+            let mut p = Vec::new();
+
+            for (x, value) in param_values.iter().enumerate() {
+                let v = if let Some(s) = value {
+                    String::from_utf8(s.to_vec()).unwrap_or_else(|_| "?".to_string())
+                } else {
+                    "null".to_string()
+                };
+                let t = param_types.get(x).unwrap_or_else(|| &crate::ty::TEXT);
+
+                p.push(format!("'{}'::{}", v, t.name));
+            }
+
+            log::debug!("Sending query '{}' with params [{}]", command, p.join(", "));
+        }
 
         let success = unsafe {
             pq_sys::PQsendQueryParams(
@@ -781,6 +867,17 @@ impl Connection {
         query: &str,
         param_types: &[crate::Type],
     ) -> std::result::Result<(), String> {
+        log::debug!(
+            "Sending prepare {} query '{}' with param types [{}]",
+            name.unwrap_or("anonymous"),
+            query,
+            param_types
+                .iter()
+                .map(|x| x.name)
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
         let types = param_types.iter().map(|x| x.oid).collect::<Vec<_>>();
 
         let success = unsafe {
@@ -814,6 +911,24 @@ impl Connection {
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> std::result::Result<(), String> {
+        log::debug!(
+            "Send {} prepared query with params [{}]",
+            name.unwrap_or("anonymous"),
+            param_values.iter()
+                .map(|x|
+                    if let Some(s) = x {
+                        match String::from_utf8(s.to_vec()) {
+                            Ok(str) => format!("'{}'", str),
+                            Err(_) => "?".to_string(),
+                        }
+                    } else {
+                        "null".to_string()
+                    }
+                )
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
         let (_, values, formats, lengths) =
             Self::transform_params(&[], param_values, param_formats);
 
@@ -852,6 +967,8 @@ impl Connection {
      * See [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
     pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), String> {
+        log::debug!("Sending describe prepared query {}", name.unwrap_or("anonymous"));
+
         let success = unsafe {
             pq_sys::PQsendDescribePrepared(self.into(), crate::cstr!(name.unwrap_or_default()))
         };
@@ -872,6 +989,8 @@ impl Connection {
      * [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
     pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), String> {
+        log::debug!("Sending describe portal {}", name.unwrap_or("anonymous"));
+
         let success = unsafe {
             pq_sys::PQsendDescribePortal(self.into(), crate::cstr!(name.unwrap_or_default()))
         };
@@ -907,6 +1026,8 @@ impl Connection {
      * [PQconsumeInput](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQCONSUMEINPUT).
      */
     pub fn consume_input(&self) -> std::result::Result<(), String> {
+        log::debug!("Consume input");
+
         let success = unsafe { pq_sys::PQconsumeInput(self.into()) };
 
         if success == 1 {
@@ -934,6 +1055,12 @@ impl Connection {
      * [PQsetnonblocking](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSETNONBLOCKING).
      */
     pub fn set_non_blocking(&self, non_blocking: bool) -> std::result::Result<(), ()> {
+        if non_blocking {
+            log::debug!("Set non blocking");
+        } else {
+            log::debug!("Set blocking");
+        }
+
         let status = unsafe { pq_sys::PQsetnonblocking(self.into(), non_blocking as i32) };
 
         if status < 0 {
@@ -959,6 +1086,8 @@ impl Connection {
      * See [PQflush](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQFLUSH).
      */
     pub fn flush(&self) -> std::result::Result<(), ()> {
+        log::debug!("Flush");
+
         let status = unsafe { pq_sys::PQflush(self.into()) };
 
         if status == 0 {
@@ -975,6 +1104,8 @@ impl Connection {
      * [PQsetSingleRowMode](https://www.postgresql.org/docs/current/libpq-single-row-mode.html#LIBPQ-PQSETSINGLEROWMODE).
      */
     pub fn set_single_row_mode(&self) -> std::result::Result<(), ()> {
+        log::debug!("Set single row mode");
+
         let success = unsafe { pq_sys::PQsetSingleRowMode(self.into()) };
 
         if success == 1 {
@@ -1018,6 +1149,8 @@ impl Connection {
      * [PQputCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYDATA).
      */
     pub fn put_copy_data(&self, buffer: &str) -> std::result::Result<(), String> {
+        log::debug!("Sending copy data");
+
         let success = unsafe {
             pq_sys::PQputCopyData(self.into(), crate::cstr!(buffer), buffer.len() as i32)
         };
@@ -1039,6 +1172,8 @@ impl Connection {
      * [PQputCopyEnd](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYEND).
      */
     pub fn put_copy_end(&self, errormsg: Option<&str>) -> std::result::Result<(), String> {
+        log::debug!("End of copy");
+
         let cstr = if let Some(msg) = errormsg {
             crate::cstr!(msg)
         } else {

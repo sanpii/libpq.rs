@@ -10,6 +10,8 @@ impl Cancel {
      * See [PQcancel](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQCANCEL).
      */
     pub fn request(&self) -> std::result::Result<(), String> {
+        log::debug!("Canceling");
+
         let capacity = 256;
         let error = std::ffi::CString::new(String::with_capacity(capacity))
             .unwrap()

@@ -39,11 +39,17 @@ pub fn version() -> i32 {
 
 #[cfg(test)]
 mod test {
+    static INIT: std::sync::Once = std::sync::Once::new();
+
     pub fn dsn() -> String {
         std::env::var("PQ_DSN").unwrap_or_else(|_| "host=localhost".to_string())
     }
 
     pub fn new_conn() -> crate::Connection {
+        INIT.call_once(|| {
+            pretty_env_logger::init();
+        });
+
         crate::Connection::new(&dsn()).unwrap()
     }
 
