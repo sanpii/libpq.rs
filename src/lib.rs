@@ -10,6 +10,7 @@ pub mod ping;
 pub mod poll;
 pub mod result;
 pub mod ssl;
+pub mod state;
 pub mod transaction;
 pub mod ty;
 
@@ -24,6 +25,7 @@ pub use encoding::*;
 pub use format::*;
 pub use oid::*;
 pub use result::Result;
+pub use state::State;
 pub use status::*;
 pub use ty::Type;
 pub use verbosity::*;
