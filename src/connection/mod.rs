@@ -585,17 +585,16 @@ impl Connection {
         log::debug!(
             "Execute {} prepared query with params [{}]",
             name.unwrap_or("anonymous"),
-            param_values.iter()
-                .map(|x|
-                    if let Some(s) = x {
-                        match String::from_utf8(s.to_vec()) {
-                            Ok(str) => format!("'{}'", str),
-                            Err(_) => "?".to_string(),
-                        }
-                    } else {
-                        "null".to_string()
+            param_values
+                .iter()
+                .map(|x| if let Some(s) = x {
+                    match String::from_utf8(s.to_vec()) {
+                        Ok(str) => format!("'{}'", str),
+                        Err(_) => "?".to_string(),
                     }
-                )
+                } else {
+                    "null".to_string()
+                })
                 .collect::<Vec<_>>()
                 .join(", ")
         );
@@ -914,17 +913,16 @@ impl Connection {
         log::debug!(
             "Send {} prepared query with params [{}]",
             name.unwrap_or("anonymous"),
-            param_values.iter()
-                .map(|x|
-                    if let Some(s) = x {
-                        match String::from_utf8(s.to_vec()) {
-                            Ok(str) => format!("'{}'", str),
-                            Err(_) => "?".to_string(),
-                        }
-                    } else {
-                        "null".to_string()
+            param_values
+                .iter()
+                .map(|x| if let Some(s) = x {
+                    match String::from_utf8(s.to_vec()) {
+                        Ok(str) => format!("'{}'", str),
+                        Err(_) => "?".to_string(),
                     }
-                )
+                } else {
+                    "null".to_string()
+                })
                 .collect::<Vec<_>>()
                 .join(", ")
         );
@@ -967,7 +965,10 @@ impl Connection {
      * See [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
     pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), String> {
-        log::debug!("Sending describe prepared query {}", name.unwrap_or("anonymous"));
+        log::debug!(
+            "Sending describe prepared query {}",
+            name.unwrap_or("anonymous")
+        );
 
         let success = unsafe {
             pq_sys::PQsendDescribePrepared(self.into(), crate::cstr!(name.unwrap_or_default()))
