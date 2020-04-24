@@ -17,7 +17,7 @@ pub enum Kind {
     Unknow,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Type {
     pub oid: crate::Oid,
     pub descr: &'static str,
