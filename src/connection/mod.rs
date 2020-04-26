@@ -27,6 +27,7 @@ include!("_exec.rs");
 include!("_notice_processing.rs");
 include!("_notify.rs");
 include!("_single_row_mode.rs");
+include!("_ssl.rs");
 include!("_status.rs");
 
 impl Connection {
