@@ -192,14 +192,18 @@ impl Result {
      *
      * See [PQgetvalue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE).
      */
-    pub fn value(&self, row: usize, column: usize) -> Option<String> {
-        let raw = unsafe { pq_sys::PQgetvalue(self.into(), row as i32, column as i32) };
-        let str = crate::ffi::to_string(raw);
-
-        if str.is_empty() && self.is_null(row, column) {
+    pub fn value(&self, row: usize, column: usize) -> Option<&[u8]> {
+        if self.is_null(row, column) {
             None
         } else {
-            Some(str)
+            let slice = unsafe {
+                let raw = pq_sys::PQgetvalue(self.into(), row as i32, column as i32) as *const u8;
+                let length = self.length(row, column);
+
+                std::slice::from_raw_parts(raw, length)
+            };
+
+            Some(slice)
         }
     }
 
