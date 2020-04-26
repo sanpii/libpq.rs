@@ -8,6 +8,7 @@ pub mod encrypt;
 pub mod escape;
 pub mod ping;
 pub mod poll;
+pub mod print;
 pub mod result;
 pub mod ssl;
 pub mod state;

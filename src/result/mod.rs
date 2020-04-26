@@ -254,8 +254,11 @@ impl Result {
      *
      * See [PQprint](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQPRINT).
      */
-    pub fn print(&self, _file: std::fs::File) {
-        unimplemented!();
+    pub fn print(&self, output: &dyn std::os::unix::io::AsRawFd, option: &crate::print::Options) {
+        unsafe {
+            let stream = libc::fdopen(output.as_raw_fd(), crate::cstr!("w"));
+            pq_sys::PQprint(stream as *mut pq_sys::__sFILE, self.into(), &option.into());
+        }
     }
 
     /**
