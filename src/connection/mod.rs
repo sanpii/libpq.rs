@@ -29,6 +29,7 @@ include!("_notify.rs");
 include!("_single_row_mode.rs");
 include!("_ssl.rs");
 include!("_status.rs");
+include!("_threading.rs");
 
 impl Connection {
     fn transform_params(
