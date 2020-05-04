@@ -37,6 +37,10 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
     ) -> (Vec<u32>, Vec<*const i8>, Vec<i32>, Vec<i32>) {
+        if param_values.is_empty() {
+            return Default::default();
+        }
+
         let mut types = Vec::new();
         let mut values = Vec::new();
         let mut formats = Vec::new();
