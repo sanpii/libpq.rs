@@ -393,6 +393,33 @@ impl Result {
             Ok(space)
         }
     }
+
+    /**
+     * Really old printing routines.
+     */
+    pub fn display_tuples(
+        &self,
+        file: std::fs::File,
+        fill_align: bool,
+        field_sep: Option<&str>,
+        print_header: bool,
+        quiet: bool,
+    ) {
+        use std::os::unix::io::IntoRawFd;
+
+        unsafe {
+            let fp = libc::fdopen(file.into_raw_fd(), crate::cstr!("w"));
+            let sep = field_sep.map_or(std::ptr::null(), |x| cstr!(x));
+            pq_sys::PQdisplayTuples(
+                self.into(),
+                fp as *mut pq_sys::__sFILE,
+                fill_align as i32,
+                sep,
+                print_header as i32,
+                quiet as i32,
+            );
+        }
+    }
 }
 
 unsafe impl Send for Result {}
