@@ -73,6 +73,21 @@ impl Connection {
     /**
      * Makes a new connection to the database server.
      *
+     * See [PQsetdb](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQSETDB).
+     */
+    pub fn set_db(
+        host: Option<&str>,
+        port: Option<&str>,
+        options: Option<&str>,
+        tty: Option<&str>,
+        db_name: Option<&str>,
+    ) -> std::result::Result<Self, String> {
+        Self::login(host, port, options, tty, db_name, None, None)
+    }
+
+    /**
+     * Makes a new connection to the database server.
+     *
      * See
      * [PQsetdbLogin](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQSETDBLOGIN).
      */
