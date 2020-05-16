@@ -39,7 +39,7 @@ impl Connection {
                 } else {
                     "null".to_string()
                 };
-                let t = param_types.get(x).unwrap_or_else(|| &crate::ty::TEXT);
+                let t = param_types.get(x).unwrap_or_else(|| &crate::types::TEXT);
 
                 p.push(format!("'{}'::{}", v, t.name));
             }

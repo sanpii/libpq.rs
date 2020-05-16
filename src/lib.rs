@@ -13,7 +13,7 @@ pub mod result;
 pub mod ssl;
 pub mod state;
 pub mod transaction;
-pub mod ty;
+pub mod types;
 
 mod encoding;
 mod format;
@@ -28,7 +28,7 @@ pub use oid::*;
 pub use result::Result;
 pub use state::State;
 pub use status::*;
-pub use ty::Type;
+pub use types::Type;
 pub use verbosity::*;
 
 /**
