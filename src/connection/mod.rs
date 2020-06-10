@@ -13,7 +13,6 @@ use std::convert::TryInto;
 pub type NoticeProcessor = pq_sys::PQnoticeProcessor;
 pub type NoticeReceiver = pq_sys::PQnoticeReceiver;
 
-#[derive(Clone)]
 pub struct Connection {
     conn: *mut pq_sys::PGconn,
 }
