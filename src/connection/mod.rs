@@ -17,6 +17,8 @@ pub struct Connection {
     conn: *mut pq_sys::PGconn,
 }
 
+unsafe impl Send for Connection {}
+
 include!("_async.rs");
 include!("_cancel.rs");
 include!("_connect.rs");
@@ -144,6 +146,18 @@ impl std::fmt::Debug for Connection {
 
 #[cfg(test)]
 mod test {
+    #[test]
+    fn thread() {
+        let conn = crate::test::new_conn();
+        assert!(crate::Connection::is_thread_safe());
+
+        let thread = std::thread::spawn(move || {
+            assert_eq!(conn.exec("SELECT 1").status(), crate::Status::TupplesOk)
+        });
+
+        thread.join().ok();
+    }
+
     #[test]
     fn reset() {
         let conn = crate::test::new_conn();
