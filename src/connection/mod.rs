@@ -430,6 +430,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(unix)]
     fn trace() {
         let conn = crate::test::new_conn();
         let file = std::fs::File::create("trace.txt").unwrap();

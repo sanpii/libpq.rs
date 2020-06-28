@@ -262,6 +262,7 @@ impl Result {
      *
      * See [PQprint](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQPRINT).
      */
+    #[cfg(unix)]
     pub fn print(&self, output: &dyn std::os::unix::io::AsRawFd, option: &crate::print::Options) {
         unsafe {
             let stream = libc::fdopen(output.as_raw_fd(), crate::cstr!("w"));
@@ -407,6 +408,7 @@ impl Result {
     /**
      * Really old printing routines.
      */
+    #[cfg(unix)]
     pub fn display_tuples(
         &self,
         file: std::fs::File,

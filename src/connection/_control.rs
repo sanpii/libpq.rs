@@ -42,6 +42,7 @@ impl Connection {
      *
      * See [PQtrace](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQTRACE).
      */
+    #[cfg(unix)]
     pub fn trace(&self, file: std::fs::File) {
         use std::os::unix::io::IntoRawFd;
 
@@ -58,6 +59,7 @@ impl Connection {
      *
      * See [PQuntrace](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQUNTRACE).
      */
+    #[cfg(unix)]
     pub fn untrace(&self) {
         log::debug!("Disable trace");
 
