@@ -47,6 +47,11 @@ impl Result {
     pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&str> {
         unsafe {
             let ptr = pq_sys::PQresultErrorField(self.into(), field.into());
+
+            if ptr.is_null() {
+                return None;
+            }
+
             let cstr = std::ffi::CStr::from_ptr(ptr);
             let s = cstr.to_str().unwrap();
 
