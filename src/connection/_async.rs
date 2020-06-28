@@ -31,15 +31,17 @@ impl Connection {
     pub fn send_query_params(
         &self,
         command: &str,
-        param_types: &[crate::Type],
+        param_types: &[crate::Oid],
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> std::result::Result<(), String> {
-        let (types, values, formats, lengths) =
-            Self::transform_params(param_types, param_values, param_formats);
+        let (values, formats, lengths) =
+            Self::transform_params(param_values, param_formats);
 
         if log::log_enabled!(log::Level::Debug) {
+            use std::convert::TryFrom;
+
             let mut p = Vec::new();
 
             for (x, value) in param_values.iter().enumerate() {
@@ -48,7 +50,10 @@ impl Connection {
                 } else {
                     "null".to_string()
                 };
-                let t = param_types.get(x).unwrap_or_else(|| &crate::types::TEXT);
+                let default_type = crate::types::TEXT;
+                let t = crate::Type::try_from(
+                    *param_types.get(x).unwrap_or(&default_type.oid)
+                ).unwrap_or(default_type);
 
                 p.push(format!("'{}'::{}", v, t.name));
             }
@@ -61,10 +66,10 @@ impl Connection {
                 self.into(),
                 crate::cstr!(command),
                 values.len() as i32,
-                if types.is_empty() {
+                if param_types.is_empty() {
                     std::ptr::null()
                 } else {
-                    types.as_ptr()
+                    param_types.as_ptr()
                 },
                 values.as_ptr(),
                 if lengths.is_empty() {
@@ -101,7 +106,7 @@ impl Connection {
         &self,
         name: Option<&str>,
         query: &str,
-        param_types: &[crate::Type],
+        param_types: &[crate::Oid],
     ) -> std::result::Result<(), String> {
         log::debug!(
             "Sending prepare {} query '{}' with param types [{}]",
@@ -109,20 +114,25 @@ impl Connection {
             query,
             param_types
                 .iter()
-                .map(|x| x.name)
+                .map(|oid| {
+                    use std::convert::TryFrom;
+
+                    let t = crate::Type::try_from(*oid)
+                        .unwrap_or(crate::types::UNKNOWN);
+
+                    t.name
+                })
                 .collect::<Vec<_>>()
                 .join(", ")
         );
-
-        let types = param_types.iter().map(|x| x.oid).collect::<Vec<_>>();
 
         let success = unsafe {
             pq_sys::PQsendPrepare(
                 self.into(),
                 crate::cstr!(name.unwrap_or_default()),
                 crate::cstr!(query),
-                types.len() as i32,
-                types.as_ptr(),
+                param_types.len() as i32,
+                param_types.as_ptr(),
             )
         };
 
@@ -164,8 +174,8 @@ impl Connection {
                 .join(", ")
         );
 
-        let (_, values, formats, lengths) =
-            Self::transform_params(&[], param_values, param_formats);
+        let (values, formats, lengths) =
+            Self::transform_params(param_values, param_formats);
 
         let success = unsafe {
             pq_sys::PQsendQueryPrepared(
