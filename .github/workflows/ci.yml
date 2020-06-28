@@ -1,0 +1,86 @@
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master, test ]
+
+env:
+  CARGO_TERM_COLOR: always
+  PQ_DSN: postgres://postgres:root@localhost/
+
+jobs:
+  lint_fmt:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+      - name: Check formating
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  lint_clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+
+  tests:
+    name: Tests
+    strategy:
+      matrix:
+        rust: ["stable", "beta", "nightly"]
+        os: ["ubuntu-latest", "macos-latest"]
+        mode: ["debug", "release"]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Install postgreSQL (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev postgresql
+          sudo service postgresql start && sleep 3
+          sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
+
+      - name: Install postgreSQL (MacOS)
+        if: runner.os == 'macOS'
+        run: |
+          /usr/local/opt/postgres/bin/pg_ctl -D /usr/local/var/postgres start
+          sleep 3
+          /usr/local/opt/postgres/bin/createuser --superuser postgres
+          psql --username postgres --command "ALTER USER postgres PASSWORD 'root';"
+
+      - name: Install postgres (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          choco install postgresql --force --params '/Password:root'
+
+      - name: Run tests (debug)
+        if: matrix.mode == 'debug'
+        run: cargo test
+
+      - name: Run tests (release)
+        if: matrix.mode == 'release'
+        run: cargo test --release
