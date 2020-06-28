@@ -47,6 +47,36 @@ impl Info {
         }
     }
 
+    fn from_raw(info: *mut pq_sys::_PQconninfoOption) -> Self {
+        unsafe {
+            Self {
+                keyword: crate::ffi::to_string((*info).keyword),
+                envvar: if (*info).envvar.is_null() {
+                    None
+                } else {
+                    Some(crate::ffi::to_string((*info).envvar))
+                },
+                compiled: if (*info).compiled.is_null() {
+                    None
+                } else {
+                    Some(crate::ffi::to_string((*info).compiled))
+                },
+                val: if (*info).val.is_null() {
+                    None
+                } else {
+                    Some(crate::ffi::to_string((*info).val))
+                },
+                label: if (*info).label.is_null() {
+                    None
+                } else {
+                    Some(crate::ffi::to_string((*info).label))
+                },
+                dispchar: crate::ffi::to_string((*info).dispchar),
+                dispsize: (*info).dispsize,
+            }
+        }
+    }
+
     fn vec_from_nta(raw: *mut pq_sys::_PQconninfoOption) -> Vec<Self> {
         let mut vec = Vec::new();
 
@@ -80,33 +110,7 @@ impl Default for Info {
 #[doc(hidden)]
 impl From<*mut pq_sys::_PQconninfoOption> for Info {
     fn from(info: *mut pq_sys::_PQconninfoOption) -> Self {
-        unsafe {
-            Self {
-                keyword: crate::ffi::to_string((*info).keyword),
-                envvar: if (*info).envvar.is_null() {
-                    None
-                } else {
-                    Some(crate::ffi::to_string((*info).envvar))
-                },
-                compiled: if (*info).compiled.is_null() {
-                    None
-                } else {
-                    Some(crate::ffi::to_string((*info).compiled))
-                },
-                val: if (*info).val.is_null() {
-                    None
-                } else {
-                    Some(crate::ffi::to_string((*info).val))
-                },
-                label: if (*info).label.is_null() {
-                    None
-                } else {
-                    Some(crate::ffi::to_string((*info).label))
-                },
-                dispchar: crate::ffi::to_string((*info).dispchar),
-                dispsize: (*info).dispsize,
-            }
-        }
+        Self::from_raw(info)
     }
 }
 
