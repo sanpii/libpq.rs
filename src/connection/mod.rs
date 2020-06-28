@@ -279,19 +279,23 @@ mod test {
         let result = conn.result().unwrap();
         assert_eq!(result.value(0, 0), Some(&b"fooo"[..]));
 
-        let options = crate::print::Options {
-            header: true,
-            align: true,
-            standard: false,
-            html3: false,
-            expanded: false,
-            pager: false,
-            field_sep: "|".to_string(),
-            table_opt: String::new(),
-            caption: String::new(),
-            field_name: Vec::new(),
-        };
-        result.print(&std::io::stdout(), &options);
+        #[cfg(unix)]
+        {
+            let options = crate::print::Options {
+                header: true,
+                align: true,
+                standard: false,
+                html3: false,
+                expanded: false,
+                pager: false,
+                field_sep: "|".to_string(),
+                table_opt: String::new(),
+                caption: String::new(),
+                field_name: Vec::new(),
+            };
+
+            result.print(&std::io::stdout(), &options);
+        }
     }
 
     #[test]
