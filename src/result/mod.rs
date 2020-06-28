@@ -44,10 +44,18 @@ impl Result {
      *
      * See [PQresultErrorField](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORFIELD).
      */
-    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<String> {
-        crate::ffi::to_option_string(unsafe {
-            pq_sys::PQresultErrorField(self.into(), field.into())
-        })
+    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&str> {
+        unsafe {
+            let ptr = pq_sys::PQresultErrorField(self.into(), field.into());
+            let cstr = std::ffi::CStr::from_ptr(ptr);
+            let s = cstr.to_str().unwrap();
+
+            if s.is_empty() {
+                None
+            } else {
+                Some(s)
+            }
+        }
     }
 
     /**
