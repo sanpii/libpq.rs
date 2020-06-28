@@ -84,3 +84,16 @@ jobs:
       - name: Run tests (release)
         if: matrix.mode == 'release'
         run: cargo test --release
+
+  valgrind:
+    name: Memory check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: build
+        run: cargo test --no-run
+      - name: valgrind
+        run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)

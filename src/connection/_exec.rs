@@ -10,7 +10,8 @@ impl Connection {
     pub fn exec(&self, query: &str) -> crate::Result {
         log::debug!("Execute query '{}'", query);
 
-        unsafe { pq_sys::PQexec(self.into(), crate::cstr!(query)) }.into()
+        let c_query = crate::ffi::to_cstr(query);
+        unsafe { pq_sys::PQexec(self.into(), c_query.as_ptr()) }.into()
     }
 
     /**
@@ -52,10 +53,12 @@ impl Connection {
             log::debug!("Execute query '{}' with params [{}]", command, p.join(", "));
         }
 
+        let c_command = crate::ffi::to_cstr(command);
+
         unsafe {
             pq_sys::PQexecParams(
                 self.into(),
-                crate::cstr!(command),
+                c_command.as_ptr(),
                 values.len() as i32,
                 if param_types.is_empty() {
                     std::ptr::null()
@@ -108,11 +111,14 @@ impl Connection {
                 .join(", ")
         );
 
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+        let c_query = crate::ffi::to_cstr(query);
+
         unsafe {
             pq_sys::PQprepare(
                 self.into(),
-                crate::cstr!(name.unwrap_or_default()),
-                crate::cstr!(query),
+                c_name.as_ptr(),
+                c_query.as_ptr(),
                 param_types.len() as i32,
                 param_types.as_ptr(),
             )
@@ -153,10 +159,12 @@ impl Connection {
         let (values, formats, lengths) =
             Self::transform_params(param_values, param_formats);
 
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
         unsafe {
             pq_sys::PQexecPrepared(
                 self.into(),
-                crate::cstr!(name.unwrap_or_default()),
+                c_name.as_ptr(),
                 values.len() as i32,
                 values.as_ptr(),
                 if lengths.is_empty() {
@@ -182,7 +190,9 @@ impl Connection {
      * See [PQdescribePrepared](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQDESCRIBEPREPARED).
      */
     pub fn describe_prepared(&self, name: Option<&str>) -> crate::Result {
-        unsafe { pq_sys::PQdescribePrepared(self.into(), crate::cstr!(name.unwrap_or_default())) }
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
+        unsafe { pq_sys::PQdescribePrepared(self.into(), c_name.as_ptr()) }
             .into()
     }
 
@@ -192,7 +202,9 @@ impl Connection {
      * See [PQdescribePortal](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQDESCRIBEPORTAL).
      */
     pub fn describe_portal(&self, name: Option<&str>) -> crate::Result {
-        unsafe { pq_sys::PQdescribePortal(self.into(), crate::cstr!(name.unwrap_or_default())) }
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
+        unsafe { pq_sys::PQdescribePortal(self.into(), c_name.as_ptr()) }
             .into()
     }
 

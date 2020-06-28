@@ -44,7 +44,7 @@ impl Result {
      *
      * See [PQresultErrorField](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORFIELD).
      */
-    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&str> {
+    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&'static str> {
         unsafe {
             let ptr = pq_sys::PQresultErrorField(self.into(), field.into());
 
@@ -52,14 +52,7 @@ impl Result {
                 return None;
             }
 
-            let cstr = std::ffi::CStr::from_ptr(ptr);
-            let s = cstr.to_str().unwrap();
-
-            if s.is_empty() {
-                None
-            } else {
-                Some(s)
-            }
+            crate::ffi::to_option_str(ptr)
         }
     }
 
@@ -102,7 +95,8 @@ impl Result {
      * See [PQfnumber](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFNUMBER).
      */
     pub fn field_number(&self, name: &str) -> Option<usize> {
-        let number = unsafe { pq_sys::PQfnumber(self.into(), crate::cstr!(name)) };
+        let c_name = crate::ffi::to_cstr(name);
+        let number = unsafe { pq_sys::PQfnumber(self.into(), c_name.as_ptr()) };
 
         if number == -1 {
             None
@@ -269,9 +263,31 @@ impl Result {
      */
     #[cfg(unix)]
     pub fn print(&self, output: &dyn std::os::unix::io::AsRawFd, option: &crate::print::Options) {
+        let c_mode = crate::ffi::to_cstr("w");
+
+        let (_c_field_name, ptr_field_name) = crate::ffi::vec_to_nta(&option.field_name);
+
+        let c_field_sep = crate::ffi::to_cstr(&option.field_sep);
+        let c_table_opt = crate::ffi::to_cstr(&option.table_opt);
+        let c_caption = crate::ffi::to_cstr(&option.caption);
+
+        let c_option = pq_sys::_PQprintOpt {
+            header: option.header as i8,
+            align: option.align as i8,
+            standard: option.standard as i8,
+            html3: option.html3 as i8,
+            expanded: option.expanded as i8,
+            pager: option.pager as i8,
+            fieldSep: c_field_sep.as_ptr() as *mut i8,
+            tableOpt: c_table_opt.as_ptr() as *mut i8,
+            caption: c_caption.as_ptr() as *mut i8,
+            fieldName: ptr_field_name.as_ptr() as *mut *mut libc::c_char,
+        };
+
         unsafe {
-            let stream = libc::fdopen(output.as_raw_fd(), crate::cstr!("w"));
-            pq_sys::PQprint(stream as *mut pq_sys::__sFILE, self.into(), &option.into());
+            let stream = libc::fdopen(output.as_raw_fd(), c_mode.as_ptr());
+
+            pq_sys::PQprint(stream as *mut pq_sys::__sFILE, self.into(), &c_option);
         }
     }
 
@@ -424,9 +440,18 @@ impl Result {
     ) {
         use std::os::unix::io::IntoRawFd;
 
+        let c_mode = crate::ffi::to_cstr("w");
+
         unsafe {
-            let fp = libc::fdopen(file.into_raw_fd(), crate::cstr!("w"));
-            let sep = field_sep.map_or(std::ptr::null(), |x| cstr!(x));
+            let fp = libc::fdopen(file.into_raw_fd(), c_mode.as_ptr());
+
+            let c_sep = field_sep.map(crate::ffi::to_cstr);
+            let sep = if let Some(c_sep) = c_sep {
+                c_sep.as_ptr()
+            } else {
+                std::ptr::null()
+            };
+
             pq_sys::PQdisplayTuples(
                 self.into(),
                 fp as *mut pq_sys::__sFILE,

@@ -13,16 +13,16 @@ impl Cancel {
         log::debug!("Canceling");
 
         let capacity = 256;
-        let error = std::ffi::CString::new(String::with_capacity(capacity))
-            .unwrap()
-            .into_raw();
+        let c_error = crate::ffi::new_cstring(capacity);
+        let ptr_error = c_error.into_raw();
 
-        let sucess = unsafe { pq_sys::PQcancel(self.into(), error, capacity as i32) };
+        let sucess = unsafe { pq_sys::PQcancel(self.into(), ptr_error, capacity as i32) };
+        let error = crate::ffi::from_raw(ptr_error);
 
         if sucess == 1 {
             Ok(())
         } else {
-            Err(crate::ffi::to_string(error))
+            Err(error)
         }
     }
 }

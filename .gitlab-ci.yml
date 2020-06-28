@@ -22,7 +22,7 @@ lint:clippy:
     stage: test
     before_script:
         - apt update
-        - apt install sudo postgresql postgresql-server-dev-11 -y
+        - apt install sudo postgresql postgresql-server-dev-11 valgrind -y
         - sudo -u postgres pg_ctlcluster 11 main start
         - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234';";
         - sudo -u postgres psql --command "create database root with owner root;";
@@ -35,3 +35,9 @@ test:debug:
 test:release:
     <<: *test
     script: cargo test --release
+
+test:valgrind:
+    <<: *test
+    script:
+      - cargo test --no-run
+      - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)

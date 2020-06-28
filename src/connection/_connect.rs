@@ -11,7 +11,9 @@ impl Connection {
     pub fn new(dsn: &str) -> std::result::Result<Self, String> {
         log::debug!("Connecting to '{}'", dsn);
 
-        unsafe { pq_sys::PQconnectdb(crate::cstr!(dsn)) }.try_into()
+        let c_dsn = crate::ffi::to_cstr(dsn);
+
+        unsafe { pq_sys::PQconnectdb(c_dsn.as_ptr()) }.try_into()
     }
 
     /**
@@ -25,14 +27,11 @@ impl Connection {
     ) -> std::result::Result<Self, String> {
         log::debug!("Connecting with params {:?}", params);
 
-        let mut keywords = params.keys().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
-        keywords.push(std::ptr::null());
-
-        let mut values = params.values().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
-        values.push(std::ptr::null());
+        let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
+        let (_c_values, ptr_values) = crate::ffi::vec_to_nta(&params.values().collect::<Vec<_>>());
 
         unsafe {
-            pq_sys::PQconnectdbParams(keywords.as_ptr(), values.as_ptr(), expand_dbname as i32)
+            pq_sys::PQconnectdbParams(ptr_keywords.as_ptr(), ptr_values.as_ptr(), expand_dbname as i32)
         }
         .try_into()
     }
@@ -44,7 +43,10 @@ impl Connection {
      */
     pub fn start(conninfo: &str) -> std::result::Result<Self, String> {
         log::debug!("Starting connection to '{}'", conninfo);
-        unsafe { pq_sys::PQconnectStart(crate::cstr!(conninfo)) }.try_into()
+
+        let c_conninfo = crate::ffi::to_cstr(conninfo);
+
+        unsafe { pq_sys::PQconnectStart(c_conninfo.as_ptr()) }.try_into()
     }
 
     /**
@@ -58,14 +60,11 @@ impl Connection {
     ) -> std::result::Result<Self, String> {
         log::debug!("Starting connection with params {:?}", params);
 
-        let mut keywords = params.keys().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
-        keywords.push(std::ptr::null());
-
-        let mut values = params.values().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
-        values.push(std::ptr::null());
+        let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
+        let (_c_values, ptr_values) = crate::ffi::vec_to_nta(&params.values().collect::<Vec<_>>());
 
         unsafe {
-            pq_sys::PQconnectStartParams(keywords.as_ptr(), values.as_ptr(), expand_dbname as i32)
+            pq_sys::PQconnectStartParams(ptr_keywords.as_ptr(), ptr_values.as_ptr(), expand_dbname as i32)
         }
         .try_into()
     }
@@ -100,15 +99,23 @@ impl Connection {
         login: Option<&str>,
         pwd: Option<&str>,
     ) -> std::result::Result<Self, String> {
+        let c_host = crate::ffi::to_cstr(host.unwrap_or_default());
+        let c_port = crate::ffi::to_cstr(port.unwrap_or_default());
+        let c_options = crate::ffi::to_cstr(options.unwrap_or_default());
+        let c_tty = crate::ffi::to_cstr(tty.unwrap_or_default());
+        let c_db_name = crate::ffi::to_cstr(db_name.unwrap_or_default());
+        let c_login = crate::ffi::to_cstr(login.unwrap_or_default());
+        let c_pwd = crate::ffi::to_cstr(pwd.unwrap_or_default());
+
         unsafe {
             pq_sys::PQsetdbLogin(
-                crate::cstr!(host.unwrap_or_default()),
-                crate::cstr!(port.unwrap_or_default()),
-                crate::cstr!(options.unwrap_or_default()),
-                crate::cstr!(tty.unwrap_or_default()),
-                crate::cstr!(db_name.unwrap_or_default()),
-                crate::cstr!(login.unwrap_or_default()),
-                crate::cstr!(pwd.unwrap_or_default()),
+                c_host.as_ptr(),
+                c_port.as_ptr(),
+                c_options.as_ptr(),
+                c_tty.as_ptr(),
+                c_db_name.as_ptr(),
+                c_login.as_ptr(),
+                c_pwd.as_ptr(),
             )
         }
         .try_into()
@@ -163,13 +170,10 @@ impl Connection {
     ) -> crate::ping::Status {
         log::debug!("Ping with params {:?}", params);
 
-        let mut keywords = params.keys().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
-        keywords.push(std::ptr::null());
+        let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
+        let (_c_values, ptr_values) = crate::ffi::vec_to_nta(&params.values().collect::<Vec<_>>());
 
-        let mut values = params.values().map(|x| crate::cstr!(x)).collect::<Vec<_>>();
-        values.push(std::ptr::null());
-
-        unsafe { pq_sys::PQpingParams(keywords.as_ptr(), values.as_ptr(), expand_dbname as i32) }
+        unsafe { pq_sys::PQpingParams(ptr_keywords.as_ptr(), ptr_values.as_ptr(), expand_dbname as i32) }
             .into()
     }
 
@@ -186,7 +190,9 @@ impl Connection {
     pub fn ping(dsn: &str) -> crate::ping::Status {
         log::debug!("Ping '{}'", dsn);
 
-        unsafe { pq_sys::PQping(crate::cstr!(dsn)) }.into()
+        let c_dsn = crate::ffi::to_cstr(dsn);
+
+        unsafe { pq_sys::PQping(c_dsn.as_ptr()) }.into()
     }
 
     /**

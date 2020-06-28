@@ -11,7 +11,9 @@ impl Connection {
     pub fn send_query(&self, command: &str) -> std::result::Result<(), String> {
         log::debug!("Sending query '{}'", command);
 
-        let success = unsafe { pq_sys::PQsendQuery(self.into(), crate::cstr!(command)) };
+        let c_command = crate::ffi::to_cstr(command);
+
+        let success = unsafe { pq_sys::PQsendQuery(self.into(), c_command.as_ptr()) };
 
         if success == 1 {
             Ok(())
@@ -61,10 +63,12 @@ impl Connection {
             log::debug!("Sending query '{}' with params [{}]", command, p.join(", "));
         }
 
+        let c_command = crate::ffi::to_cstr(command);
+
         let success = unsafe {
             pq_sys::PQsendQueryParams(
                 self.into(),
-                crate::cstr!(command),
+                c_command.as_ptr(),
                 values.len() as i32,
                 if param_types.is_empty() {
                     std::ptr::null()
@@ -126,11 +130,14 @@ impl Connection {
                 .join(", ")
         );
 
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+        let c_query = crate::ffi::to_cstr(query);
+
         let success = unsafe {
             pq_sys::PQsendPrepare(
                 self.into(),
-                crate::cstr!(name.unwrap_or_default()),
-                crate::cstr!(query),
+                c_name.as_ptr(),
+                c_query.as_ptr(),
                 param_types.len() as i32,
                 param_types.as_ptr(),
             )
@@ -177,10 +184,12 @@ impl Connection {
         let (values, formats, lengths) =
             Self::transform_params(param_values, param_formats);
 
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
         let success = unsafe {
             pq_sys::PQsendQueryPrepared(
                 self.into(),
-                crate::cstr!(name.unwrap_or_default()),
+                c_name.as_ptr(),
                 values.len() as i32,
                 values.as_ptr(),
                 if lengths.is_empty() {
@@ -217,8 +226,10 @@ impl Connection {
             name.unwrap_or("anonymous")
         );
 
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
         let success = unsafe {
-            pq_sys::PQsendDescribePrepared(self.into(), crate::cstr!(name.unwrap_or_default()))
+            pq_sys::PQsendDescribePrepared(self.into(), c_name.as_ptr())
         };
 
         if success == 1 {
@@ -239,8 +250,10 @@ impl Connection {
     pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), String> {
         log::debug!("Sending describe portal {}", name.unwrap_or("anonymous"));
 
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
         let success = unsafe {
-            pq_sys::PQsendDescribePortal(self.into(), crate::cstr!(name.unwrap_or_default()))
+            pq_sys::PQsendDescribePortal(self.into(), c_name.as_ptr())
         };
 
         if success == 1 {

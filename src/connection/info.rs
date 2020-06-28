@@ -26,9 +26,11 @@ impl Info {
      * [PQconninfoParse](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNINFOPARSE).
      */
     pub fn from(dsn: &str) -> std::result::Result<Vec<Self>, String> {
+        let c_dsn = crate::ffi::to_cstr(dsn);
+
         unsafe {
             let mut errmsg: *mut i8 = std::ptr::null_mut();
-            let raw = pq_sys::PQconninfoParse(crate::cstr!(dsn), &mut errmsg);
+            let raw = pq_sys::PQconninfoParse(c_dsn.as_ptr(), &mut errmsg);
 
             if raw.is_null() {
                 if errmsg.is_null() {

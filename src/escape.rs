@@ -1,6 +1,7 @@
 pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Result<String, String> {
+    let c_str = crate::ffi::to_cstr(str);
     unsafe {
-        let raw = pq_sys::PQescapeLiteral(conn.into(), crate::cstr!(str), str.len());
+        let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len());
 
         if raw.is_null() {
             return Err(conn
@@ -21,8 +22,9 @@ pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Resul
  * See [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
  */
 pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<String, String> {
+    let c_str = crate::ffi::to_cstr(str);
     unsafe {
-        let raw = pq_sys::PQescapeIdentifier(conn.into(), crate::cstr!(str), str.len());
+        let raw = pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len());
 
         if raw.is_null() {
             return Err(conn
@@ -42,16 +44,18 @@ pub(crate) fn string_conn(
     from: &str,
 ) -> std::result::Result<String, String> {
     let mut error = 0;
+
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
-    let cstring = std::ffi::CString::new(String::with_capacity(2 * from.len() + 1))
-        .unwrap()
-        .into_raw();
+    let cstring = crate::ffi::new_cstring(2 * from.len() + 1);
+    let raw = cstring.into_raw();
+
+    let c_from = crate::ffi::to_cstr(from);
 
     unsafe {
         pq_sys::PQescapeStringConn(
             conn.into(),
-            cstring,
-            crate::cstr!(from),
+            raw,
+            c_from.as_ptr(),
             from.len(),
             &mut error,
         );
@@ -62,22 +66,25 @@ pub(crate) fn string_conn(
                 .unwrap_or_else(|| "Unknow error".to_string()));
         }
 
-        let to = crate::ffi::to_string(cstring);
+    };
 
-        Ok(to)
-    }
+    let to = crate::ffi::from_raw(raw);
+
+    Ok(to)
 }
 
 #[deprecated(note = "Use libpq::Connection::escape_string instead")]
 pub fn string(from: &str) -> String {
+    let c_from = crate::ffi::to_cstr(from);
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
-    let cstring = std::ffi::CString::new(String::with_capacity(2 * from.len() + 1))
-        .unwrap()
-        .into_raw();
+    let cstring = crate::ffi::new_cstring(2 * from.len() + 1);
+    let raw = cstring.into_raw();
 
-    unsafe { pq_sys::PQescapeString(cstring, crate::cstr!(from), from.len()) };
+    unsafe {
+        pq_sys::PQescapeString(raw, c_from.as_ptr(), from.len());
+    };
 
-    crate::ffi::to_string(cstring)
+    crate::ffi::from_raw(raw)
 }
 
 pub(crate) fn bytea_conn(

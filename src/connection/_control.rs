@@ -20,8 +20,10 @@ impl Connection {
     pub fn set_client_encoding(&self, encoding: crate::Encoding) {
         log::debug!("Setting client encoding to '{:?}'", encoding);
 
+        let c_encoding = crate::ffi::to_cstr(&encoding.to_string());
+
         unsafe {
-            pq_sys::PQsetClientEncoding(self.into(), crate::cstr!(&encoding.to_string()));
+            pq_sys::PQsetClientEncoding(self.into(), c_encoding.as_ptr());
         }
     }
 
@@ -48,8 +50,10 @@ impl Connection {
 
         log::debug!("Enable trace");
 
+        let c_mode = crate::ffi::to_cstr("w");
+
         unsafe {
-            let stream = libc::fdopen(file.into_raw_fd(), crate::cstr!("w"));
+            let stream = libc::fdopen(file.into_raw_fd(), c_mode.as_ptr());
             pq_sys::PQtrace(self.into(), stream as *mut pq_sys::__sFILE);
         }
     }

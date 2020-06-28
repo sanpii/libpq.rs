@@ -96,8 +96,10 @@ impl Connection {
      * See [PQparameterStatus](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQPARAMETERSTATUS).
      */
     pub fn parameter_status(&self, param: &str) -> String {
+        let c_param = crate::ffi::to_cstr(param);
+
         crate::ffi::to_string(unsafe {
-            pq_sys::PQparameterStatus(self.into(), crate::cstr!(param))
+            pq_sys::PQparameterStatus(self.into(), c_param.as_ptr())
         })
     }
 
@@ -187,8 +189,10 @@ impl Connection {
      * See [PQsslAttribute](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSSLATTRIBUTE).
      */
     pub fn ssl_attribute(&self, attribute: crate::ssl::Attribute) -> Option<String> {
+        let c_attribute = crate::ffi::to_cstr(&attribute.to_string());
+
         let raw =
-            unsafe { pq_sys::PQsslAttribute(self.into(), crate::cstr!(&attribute.to_string())) };
+            unsafe { pq_sys::PQsslAttribute(self.into(), c_attribute.as_ptr()) };
 
         if raw.is_null() {
             None
@@ -221,7 +225,9 @@ impl Connection {
      * This function returns a `void*` pointer.
      */
     pub unsafe fn ssl_struct(&self, struct_name: &str) -> *const std::ffi::c_void {
-        pq_sys::PQsslStruct(self.into(), crate::cstr!(struct_name))
+        let c_struct_name = crate::ffi::to_cstr(struct_name);
+
+        pq_sys::PQsslStruct(self.into(), c_struct_name.as_ptr())
     }
 
     /**

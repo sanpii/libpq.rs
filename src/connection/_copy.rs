@@ -12,8 +12,10 @@ impl Connection {
     pub fn put_copy_data(&self, buffer: &str) -> std::result::Result<(), String> {
         log::debug!("Sending copy data");
 
+        let c_buffer = crate::ffi::to_cstr(buffer);
+
         let success = unsafe {
-            pq_sys::PQputCopyData(self.into(), crate::cstr!(buffer), buffer.len() as i32)
+            pq_sys::PQputCopyData(self.into(), c_buffer.as_ptr(), buffer.len() as i32)
         };
 
         match success {
@@ -35,13 +37,14 @@ impl Connection {
     pub fn put_copy_end(&self, errormsg: Option<&str>) -> std::result::Result<(), String> {
         log::debug!("End of copy");
 
-        let cstr = if let Some(msg) = errormsg {
-            crate::cstr!(msg)
+        let cstr = errormsg.map(crate::ffi::to_cstr);
+        let ptr = if let Some(ref cstr) = cstr {
+            cstr.as_ptr()
         } else {
             std::ptr::null()
         };
 
-        let success = unsafe { pq_sys::PQputCopyEnd(self.into(), cstr) };
+        let success = unsafe { pq_sys::PQputCopyEnd(self.into(), ptr) };
 
         match success {
             -1 => Err(self
@@ -60,9 +63,10 @@ impl Connection {
      * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA).
      */
     pub fn copy_data(&self, r#async: bool) -> std::result::Result<String, String> {
-        let mut buffer = std::ffi::CString::new("").unwrap().into_raw();
+        let mut ptr = std::ptr::null_mut();
 
-        let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut buffer, r#async as i32) };
+        let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
+        let buffer = crate::ffi::from_raw(ptr);
 
         match success {
             -2 => Err(self
@@ -70,7 +74,7 @@ impl Connection {
                 .unwrap_or_else(|| "Unknow error".to_string())),
             -1 => Err("COPY is done".to_string()),
             0 => Err("COPY still in progress".to_string()),
-            _ => Ok(crate::ffi::to_string(buffer)),
+            _ => Ok(buffer),
         }
     }
 }

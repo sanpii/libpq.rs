@@ -4,9 +4,14 @@
  * See [PQencryptPassword](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQENCRYPTPASSWORD).
  */
 pub fn password(passwd: &str, user: &str) -> String {
-    crate::ffi::to_string(unsafe {
-        pq_sys::PQencryptPassword(crate::cstr!(passwd), crate::cstr!(user))
-    })
+    let c_passwd = crate::ffi::to_cstr(passwd);
+    let c_user = crate::ffi::to_cstr(user);
+
+    let encrypt = unsafe {
+        pq_sys::PQencryptPassword(c_passwd.as_ptr(), c_user.as_ptr())
+    };
+
+    crate::ffi::from_raw(encrypt)
 }
 
 #[cfg(test)]
