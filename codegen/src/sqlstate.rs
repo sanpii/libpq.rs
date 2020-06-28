@@ -16,13 +16,11 @@ struct Error {
     message: Option<String>,
 }
 
-impl std::fmt::Display for Error
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
-    {
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-                r#"{doc}
+            r#"{doc}
 pub const {name}: State = State {{
     code: "{code}",
     name: "{name}",
@@ -33,8 +31,16 @@ pub const {name}: State = State {{
             code = self.code,
             name = self.name,
             kind = self.kind,
-            message = self.message.as_ref().map(|x| format!("Some(\"{}\")", x)).unwrap_or_else(|| "None".to_string()),
-            doc = self.message.as_ref().map(|x| format!("/// {}", x)).unwrap_or_default(),
+            message = self
+                .message
+                .as_ref()
+                .map(|x| format!("Some(\"{}\")", x))
+                .unwrap_or_else(|| "None".to_string()),
+            doc = self
+                .message
+                .as_ref()
+                .map(|x| format!("/// {}", x))
+                .unwrap_or_default(),
         )
     }
 }
@@ -110,11 +116,15 @@ impl State {{
         }}
     }}
 }}
-", from_code.join("\n")
+",
+        from_code.join("\n")
     )
 }
 
-fn make_consts(errors: &BTreeMap<String, Error>, file: &mut BufWriter<File>) -> std::io::Result<()> {
+fn make_consts(
+    errors: &BTreeMap<String, Error>,
+    file: &mut BufWriter<File>,
+) -> std::io::Result<()> {
     for (_, error) in errors {
         write!(file, "{}", error)?;
     }
