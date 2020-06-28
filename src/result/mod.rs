@@ -275,8 +275,10 @@ impl Result {
      *
      * See [PQcmdTuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCMDTUPLES).
      */
-    pub fn cmd_tuples(&self) -> Option<String> {
-        crate::ffi::to_option_string(unsafe { pq_sys::PQcmdTuples(self.into()) })
+    pub fn cmd_tuples(&self) -> usize {
+        let ntuples = crate::ffi::to_string(unsafe { pq_sys::PQcmdTuples(self.into()) });
+
+        ntuples.parse().unwrap_or_default()
     }
 
     /**
