@@ -18,7 +18,6 @@ pub struct Connection {
 }
 
 unsafe impl Send for Connection {}
-unsafe impl Sync for Connection {}
 
 include!("_async.rs");
 include!("_cancel.rs");
