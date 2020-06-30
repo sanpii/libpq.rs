@@ -144,12 +144,8 @@ impl Result {
      *
      * See [PQftype](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTYPE).
      */
-    pub fn field_type(&self, column: usize) -> Option<crate::Type> {
-        use std::convert::TryFrom;
-
-        let oid = unsafe { pq_sys::PQftype(self.into(), column as i32) };
-
-        crate::Type::try_from(oid).ok()
+    pub fn field_type(&self, column: usize) -> crate::Oid {
+        unsafe { pq_sys::PQftype(self.into(), column as i32) }
     }
 
     /**
