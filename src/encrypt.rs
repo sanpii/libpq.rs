@@ -7,9 +7,7 @@ pub fn password(passwd: &str, user: &str) -> String {
     let c_passwd = crate::ffi::to_cstr(passwd);
     let c_user = crate::ffi::to_cstr(user);
 
-    let encrypt = unsafe {
-        pq_sys::PQencryptPassword(c_passwd.as_ptr(), c_user.as_ptr())
-    };
+    let encrypt = unsafe { pq_sys::PQencryptPassword(c_passwd.as_ptr(), c_user.as_ptr()) };
 
     crate::ffi::from_raw(encrypt)
 }

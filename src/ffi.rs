@@ -30,7 +30,10 @@ pub(crate) fn to_option_string(s: *const c_char) -> Option<String> {
 
 pub(crate) fn from_raw(raw: *mut c_char) -> String {
     unsafe {
-        std::ffi::CString::from_raw(raw).to_str().unwrap().to_string()
+        std::ffi::CString::from_raw(raw)
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 }
 

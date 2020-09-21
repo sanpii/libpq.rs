@@ -52,20 +52,13 @@ pub(crate) fn string_conn(
     let c_from = crate::ffi::to_cstr(from);
 
     unsafe {
-        pq_sys::PQescapeStringConn(
-            conn.into(),
-            raw,
-            c_from.as_ptr(),
-            from.len(),
-            &mut error,
-        );
+        pq_sys::PQescapeStringConn(conn.into(), raw, c_from.as_ptr(), from.len(), &mut error);
 
         if error != 0 {
             return Err(conn
                 .error_message()
                 .unwrap_or_else(|| "Unknow error".to_string()));
         }
-
     };
 
     let to = crate::ffi::from_raw(raw);
