@@ -11,5 +11,5 @@ Add it to your dependencies:
 
 ```toml
 [dependencies]
-libpq = "0.12"
+libpq = "1.0"
 ```
