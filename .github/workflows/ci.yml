@@ -2,7 +2,7 @@ on:
   pull_request:
     branches: [ master ]
   push:
-    branches: [ master, test ]
+    branches: [ master ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -93,6 +93,15 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+
+      - name: Install postgreSQL (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev postgresql valgrind
+          sudo service postgresql start && sleep 3
+          sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
+
       - name: build
         run: cargo test --no-run
       - name: valgrind
