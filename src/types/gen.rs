@@ -176,6 +176,14 @@ pub const TABLE_AM_HANDLER: Type = Type {
     kind: Kind::Pseudo,
 };
 
+/// XID8&#91;&#93;
+pub const XID8_ARRAY: Type = Type {
+    oid: 271,
+    descr: "XID8&#91;&#93;",
+    name: "_xid8",
+    kind: Kind::Array(5069),
+};
+
 /// INDEX_AM_HANDLER - pseudo-type for the result of an index AM handler function
 pub const INDEX_AM_HANDLER: Type = Type {
     oid: 325,
@@ -897,6 +905,7 @@ pub const INTERNAL: Type = Type {
 };
 
 /// OPAQUE - obsolete, deprecated pseudo-type
+#[deprecated = "Remove in postgresql 13"]
 pub const OPAQUE: Type = Type {
     oid: 2282,
     descr: "OPAQUE - obsolete, deprecated pseudo-type",
@@ -1112,10 +1121,10 @@ pub const JSONB_ARRAY: Type = Type {
     kind: Kind::Array(3802),
 };
 
-/// ANYRANGE - pseudo-type representing a polymorphic base type that is a range
+/// ANYRANGE - pseudo-type representing a range over a polymorphic base type
 pub const ANY_RANGE: Type = Type {
     oid: 3831,
-    descr: "ANYRANGE - pseudo-type representing a polymorphic base type that is a range",
+    descr: "ANYRANGE - pseudo-type representing a range over a polymorphic base type",
     name: "anyrange",
     kind: Kind::Pseudo,
 };
@@ -1272,12 +1281,84 @@ pub const REGROLE_ARRAY: Type = Type {
     kind: Kind::Array(4096),
 };
 
+/// REGCOLLATION - registered collation
+pub const REGCOLLATION: Type = Type {
+    oid: 4191,
+    descr: "REGCOLLATION - registered collation",
+    name: "regcollation",
+    kind: Kind::Numeric,
+};
+
+/// REGCOLLATION&#91;&#93;
+pub const REGCOLLATION_ARRAY: Type = Type {
+    oid: 4192,
+    descr: "REGCOLLATION&#91;&#93;",
+    name: "_regcollation",
+    kind: Kind::Array(4191),
+};
+
 /// PG_MCV_LIST - multivariate MCV list
 pub const PG_MCV_LIST: Type = Type {
     oid: 5017,
     descr: "PG_MCV_LIST - multivariate MCV list",
     name: "pg_mcv_list",
     kind: Kind::String,
+};
+
+/// PG_SNAPSHOT - snapshot
+pub const PG_SNAPSHOT: Type = Type {
+    oid: 5038,
+    descr: "PG_SNAPSHOT - snapshot",
+    name: "pg_snapshot",
+    kind: Kind::UserDefined,
+};
+
+/// PG_SNAPSHOT&#91;&#93;
+pub const PG_SNAPSHOT_ARRAY: Type = Type {
+    oid: 5039,
+    descr: "PG_SNAPSHOT&#91;&#93;",
+    name: "_pg_snapshot",
+    kind: Kind::Array(5038),
+};
+
+/// XID8 - full transaction id
+pub const XID8: Type = Type {
+    oid: 5069,
+    descr: "XID8 - full transaction id",
+    name: "xid8",
+    kind: Kind::UserDefined,
+};
+
+/// ANYCOMPATIBLE - pseudo-type representing a polymorphic common type
+pub const ANYCOMPATIBLE: Type = Type {
+    oid: 5077,
+    descr: "ANYCOMPATIBLE - pseudo-type representing a polymorphic common type",
+    name: "anycompatible",
+    kind: Kind::Pseudo,
+};
+
+/// ANYCOMPATIBLEARRAY - pseudo-type representing an array of polymorphic common type elements
+pub const ANYCOMPATIBLEARRAY: Type = Type {
+    oid: 5078,
+    descr: "ANYCOMPATIBLEARRAY - pseudo-type representing an array of polymorphic common type elements",
+    name: "anycompatiblearray",
+    kind: Kind::Pseudo,
+};
+
+/// ANYCOMPATIBLENONARRAY - pseudo-type representing a polymorphic common type that is not an array
+pub const ANYCOMPATIBLENONARRAY: Type = Type {
+    oid: 5079,
+    descr: "ANYCOMPATIBLENONARRAY - pseudo-type representing a polymorphic common type that is not an array",
+    name: "anycompatiblenonarray",
+    kind: Kind::Pseudo,
+};
+
+/// ANYCOMPATIBLERANGE - pseudo-type representing a range over a polymorphic common type
+pub const ANYCOMPATIBLE_RANGE: Type = Type {
+    oid: 5080,
+    descr: "ANYCOMPATIBLERANGE - pseudo-type representing a range over a polymorphic common type",
+    name: "anycompatiblerange",
+    kind: Kind::Pseudo,
 };
 impl std::convert::TryFrom<u32> for Type {
     type Error = String;
@@ -1306,6 +1387,7 @@ impl std::convert::TryFrom<u32> for Type {
             194 => Ok(PG_NODE_TREE),
             199 => Ok(JSON_ARRAY),
             269 => Ok(TABLE_AM_HANDLER),
+            271 => Ok(XID8_ARRAY),
             325 => Ok(INDEX_AM_HANDLER),
             600 => Ok(POINT),
             601 => Ok(LSEG),
@@ -1396,6 +1478,7 @@ impl std::convert::TryFrom<u32> for Type {
             2279 => Ok(TRIGGER),
             2280 => Ok(LANGUAGE_HANDLER),
             2281 => Ok(INTERNAL),
+            #[allow(deprecated)]
             2282 => Ok(OPAQUE),
             2283 => Ok(ANYELEMENT),
             2287 => Ok(RECORD_ARRAY),
@@ -1443,7 +1526,16 @@ impl std::convert::TryFrom<u32> for Type {
             4090 => Ok(REGNAMESPACE_ARRAY),
             4096 => Ok(REGROLE),
             4097 => Ok(REGROLE_ARRAY),
+            4191 => Ok(REGCOLLATION),
+            4192 => Ok(REGCOLLATION_ARRAY),
             5017 => Ok(PG_MCV_LIST),
+            5038 => Ok(PG_SNAPSHOT),
+            5039 => Ok(PG_SNAPSHOT_ARRAY),
+            5069 => Ok(XID8),
+            5077 => Ok(ANYCOMPATIBLE),
+            5078 => Ok(ANYCOMPATIBLEARRAY),
+            5079 => Ok(ANYCOMPATIBLENONARRAY),
+            5080 => Ok(ANYCOMPATIBLE_RANGE),
 
             _ => Err("unknow type".to_string()),
         }

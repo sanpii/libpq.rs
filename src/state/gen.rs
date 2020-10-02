@@ -538,6 +538,13 @@ pub const DUPLICATE_JSON_OBJECT_KEY_VALUE: State = State {
     kind: Kind::Error,
     message: Some("duplicate json object key value"),
 };
+/// invalid argument for sql json datetime function
+pub const INVALID_ARGUMENT_FOR_SQL_JSON_DATETIME_FUNCTION: State = State {
+    code: "22031",
+    name: "INVALID_ARGUMENT_FOR_SQL_JSON_DATETIME_FUNCTION",
+    kind: Kind::Error,
+    message: Some("invalid argument for sql json datetime function"),
+};
 /// invalid json text
 pub const INVALID_JSON_TEXT: State = State {
     code: "22032",
@@ -1880,6 +1887,7 @@ impl State {
             "2202G" => INVALID_TABLESAMPLE_REPEAT,
             "2202H" => INVALID_TABLESAMPLE_ARGUMENT,
             "22030" => DUPLICATE_JSON_OBJECT_KEY_VALUE,
+            "22031" => INVALID_ARGUMENT_FOR_SQL_JSON_DATETIME_FUNCTION,
             "22032" => INVALID_JSON_TEXT,
             "22033" => INVALID_SQL_JSON_SUBSCRIPT,
             "22034" => MORE_THAN_ONE_SQL_JSON_ITEM,
