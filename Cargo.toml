@@ -21,6 +21,3 @@ pretty_env_logger = "0.4"
 [build-dependencies.codegen]
 version = "0.1"
 path = "codegen"
-
-[badges]
-gitlab = { repository = "sanpi/libpq.rs", branch = "master" }
