@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Notify {
     notify: *mut pq_sys::pgNotify,
 }

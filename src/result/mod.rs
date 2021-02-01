@@ -4,6 +4,7 @@ mod error_field;
 pub use attribute::*;
 pub use error_field::*;
 
+#[derive(Clone)]
 pub struct Result {
     result: *mut pq_sys::PGresult,
 }

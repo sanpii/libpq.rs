@@ -1,3 +1,4 @@
+#[derive(Clone, Debug)]
 pub struct Options {
     /* print output field headings and row count */
     pub header: bool,
