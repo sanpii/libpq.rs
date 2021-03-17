@@ -15,6 +15,7 @@ pub mod ssl;
 pub mod state;
 pub mod transaction;
 pub mod types;
+pub mod v2;
 
 mod encoding;
 mod format;

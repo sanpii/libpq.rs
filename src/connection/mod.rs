@@ -129,7 +129,7 @@ impl std::fmt::Debug for Connection {
             .field("error_message", &self.error_message())
             .field("socket", &self.socket())
             .field("backend_pid", &self.backend_pid())
-            .field("info", &self.info())
+            .field("info", &crate::v2::connection::info(&self))
             .field("needs_password", &self.needs_password())
             .field("used_password", &self.used_password())
             .field("ssl_in_use", &self.ssl_in_use())

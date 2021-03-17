@@ -201,14 +201,8 @@ impl Connection {
      * See
      * [PQconninfo](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNINFO).
      */
+    #[deprecated(since="1.2.0", note="In v2, this function will return an HashMap, use v2::connection::info instead")]
     pub fn info(&self) -> crate::connection::Info {
-        unsafe {
-            let raw = pq_sys::PQconninfo(self.into());
-            let info = raw.into();
-            pq_sys::PQconninfoFree(raw);
-
-            info
-        }
+        crate::v2::connection::info(&self).iter().next().unwrap().1.clone()
     }
-
 }
