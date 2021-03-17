@@ -1,4 +1,5 @@
 #![warn(rust_2018_idioms)]
+#![allow(clippy::result_unit_err)]
 
 #[macro_use]
 mod ffi;
