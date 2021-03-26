@@ -77,6 +77,8 @@ impl Display for LinkingOptions {
 }
 
 fn main() {
+    bindgen();
+
     println!("cargo:rerun-if-env-changed=PQ_LIB_DIR");
     println!("cargo:rerun-if-env-changed=PQ_LIB_STATIC");
     println!("cargo:rerun-if-env-changed=TARGET");
@@ -92,6 +94,20 @@ fn main() {
         println!("cargo:rustc-link-search=native={}", path);
     }
     println!("cargo:rustc-link-lib={}", LinkingOptions::from_env());
+}
+
+fn bindgen() {
+    println!("cargo:rerun-if-changed=wrapper.h");
+
+    let bindings = bindgen::Builder::default()
+        .rustified_enum(".*")
+        .header("wrapper.h")
+        .generate()
+        .expect("Unable to generate bindings");
+
+    let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
+    bindings.write_to_file(out_path.join("bindings.rs"))
+        .expect("Couldn't write bindings!");
 }
 
 #[cfg(feature = "pkg-config")]

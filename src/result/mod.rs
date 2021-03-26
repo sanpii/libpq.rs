@@ -284,7 +284,7 @@ impl Result {
         unsafe {
             let stream = libc::fdopen(output.as_raw_fd(), c_mode.as_ptr());
 
-            pq_sys::PQprint(stream as *mut pq_sys::__sFILE, self.into(), &c_option);
+            pq_sys::PQprint(stream as *mut pq_sys::__FILE, self.into(), &c_option);
         }
     }
 
@@ -414,7 +414,7 @@ impl Result {
         &mut self,
         nbytes: usize,
     ) -> std::result::Result<*mut core::ffi::c_void, ()> {
-        let space = pq_sys::PQresultAlloc(self.into(), nbytes);
+        let space = pq_sys::PQresultAlloc(self.into(), nbytes as u64);
 
         if space.is_null() {
             Err(())
@@ -451,7 +451,7 @@ impl Result {
 
             pq_sys::PQdisplayTuples(
                 self.into(),
-                fp as *mut pq_sys::__sFILE,
+                fp as *mut pq_sys::__FILE,
                 fill_align as i32,
                 sep,
                 print_header as i32,

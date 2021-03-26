@@ -1,7 +1,7 @@
 pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Result<String, String> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
-        let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len());
+        let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as u64);
 
         if raw.is_null() {
             return Err(conn
@@ -24,7 +24,7 @@ pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Resul
 pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<String, String> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
-        let raw = pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len());
+        let raw = pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len() as u64);
 
         if raw.is_null() {
             return Err(conn
@@ -52,7 +52,13 @@ pub(crate) fn string_conn(
     let c_from = crate::ffi::to_cstr(from);
 
     unsafe {
-        pq_sys::PQescapeStringConn(conn.into(), raw, c_from.as_ptr(), from.len(), &mut error);
+        pq_sys::PQescapeStringConn(
+            conn.into(),
+            raw,
+            c_from.as_ptr(),
+            from.len() as u64,
+            &mut error,
+        );
 
         if error != 0 {
             return Err(conn
@@ -74,7 +80,7 @@ pub fn string(from: &str) -> String {
     let raw = cstring.into_raw();
 
     unsafe {
-        pq_sys::PQescapeString(raw, c_from.as_ptr(), from.len());
+        pq_sys::PQescapeString(raw, c_from.as_ptr(), from.len() as u64);
     };
 
     crate::ffi::from_raw(raw)
@@ -86,13 +92,14 @@ pub(crate) fn bytea_conn(
 ) -> std::result::Result<Vec<u8>, String> {
     let to = unsafe {
         let mut len = 0;
-        let tmp = pq_sys::PQescapeByteaConn(conn.into(), from.as_ptr(), from.len(), &mut len);
+        let tmp =
+            pq_sys::PQescapeByteaConn(conn.into(), from.as_ptr(), from.len() as u64, &mut len);
         if tmp.is_null() {
             return Err(conn
                 .error_message()
                 .unwrap_or_else(|| "Unknow error".to_string()));
         }
-        let to = std::slice::from_raw_parts(tmp, len - 1).to_vec();
+        let to = std::slice::from_raw_parts(tmp, len as usize - 1).to_vec();
         pq_sys::PQfreemem(tmp as *mut std::ffi::c_void);
 
         to
@@ -108,8 +115,8 @@ pub(crate) fn bytea_conn(
 pub fn bytea(from: &[u8]) -> std::result::Result<Vec<u8>, String> {
     let to = unsafe {
         let mut len = 0;
-        let tmp = pq_sys::PQescapeBytea(from.as_ptr(), from.len(), &mut len);
-        let to = std::slice::from_raw_parts(tmp, len - 1).to_vec();
+        let tmp = pq_sys::PQescapeBytea(from.as_ptr(), from.len() as u64, &mut len);
+        let to = std::slice::from_raw_parts(tmp, len as usize - 1).to_vec();
         pq_sys::PQfreemem(tmp as *mut std::ffi::c_void);
 
         to
@@ -132,7 +139,7 @@ pub fn unescape_bytea(from: &[u8]) -> std::result::Result<Vec<u8>, ()> {
         if tmp.is_null() {
             return Err(());
         }
-        let to = std::slice::from_raw_parts(tmp, len).to_vec();
+        let to = std::slice::from_raw_parts(tmp, len as usize).to_vec();
         pq_sys::PQfreemem(tmp as *mut std::ffi::c_void);
 
         to

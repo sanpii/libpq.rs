@@ -13,14 +13,14 @@ pub enum Status {
 }
 
 #[doc(hidden)]
-impl From<pq_sys::_bindgen_ty_5> for Status {
-    fn from(status: pq_sys::_bindgen_ty_5) -> Self {
+impl From<pq_sys::PGTransactionStatusType> for Status {
+    fn from(status: pq_sys::PGTransactionStatusType) -> Self {
         match status {
-            pq_sys::_bindgen_ty_5::PQTRANS_IDLE => Self::Idle,
-            pq_sys::_bindgen_ty_5::PQTRANS_ACTIVE => Self::Active,
-            pq_sys::_bindgen_ty_5::PQTRANS_INTRANS => Self::InTrans,
-            pq_sys::_bindgen_ty_5::PQTRANS_INERROR => Self::InError,
-            pq_sys::_bindgen_ty_5::PQTRANS_UNKNOWN => Self::Unknow,
+            pq_sys::PGTransactionStatusType::PQTRANS_IDLE => Self::Idle,
+            pq_sys::PGTransactionStatusType::PQTRANS_ACTIVE => Self::Active,
+            pq_sys::PGTransactionStatusType::PQTRANS_INTRANS => Self::InTrans,
+            pq_sys::PGTransactionStatusType::PQTRANS_INERROR => Self::InError,
+            pq_sys::PGTransactionStatusType::PQTRANS_UNKNOWN => Self::Unknow,
         }
     }
 }
