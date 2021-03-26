@@ -13,7 +13,10 @@ readme = "README.md"
 [dependencies]
 log = "0.4"
 libc = "0.2"
-pq-sys = "0.4"
+
+[dependencies.pq-sys]
+path = "pq-sys"
+version = "0.4"
 
 [dev-dependencies]
 pretty_env_logger = "0.4"
