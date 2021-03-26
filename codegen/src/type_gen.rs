@@ -258,9 +258,15 @@ fn make_header(w: &mut BufWriter<File>) -> std::io::Result<()> {
 }
 
 fn make_impl(w: &mut BufWriter<File>, types: &BTreeMap<u32, Type>) -> std::io::Result<()> {
+    impl_try_from_u32(w, types)?;
+    impl_try_from_str(w, types)
+}
+
+fn impl_try_from_u32(w: &mut BufWriter<File>, types: &BTreeMap<u32, Type>) -> std::io::Result<()> {
     writeln!(
         w,
-        "impl std::convert::TryFrom<u32> for Type {{
+        "
+impl std::convert::TryFrom<u32> for Type {{
     type Error = String;
 
     fn try_from(oid: u32) -> std::result::Result<Self, Self::Error> {{
@@ -269,6 +275,31 @@ fn make_impl(w: &mut BufWriter<File>, types: &BTreeMap<u32, Type>) -> std::io::R
 
     for ty in types.values() {
         writeln!(w, "            {} => Ok({}),", ty.oid, ty.ident)?;
+    }
+
+    write!(
+        w,
+        r#"
+            _ => Err("unknow type".to_string()),
+        }}
+    }}
+}}"#
+    )
+}
+
+fn impl_try_from_str(w: &mut BufWriter<File>, types: &BTreeMap<u32, Type>) -> std::io::Result<()> {
+     writeln!(
+        w,
+        "
+impl std::str::FromStr for Type {{
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {{
+        match s {{"
+    )?;
+
+    for ty in types.values() {
+        writeln!(w, "            \"{}\" => Ok({}),", ty.name, ty.ident)?;
     }
 
     write!(
