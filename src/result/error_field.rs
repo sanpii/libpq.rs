@@ -50,8 +50,8 @@ pub enum ErrorField {
     SourceFunction = 'R' as i32,
 }
 
-impl Into<i32> for ErrorField {
-    fn into(self) -> i32 {
-        unsafe { std::mem::transmute(self) }
+impl From<ErrorField> for i32 {
+    fn from(error_field: ErrorField) -> i32 {
+        unsafe { std::mem::transmute(error_field) }
     }
 }

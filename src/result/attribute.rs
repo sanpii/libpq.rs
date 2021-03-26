@@ -10,18 +10,18 @@ pub struct Attribute {
 }
 
 #[doc(hidden)]
-impl Into<pq_sys::pgresAttDesc> for &&Attribute {
-    fn into(self) -> pq_sys::pgresAttDesc {
-        let name = std::ffi::CString::new(self.name.clone()).unwrap();
+impl From<&&Attribute> for pq_sys::pgresAttDesc {
+    fn from(attribute: &&Attribute) -> pq_sys::pgresAttDesc {
+        let name = std::ffi::CString::new(attribute.name.clone()).unwrap();
 
         pq_sys::pgresAttDesc {
             name: name.into_raw(),
-            tableid: self.tableid,
-            columnid: self.columnid,
-            format: self.format,
-            typid: self.typid,
-            typlen: self.typlen,
-            atttypmod: self.atttypmod,
+            tableid: attribute.tableid,
+            columnid: attribute.columnid,
+            format: attribute.format,
+            typid: attribute.typid,
+            typlen: attribute.typlen,
+            atttypmod: attribute.atttypmod,
         }
     }
 }

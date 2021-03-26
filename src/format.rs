@@ -11,8 +11,8 @@ impl From<i32> for Format {
     }
 }
 
-impl Into<i32> for &Format {
-    fn into(self) -> i32 {
-        unsafe { std::mem::transmute(*self) }
+impl From<&Format> for i32 {
+    fn from(format: &Format) -> i32 {
+        unsafe { std::mem::transmute(*format) }
     }
 }

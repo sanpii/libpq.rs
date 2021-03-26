@@ -47,16 +47,16 @@ impl From<pq_sys::ExecStatusType> for Status {
 }
 
 #[doc(hidden)]
-impl Into<pq_sys::_bindgen_ty_4> for Status {
-    fn into(self) -> pq_sys::_bindgen_ty_4 {
-        (&self).into()
+impl From<Status> for pq_sys::_bindgen_ty_4 {
+    fn from(status: Status) -> pq_sys::_bindgen_ty_4 {
+        (&status).into()
     }
 }
 
 #[doc(hidden)]
-impl Into<pq_sys::_bindgen_ty_4> for &Status {
-    fn into(self) -> pq_sys::_bindgen_ty_4 {
-        match *self {
+impl From<&Status> for pq_sys::_bindgen_ty_4 {
+    fn from(status: &Status) -> Self {
+        match *status {
             Status::BadResponse => pq_sys::PGRES_BAD_RESPONSE,
             Status::CommandOk => pq_sys::PGRES_COMMAND_OK,
             Status::CopyBoth => pq_sys::PGRES_COPY_BOTH,

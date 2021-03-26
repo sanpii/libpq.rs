@@ -35,9 +35,9 @@ impl From<*mut pq_sys::pg_cancel> for Cancel {
 }
 
 #[doc(hidden)]
-impl Into<*mut pq_sys::pg_cancel> for &Cancel {
-    fn into(self) -> *mut pq_sys::pg_cancel {
-        self.cancel
+impl From<&Cancel> for *mut pq_sys::pg_cancel {
+    fn from(cancel: &Cancel) -> *mut pq_sys::pg_cancel {
+        cancel.cancel
     }
 }
 

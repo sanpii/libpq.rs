@@ -27,8 +27,8 @@ pub struct Type {
 
 include!("gen.rs");
 
-impl Into<crate::Oid> for Type {
-    fn into(self) -> crate::Oid {
-        self.oid
+impl From<Type> for crate::Oid {
+    fn from(ty: Type) -> crate::Oid {
+        ty.oid
     }
 }

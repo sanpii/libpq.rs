@@ -34,9 +34,9 @@ impl From<*mut pq_sys::pgNotify> for Notify {
 }
 
 #[doc(hidden)]
-impl Into<*mut pq_sys::pgNotify> for &Notify {
-    fn into(self) -> *mut pq_sys::pgNotify {
-        self.notify
+impl From<&Notify> for *mut pq_sys::pgNotify {
+    fn from(notify: &Notify) -> *mut pq_sys::pgNotify {
+        notify.notify
     }
 }
 

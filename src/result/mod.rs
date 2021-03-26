@@ -479,23 +479,23 @@ impl From<*mut pq_sys::PGresult> for Result {
 }
 
 #[doc(hidden)]
-impl Into<*mut pq_sys::PGresult> for &Result {
-    fn into(self) -> *mut pq_sys::PGresult {
-        self.result
+impl From<&Result> for *mut pq_sys::PGresult {
+    fn from(result: &Result) -> *mut pq_sys::PGresult {
+        result.result
     }
 }
 
 #[doc(hidden)]
-impl Into<*mut pq_sys::PGresult> for &mut Result {
-    fn into(self) -> *mut pq_sys::PGresult {
-        self.result
+impl From<&mut Result> for *mut pq_sys::PGresult {
+    fn from(result: &mut Result) -> *mut pq_sys::PGresult {
+        result.result
     }
 }
 
 #[doc(hidden)]
-impl Into<*const pq_sys::PGresult> for &Result {
-    fn into(self) -> *const pq_sys::PGresult {
-        self.result
+impl From<&Result> for *const pq_sys::PGresult {
+    fn from(result: &Result) -> *const pq_sys::PGresult {
+        result.result
     }
 }
 

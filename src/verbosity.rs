@@ -23,12 +23,12 @@ impl From<pq_sys::_bindgen_ty_6> for Verbosity {
 }
 
 #[doc(hidden)]
-impl Into<pq_sys::_bindgen_ty_6> for Verbosity {
-    fn into(self) -> pq_sys::_bindgen_ty_6 {
-        match self {
-            Self::Terse => pq_sys::_bindgen_ty_6::PQERRORS_TERSE,
-            Self::Default => pq_sys::_bindgen_ty_6::PQERRORS_DEFAULT,
-            Self::Verbose => pq_sys::_bindgen_ty_6::PQERRORS_VERBOSE,
+impl From<Verbosity> for pq_sys::_bindgen_ty_6 {
+    fn from(verbosity: Verbosity) -> Self {
+        match verbosity {
+            Verbosity::Terse => pq_sys::_bindgen_ty_6::PQERRORS_TERSE,
+            Verbosity::Default => pq_sys::_bindgen_ty_6::PQERRORS_DEFAULT,
+            Verbosity::Verbose => pq_sys::_bindgen_ty_6::PQERRORS_VERBOSE,
         }
     }
 }

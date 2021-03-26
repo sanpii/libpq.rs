@@ -67,23 +67,23 @@ impl Connection {
 }
 
 #[doc(hidden)]
-impl Into<*mut pq_sys::pg_conn> for &Connection {
-    fn into(self) -> *mut pq_sys::pg_conn {
-        self.conn
+impl From<&Connection> for *mut pq_sys::pg_conn {
+    fn from(connection: &Connection) -> *mut pq_sys::pg_conn {
+        connection.conn
     }
 }
 
 #[doc(hidden)]
-impl Into<*mut pq_sys::pg_conn> for &mut Connection {
-    fn into(self) -> *mut pq_sys::pg_conn {
-        self.conn
+impl From<&mut Connection> for *mut pq_sys::pg_conn {
+    fn from(connection: &mut Connection) -> *mut pq_sys::pg_conn {
+        connection.conn
     }
 }
 
 #[doc(hidden)]
-impl Into<*const pq_sys::pg_conn> for &Connection {
-    fn into(self) -> *const pq_sys::pg_conn {
-        self.conn
+impl From<&Connection> for *const pq_sys::pg_conn {
+    fn from(connection: &Connection) -> *const pq_sys::pg_conn {
+        connection.conn
     }
 }
 
