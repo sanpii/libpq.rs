@@ -31,9 +31,7 @@ fn download(file: &str, version: u8) -> Result<()> {
     let output = format!("{}/src/{}", env!("CARGO_MANIFEST_DIR"), file_name);
     let file = std::fs::File::create(output)?;
 
-    attohttpc::get(&url)
-        .send()?
-        .write_to(&file)?;
+    attohttpc::get(&url).send()?.write_to(&file)?;
 
     Ok(())
 }

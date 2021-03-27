@@ -288,7 +288,7 @@ impl std::convert::TryFrom<u32> for Type {{
 }
 
 fn impl_try_from_str(w: &mut BufWriter<File>, types: &BTreeMap<u32, Type>) -> std::io::Result<()> {
-     writeln!(
+    writeln!(
         w,
         "
 impl std::str::FromStr for Type {{

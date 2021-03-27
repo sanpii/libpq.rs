@@ -1,17 +1,17 @@
-#[cfg(feature="pkg-config")]
+#[cfg(feature = "pkg-config")]
 extern crate pkg_config;
 
 #[cfg(target_env = "msvc")]
 extern crate vcpkg;
 
-use std::process::Command;
 use std::env;
-use std::path::PathBuf;
 use std::fmt::{self, Display};
+use std::path::PathBuf;
+use std::process::Command;
 
 enum LinkType {
     Static,
-    Dynamic
+    Dynamic,
 }
 
 impl Display for LinkType {
@@ -32,19 +32,19 @@ impl LinkingOptions {
     fn from_name_and_type(lib_name: &'static str, tpe: LinkType) -> Self {
         LinkingOptions {
             linking_type: Some(tpe),
-            lib_name
+            lib_name,
         }
     }
     fn from_name(lib_name: &'static str) -> Self {
         LinkingOptions {
             linking_type: None,
-            lib_name
+            lib_name,
         }
     }
 
     fn from_env() -> Self {
         // On Windows-MSVC, always link dynamically
-        if cfg!(all(windows, target_env="msvc")) {
+        if cfg!(all(windows, target_env = "msvc")) {
             return LinkingOptions::from_name_and_type("libpq", LinkType::Dynamic);
         }
 
@@ -55,7 +55,10 @@ impl LinkingOptions {
 
         // Examine the per-target env vars
         if let Ok(target) = env::var("TARGET") {
-            let pg_config_for_target = format!("PQ_LIB_STATIC_{}", target.to_ascii_uppercase().replace("-", "_"));
+            let pg_config_for_target = format!(
+                "PQ_LIB_STATIC_{}",
+                target.to_ascii_uppercase().replace("-", "_")
+            );
             println!("cargo:rerun-if-env-changed={}", pg_config_for_target);
             if env::var_os(&pg_config_for_target).is_some() {
                 return LinkingOptions::from_name_and_type("pq", LinkType::Static);
@@ -86,9 +89,9 @@ fn main() {
     if let Ok(lib_dir) = env::var("PQ_LIB_DIR") {
         println!("cargo:rustc-link-search=native={}", lib_dir);
     } else if configured_by_pkg_config() {
-        return // pkg_config does everything for us, including output for cargo
+        return; // pkg_config does everything for us, including output for cargo
     } else if configured_by_vcpkg() {
-        return // vcpkg does everything for us, including output for cargo
+        return; // vcpkg does everything for us, including output for cargo
     } else if let Some(path) = pg_config_output("--libdir") {
         let path = replace_homebrew_path_on_mac(path);
         println!("cargo:rustc-link-search=native={}", path);
@@ -106,7 +109,8 @@ fn bindgen() {
         .expect("Unable to generate bindings");
 
     let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    bindings.write_to_file(out_path.join("bindings.rs"))
+    bindings
+        .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }
 
@@ -122,20 +126,22 @@ fn configured_by_pkg_config() -> bool {
 
 #[cfg(target_env = "msvc")]
 fn configured_by_vcpkg() -> bool {
-    vcpkg::probe_package("libpq").map(|_| {
+    vcpkg::probe_package("libpq")
+        .map(|_| {
+            // found libpq which depends on openssl
+            vcpkg::Config::new()
+                .lib_name("libeay32")
+                .lib_name("ssleay32")
+                .probe("openssl")
+                .ok();
 
-        // found libpq which depends on openssl
-        vcpkg::Config::new()
-            .lib_name("libeay32")
-            .lib_name("ssleay32")
-            .probe("openssl").ok();
-
-        println!("cargo:rustc-link-lib=crypt32");
-        println!("cargo:rustc-link-lib=gdi32");
-        println!("cargo:rustc-link-lib=user32");
-        println!("cargo:rustc-link-lib=secur32");
-        println!("cargo:rustc-link-lib=shell32");
-    }).is_ok()
+            println!("cargo:rustc-link-lib=crypt32");
+            println!("cargo:rustc-link-lib=gdi32");
+            println!("cargo:rustc-link-lib=user32");
+            println!("cargo:rustc-link-lib=secur32");
+            println!("cargo:rustc-link-lib=shell32");
+        })
+        .is_ok()
 }
 
 #[cfg(not(target_env = "msvc"))]
@@ -145,11 +151,13 @@ fn configured_by_vcpkg() -> bool {
 
 fn pg_config_path() -> PathBuf {
     if let Ok(target) = env::var("TARGET") {
-        let pg_config_for_target = &format!("PG_CONFIG_{}", target.to_ascii_uppercase().replace("-", "_"));
+        let pg_config_for_target = &format!(
+            "PG_CONFIG_{}",
+            target.to_ascii_uppercase().replace("-", "_")
+        );
         println!("cargo:rerun-if-env-changed={}", pg_config_for_target);
         if let Some(pg_config_path) = env::var_os(pg_config_for_target) {
-
-            let path =  PathBuf::from(&pg_config_path);
+            let path = PathBuf::from(&pg_config_path);
 
             if !path.exists() {
                 panic!("pg_config doesn't exist in the configured path: {:?}", path);
