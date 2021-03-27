@@ -17,7 +17,7 @@ libc = "0.2"
 [dependencies.pq-sys]
 package = "libpq-sys"
 path = "libpq-sys"
-version = "0.4"
+version = "0.5"
 
 [dev-dependencies]
 pretty_env_logger = "0.4"
