@@ -88,10 +88,8 @@ fn main() {
 
     if let Ok(lib_dir) = env::var("PQ_LIB_DIR") {
         println!("cargo:rustc-link-search=native={}", lib_dir);
-    } else if configured_by_pkg_config() {
-        return; // pkg_config does everything for us, including output for cargo
-    } else if configured_by_vcpkg() {
-        return; // vcpkg does everything for us, including output for cargo
+    } else if configured_by_pkg_config() || configured_by_vcpkg() {
+        return; // pkg_config and vcpkg does everything for us, including output for cargo
     } else if let Some(path) = pg_config_output("--libdir") {
         let path = replace_homebrew_path_on_mac(path);
         println!("cargo:rustc-link-search=native={}", path);
