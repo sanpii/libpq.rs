@@ -424,6 +424,16 @@ impl Result {
     }
 
     /**
+     * Retrieves the number of bytes allocated for a `Result` object.
+     *
+     * See [PQresultMemorySize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTMEMORYSIZE)
+     */
+    #[cfg(feature = "v12")]
+    pub fn memory_size(&self) -> u64 {
+        unsafe { pq_sys::PQresultMemorySize(self.into()) }
+    }
+
+    /**
      * Really old printing routines.
      */
     #[cfg(unix)]

@@ -26,6 +26,8 @@ include!("_connect.rs");
 include!("_control.rs");
 include!("_copy.rs");
 include!("_exec.rs");
+#[cfg(feature = "v12")]
+include!("_gss.rs");
 include!("_notice_processing.rs");
 include!("_notify.rs");
 include!("_single_row_mode.rs");

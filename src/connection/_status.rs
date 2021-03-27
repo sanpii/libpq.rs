@@ -43,6 +43,19 @@ impl Connection {
     }
 
     /**
+     * Returns the server IP address of the active connection.
+     *
+     * This can be the address that a host name resolved to, or an IP address provided through the
+     * hostaddr parameter.
+     *
+     * See [PQhostaddr](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQHOSTADDR).
+     */
+    #[cfg(feature = "v12")]
+    pub fn hostaddr(&self) -> String {
+        crate::ffi::to_string(unsafe { pq_sys::PQhostaddr(self.into()) })
+    }
+
+    /**
      * Returns the port of the active connection.
      *
      * See [PQport](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQPORT).
