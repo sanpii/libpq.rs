@@ -11,33 +11,55 @@ lint:fmt:
     script:
         - cargo fmt --all -- --check
 
-lint:clippy:
-    stage: lint
-    before_script:
-        - rustup component add clippy
-    script: cargo clippy -- --deny warnings
-    allow_failure: true
-
-.test: &test
+.pg: &pg
     stage: test
     before_script:
+        - echo "deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+        - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
         - apt update
-        - apt install sudo postgresql postgresql-server-dev-11 valgrind -y
-        - sudo -u postgres pg_ctlcluster 11 main start
+        - apt install bc sudo postgresql-$PG postgresql-server-dev-$PG clang valgrind -y
+        - sudo -u postgres pg_ctlcluster "$PG" main start
         - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234';";
         - sudo -u postgres psql --command "create database root with owner root;";
         - export PQ_DSN='host=localhost password=1234'
 
-test:debug:
-    <<: *test
-    script: cargo test
-
-test:release:
-    <<: *test
-    script: cargo test --release
-
-test:valgrind:
-    <<: *test
+lint:clippy:
+    <<: *pg
+    variables:
+        MODE: debug
+        PG: "13"
+    stage: lint
     script:
-      - cargo test --no-run
+        - rustup component add clippy
+        - cargo clippy --all-features -- --deny warnings
+    allow_failure: true
+
+test:
+    <<: *pg
+    parallel:
+        matrix:
+            - MODE: ['debug', 'release']
+              PG: ['9.5', '9.6', '10', '11', '12', '13']
+    script: |
+        feature=''
+
+        if (( $(echo "$PG >= 11" | bc -l) ))
+        then
+          feature="v${PG/./_}"
+        fi
+
+        if [[ $MODE == "release" ]]
+        then
+            cargo test --features "$feature" --release
+        else
+            cargo test --features "$feature"
+        fi
+
+valgrind:
+    <<: *pg
+    variables:
+        MODE: debug
+        PG: "13"
+    script:
+      - cargo test --no-run --features "v$PG"
       - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)
