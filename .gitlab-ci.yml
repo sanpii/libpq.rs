@@ -50,9 +50,9 @@ test:
 
         if [[ $MODE == "release" ]]
         then
-            cargo test --features "$feature" --release
+            cargo test --workspace --features "$feature" --release
         else
-            cargo test --features "$feature"
+            cargo test --workspace --features "$feature"
         fi
 
 valgrind:

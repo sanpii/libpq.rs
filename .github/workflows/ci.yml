@@ -94,11 +94,11 @@ jobs:
 
       - name: Run tests (debug)
         if: matrix.mode == 'debug'
-        run: cargo test --features "${{ env.feature }}"
+        run: cargo test --workspace --features "${{ env.feature }}"
 
       - name: Run tests (release)
         if: matrix.mode == 'release'
-        run: cargo test --features "${{ env.feature }}" --release
+        run: cargo test --workspace --features "${{ env.feature }}" --release
 
   valgrind:
     name: Memory check

@@ -1,3 +1,6 @@
+[workspace]
+members = ["codegen", "libpq-sys", "."]
+
 [package]
 name = "libpq"
 version = "1.2.0"
