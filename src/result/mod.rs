@@ -284,7 +284,7 @@ impl Result {
         unsafe {
             let stream = libc::fdopen(output.as_raw_fd(), c_mode.as_ptr());
 
-            pq_sys::PQprint(stream as *mut pq_sys::__FILE, self.into(), &c_option);
+            pq_sys::PQprint(stream as *mut _, self.into(), &c_option);
         }
     }
 
@@ -461,7 +461,7 @@ impl Result {
 
             pq_sys::PQdisplayTuples(
                 self.into(),
-                fp as *mut pq_sys::__FILE,
+                fp as *mut _,
                 fill_align as i32,
                 sep,
                 print_header as i32,

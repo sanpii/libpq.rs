@@ -54,7 +54,7 @@ impl Connection {
 
         unsafe {
             let stream = libc::fdopen(file.into_raw_fd(), c_mode.as_ptr());
-            pq_sys::PQtrace(self.into(), stream as *mut pq_sys::__FILE);
+            pq_sys::PQtrace(self.into(), stream as *mut _);
         }
     }
 
