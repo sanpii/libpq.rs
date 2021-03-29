@@ -5,3 +5,13 @@
 #![allow(clippy::upper_case_acronyms)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_ssl_init() {
+        unsafe {
+            crate::PQinitSSL(1);
+        }
+    }
+}
