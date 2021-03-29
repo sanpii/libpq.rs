@@ -343,7 +343,7 @@ pub const {ident}: Type = Type {{
                 "U" => "Kind::UserDefined".to_string(),
                 "V" => "Kind::BitString".to_string(),
                 "X" => "Kind::Unknow".to_string(),
-                _ => panic!(format!("Unknow type categorie '{}'", ty.kind)),
+                _ => panic!("Unknow type categorie '{}'", ty.kind),
             },
             descr = ty.doc,
         )?;
