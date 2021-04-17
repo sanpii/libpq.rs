@@ -53,7 +53,7 @@ mod test {
 
     pub fn new_conn() -> crate::Connection {
         INIT.call_once(|| {
-            pretty_env_logger::init();
+            env_logger::init();
         });
 
         crate::Connection::new(&dsn()).unwrap()
