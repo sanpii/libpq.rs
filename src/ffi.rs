@@ -15,6 +15,10 @@ pub(crate) fn to_string(s: *const c_char) -> String {
 }
 
 pub(crate) fn to_option_str(s: *const c_char) -> Option<&'static str> {
+    if s.is_null() {
+        return None;
+    }
+
     let s = to_str(s);
 
     if s.is_empty() {
