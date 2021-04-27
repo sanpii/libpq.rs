@@ -10,7 +10,7 @@ impl Connection {
      * [PQputCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYDATA).
      */
     pub fn put_copy_data(&self, buffer: &str) -> std::result::Result<(), String> {
-        log::debug!("Sending copy data");
+        log::trace!("Sending copy data");
 
         let c_buffer = crate::ffi::to_cstr(buffer);
 
@@ -35,7 +35,7 @@ impl Connection {
      * [PQputCopyEnd](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYEND).
      */
     pub fn put_copy_end(&self, errormsg: Option<&str>) -> std::result::Result<(), String> {
-        log::debug!("End of copy");
+        log::trace!("End of copy");
 
         let cstr = errormsg.map(crate::ffi::to_cstr);
         let ptr = if let Some(ref cstr) = cstr {

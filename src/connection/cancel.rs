@@ -10,7 +10,7 @@ impl Cancel {
      * See [PQcancel](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQCANCEL).
      */
     pub fn request(&self) -> std::result::Result<(), String> {
-        log::debug!("Canceling");
+        log::trace!("Canceling");
 
         let capacity = 256;
         let c_error = crate::ffi::new_cstring(capacity);

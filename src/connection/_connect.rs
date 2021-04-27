@@ -9,7 +9,7 @@ impl Connection {
      * [PQconnectdb](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTDB).
      */
     pub fn new(dsn: &str) -> std::result::Result<Self, String> {
-        log::debug!("Connecting to '{}'", dsn);
+        log::trace!("Connecting to '{}'", dsn);
 
         let c_dsn = crate::ffi::to_cstr(dsn);
 
@@ -25,7 +25,7 @@ impl Connection {
         params: &std::collections::HashMap<&str, &str>,
         expand_dbname: bool,
     ) -> std::result::Result<Self, String> {
-        log::debug!("Connecting with params {:?}", params);
+        log::trace!("Connecting with params {:?}", params);
 
         let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
         let (_c_values, ptr_values) = crate::ffi::vec_to_nta(&params.values().collect::<Vec<_>>());
@@ -42,7 +42,7 @@ impl Connection {
      * See [PQconnectStart](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTSTART).
      */
     pub fn start(conninfo: &str) -> std::result::Result<Self, String> {
-        log::debug!("Starting connection to '{}'", conninfo);
+        log::trace!("Starting connection to '{}'", conninfo);
 
         let c_conninfo = crate::ffi::to_cstr(conninfo);
 
@@ -58,7 +58,7 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> std::result::Result<Self, String> {
-        log::debug!("Starting connection with params {:?}", params);
+        log::trace!("Starting connection with params {:?}", params);
 
         let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
         let (_c_values, ptr_values) = crate::ffi::vec_to_nta(&params.values().collect::<Vec<_>>());
@@ -168,7 +168,7 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> crate::ping::Status {
-        log::debug!("Ping with params {:?}", params);
+        log::trace!("Ping with params {:?}", params);
 
         let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
         let (_c_values, ptr_values) = crate::ffi::vec_to_nta(&params.values().collect::<Vec<_>>());
@@ -188,7 +188,7 @@ impl Connection {
      * See [PQping](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQPING).
      */
     pub fn ping(dsn: &str) -> crate::ping::Status {
-        log::debug!("Ping '{}'", dsn);
+        log::trace!("Ping '{}'", dsn);
 
         let c_dsn = crate::ffi::to_cstr(dsn);
 

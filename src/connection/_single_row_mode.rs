@@ -9,7 +9,7 @@ impl Connection {
      * [PQsetSingleRowMode](https://www.postgresql.org/docs/current/libpq-single-row-mode.html#LIBPQ-PQSETSINGLEROWMODE).
      */
     pub fn set_single_row_mode(&self) -> std::result::Result<(), ()> {
-        log::debug!("Set single row mode");
+        log::trace!("Set single row mode");
 
         let success = unsafe { pq_sys::PQsetSingleRowMode(self.into()) };
 
