@@ -25,54 +25,5 @@ pub enum Status {
      */
     SingleTuble,
     /** Successful completion of a command returning data (such as a `SELECT` or `SHOW`). */
-    TupplesOk,
-}
-
-#[doc(hidden)]
-impl From<pq_sys::ExecStatusType> for Status {
-    fn from(status: pq_sys::ExecStatusType) -> Self {
-        match status {
-            pq_sys::ExecStatusType::PGRES_BAD_RESPONSE => Self::BadResponse,
-            pq_sys::ExecStatusType::PGRES_COMMAND_OK => Self::CommandOk,
-            pq_sys::ExecStatusType::PGRES_COPY_BOTH => Self::CopyBoth,
-            pq_sys::ExecStatusType::PGRES_COPY_IN => Self::CopyIn,
-            pq_sys::ExecStatusType::PGRES_COPY_OUT => Self::CopyOut,
-            pq_sys::ExecStatusType::PGRES_EMPTY_QUERY => Self::EmptyQuery,
-            pq_sys::ExecStatusType::PGRES_FATAL_ERROR => Self::FatalError,
-            pq_sys::ExecStatusType::PGRES_NONFATAL_ERROR => Self::NonFatalError,
-            pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE => Self::SingleTuble,
-            pq_sys::ExecStatusType::PGRES_TUPLES_OK => Self::TupplesOk,
-        }
-    }
-}
-
-#[doc(hidden)]
-impl From<Status> for pq_sys::ExecStatusType {
-    fn from(status: Status) -> pq_sys::ExecStatusType {
-        (&status).into()
-    }
-}
-
-#[doc(hidden)]
-impl From<&Status> for pq_sys::ExecStatusType {
-    fn from(status: &Status) -> Self {
-        match *status {
-            Status::BadResponse => pq_sys::ExecStatusType::PGRES_BAD_RESPONSE,
-            Status::CommandOk => pq_sys::ExecStatusType::PGRES_COMMAND_OK,
-            Status::CopyBoth => pq_sys::ExecStatusType::PGRES_COPY_BOTH,
-            Status::CopyIn => pq_sys::ExecStatusType::PGRES_COPY_IN,
-            Status::CopyOut => pq_sys::ExecStatusType::PGRES_COPY_OUT,
-            Status::EmptyQuery => pq_sys::ExecStatusType::PGRES_EMPTY_QUERY,
-            Status::FatalError => pq_sys::ExecStatusType::PGRES_FATAL_ERROR,
-            Status::NonFatalError => pq_sys::ExecStatusType::PGRES_NONFATAL_ERROR,
-            Status::SingleTuble => pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE,
-            Status::TupplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
-        }
-    }
-}
-
-impl ToString for Status {
-    fn to_string(&self) -> String {
-        crate::ffi::to_string(unsafe { pq_sys::PQresStatus(self.into()) })
-    }
+    TuplesOk,
 }

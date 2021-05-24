@@ -7,12 +7,11 @@ impl Connection {
      * the server.
      */
     pub fn notifies(&self) -> Option<crate::connection::Notify> {
-        let raw = unsafe { pq_sys::PQnotifies(self.into()) };
+        self.parse_input().ok();
 
-        if raw.is_null() {
-            None
-        } else {
-            Some(raw.into())
+        match self.state.write() {
+            Ok(mut state) => state.notifies.pop(),
+            Err(_) => None,
         }
     }
 }

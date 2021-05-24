@@ -20,15 +20,3 @@ pub enum Status {
      */
     NoAttempt,
 }
-
-#[doc(hidden)]
-impl From<pq_sys::PGPing> for Status {
-    fn from(status: pq_sys::PGPing) -> Self {
-        match status {
-            pq_sys::PGPing::PQPING_OK => Self::Ok,
-            pq_sys::PGPing::PQPING_REJECT => Self::Reject,
-            pq_sys::PGPing::PQPING_NO_RESPONSE => Self::NoResponse,
-            pq_sys::PGPing::PQPING_NO_ATTEMPT => Self::NoAttempt,
-        }
-    }
-}

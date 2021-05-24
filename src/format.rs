@@ -7,12 +7,16 @@ pub enum Format {
 
 impl From<i32> for Format {
     fn from(format: i32) -> Self {
-        unsafe { std::mem::transmute(format) }
+        match format {
+            0 => Self::Text,
+            1 => Self::Binary,
+            _ => unreachable!(),
+        }
     }
 }
 
 impl From<&Format> for i32 {
     fn from(format: &Format) -> i32 {
-        unsafe { std::mem::transmute(*format) }
+        *format as i32
     }
 }

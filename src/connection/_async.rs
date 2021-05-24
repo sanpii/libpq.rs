@@ -8,20 +8,15 @@ impl Connection {
      * See
      * [PQsendQuery](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDQUERY).
      */
-    pub fn send_query(&self, command: &str) -> std::result::Result<(), String> {
-        log::trace!("Sending query '{}'", command);
+    pub fn send_query(&self, command: &str) -> std::result::Result<(), crate::Error> {
+        log::debug!("Sending query '{}'", command);
 
-        let c_command = crate::ffi::to_cstr(command);
+        self.send_query_start()?;
 
-        let success = unsafe { pq_sys::PQsendQuery(self.into(), c_command.as_ptr()) };
-
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        }
+        self.send(
+            crate::Message::Query(command.to_string()),
+            AsyncStatus::EXECUTE,
+        )
     }
 
     /**
@@ -37,11 +32,8 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> std::result::Result<(), String> {
-        let (values, formats, lengths) =
-            Self::transform_params(param_values, param_formats);
-
-        if log::log_enabled!(log::Level::Trace) {
+    ) -> std::result::Result<(), crate::Error> {
+        if log::log_enabled!(log::Level::Debug) {
             use std::convert::TryFrom;
 
             let mut p = Vec::new();
@@ -60,43 +52,17 @@ impl Connection {
                 p.push(format!("'{}'::{}", v, t.name));
             }
 
-            log::trace!("Sending query '{}' with params [{}]", command, p.join(", "));
+            log::debug!("Sending query '{}' with params [{}]", command, p.join(", "));
         }
 
-        let c_command = crate::ffi::to_cstr(command);
+        self.send_query_start()?;
 
-        let success = unsafe {
-            pq_sys::PQsendQueryParams(
-                self.into(),
-                c_command.as_ptr(),
-                values.len() as i32,
-                if param_types.is_empty() {
-                    std::ptr::null()
-                } else {
-                    param_types.as_ptr()
-                },
-                values.as_ptr(),
-                if lengths.is_empty() {
-                    std::ptr::null()
-                } else {
-                    lengths.as_ptr()
-                },
-                if formats.is_empty() {
-                    std::ptr::null()
-                } else {
-                    formats.as_ptr()
-                },
-                result_format as i32,
-            )
-        };
+        self.send(
+            crate::Message::parse(None, command, param_types),
+            AsyncStatus::PREPARE,
+        )?;
 
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        }
+        self.send_query_prepared(None, param_values, param_formats, result_format)
     }
 
     /**
@@ -111,8 +77,8 @@ impl Connection {
         name: Option<&str>,
         query: &str,
         param_types: &[crate::Oid],
-    ) -> std::result::Result<(), String> {
-        log::trace!(
+    ) -> std::result::Result<(), crate::Error> {
+        log::debug!(
             "Sending prepare {} query '{}' with param types [{}]",
             name.unwrap_or("anonymous"),
             query,
@@ -130,26 +96,14 @@ impl Connection {
                 .join(", ")
         );
 
-        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
-        let c_query = crate::ffi::to_cstr(query);
+        self.send_query_start()?;
 
-        let success = unsafe {
-            pq_sys::PQsendPrepare(
-                self.into(),
-                c_name.as_ptr(),
-                c_query.as_ptr(),
-                param_types.len() as i32,
-                param_types.as_ptr(),
-            )
-        };
+        self.send(
+            crate::Message::parse(name, query, param_types),
+            AsyncStatus::PREPARE,
+        )?;
 
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        }
+        self.sync()
     }
 
     /**
@@ -163,8 +117,8 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> std::result::Result<(), String> {
-        log::trace!(
+    ) -> std::result::Result<(), crate::Error> {
+        log::debug!(
             "Send {} prepared query with params [{}]",
             name.unwrap_or("anonymous"),
             param_values
@@ -181,64 +135,42 @@ impl Connection {
                 .join(", ")
         );
 
-        let (values, formats, lengths) =
-            Self::transform_params(param_values, param_formats);
+        self.send(
+            crate::Message::bind(name, param_formats, param_values, result_format),
+            AsyncStatus::BIND,
+        )?;
 
-        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+        self.send(
+            crate::Message::DescribePortal(None),
+            AsyncStatus::DESCRIBE_ROW,
+        )?;
 
-        let success = unsafe {
-            pq_sys::PQsendQueryPrepared(
-                self.into(),
-                c_name.as_ptr(),
-                values.len() as i32,
-                values.as_ptr(),
-                if lengths.is_empty() {
-                    std::ptr::null()
-                } else {
-                    lengths.as_ptr()
-                },
-                if formats.is_empty() {
-                    std::ptr::null()
-                } else {
-                    formats.as_ptr()
-                },
-                result_format as i32,
-            )
-        };
+        self.send(
+            crate::Message::Execute,
+            AsyncStatus::EXECUTE,
+        )?;
 
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        }
+        self.sync()
     }
 
     /**
-     * Submits a request to obtain information about the specified prepared statement, without waiting for completion.
+     * Submits a request to obtain information about the specified prepared statement, without
+     * waiting for completion.
      *
-     * See [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
+     * See [PQsendDescribePrepared](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPREPARED).
      */
-    pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), String> {
-        log::trace!(
+    pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), crate::Error> {
+        log::debug!(
             "Sending describe prepared query {}",
             name.unwrap_or("anonymous")
         );
 
-        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+        self.send(
+            crate::Message::DescribeStatement(name.map(|x| x.to_string())),
+            AsyncStatus::DESCRIBE_STATEMENT | AsyncStatus::DESCRIBE_ROW,
+        )?;
 
-        let success = unsafe {
-            pq_sys::PQsendDescribePrepared(self.into(), c_name.as_ptr())
-        };
-
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        }
+        self.sync()
     }
 
     /**
@@ -247,22 +179,15 @@ impl Connection {
      * See
      * [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
-    pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), String> {
-        log::trace!("Sending describe portal {}", name.unwrap_or("anonymous"));
+    pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), crate::Error> {
+        log::debug!("Sending describe portal {}", name.unwrap_or("anonymous"));
 
-        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+        self.send(
+            crate::Message::DescribePortal(name.map(|x| x.to_string())),
+            AsyncStatus::DESCRIBE_ROW,
+        )?;
 
-        let success = unsafe {
-            pq_sys::PQsendDescribePortal(self.into(), c_name.as_ptr())
-        };
-
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        }
+        self.sync()
     }
 
     /**
@@ -271,13 +196,93 @@ impl Connection {
      * See [PQgetResult](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQGETRESULT).
      */
     pub fn result(&self) -> Option<crate::Result> {
-        let raw = unsafe { pq_sys::PQgetResult(self.into()) };
+        self.parse_input().unwrap_or_default()
+    }
 
-        if raw.is_null() {
-            None
-        } else {
-            Some(raw.into())
+    pub(crate) fn parse_input(&self) -> std::result::Result<Option<crate::Result>, crate::Error> {
+        use crate::Message::*;
+
+        self.socket.flush()?;
+
+        let mut async_status = self.state.read()?.async_status;
+        let mut result = self.state.read()?.result.clone();
+        let single_row_mode = self.state.read()?.single_row_mode;
+
+        while async_status != AsyncStatus::IDLE {
+            if let Some(message) = self.socket.receive()? {
+                match message {
+                    AuthentificationOk(_) => (),
+                    BackendKeyData(be_pid, be_key) => {
+                        self.state.write()?.be_pid = be_pid;
+                        self.state.write()?.be_key = be_key;
+                    }
+                    BindComplete => async_status.remove(AsyncStatus::BIND),
+                    CommandComplete(cmd_status) => {
+                        get_or_insert_default(&mut result).cmd_status = Some(cmd_status.clone());
+                        if cmd_status.starts_with("BEGIN") {
+                            async_status.insert(AsyncStatus::BEGIN);
+                        } else if cmd_status.starts_with("COMMIT") {
+                            async_status.remove(AsyncStatus::BEGIN);
+                        } else if cmd_status.starts_with("COPY ") {
+                            async_status.remove(AsyncStatus::COPY_IN);
+                            break;
+                        } else {
+                            async_status.remove(AsyncStatus::EXECUTE);
+                        }
+                    }
+                    CopyInResponse(copy_options) => {
+                        self.state.write()?.copy = Some(copy_options);
+                        get_or_insert_default(&mut result).status = Some(crate::Status::CopyIn);
+                        async_status = AsyncStatus::COPY_IN;
+                        break;
+                    }
+                    CopyOut(_) => {
+                        get_or_insert_default(&mut result).status = Some(crate::Status::CopyOut);
+                        async_status = AsyncStatus::COPY_OUT;
+                        break;
+                    }
+                    CopyData(_) => (),
+                    DataRow(data_row) => {
+                        get_or_insert_default(&mut result).add_row(data_row);
+
+                        if single_row_mode {
+                            break;
+                        }
+                    }
+                    EmptyQuery => (),
+                    ErrorResponse(error) => {
+                        get_or_insert_default(&mut result).error_message = Some(error);
+                        async_status = AsyncStatus::IDLE;
+                    }
+                    NoticeResponse(notice) => get_or_insert_default(&mut result).notices.push(notice),
+                    NotificationResponse(notify) => self.state.write()?.notifies.push(notify),
+                    ParseComplete => async_status.remove(AsyncStatus::PREPARE),
+                    ParameterDescription(params) => {
+                        get_or_insert_default(&mut result).params = Some(params);
+                        async_status.remove(AsyncStatus::DESCRIBE_STATEMENT);
+                    }
+                    ParameterStatus(k, v) => {
+                        self.state.write()?.parameters.insert(k, v);
+                    }
+                    ReadyForQuery(_) => async_status.remove(AsyncStatus::CONNECT),
+                    RowDescription(description) => {
+                        get_or_insert_default(&mut result).description = Some(description);
+                        async_status.remove(AsyncStatus::DESCRIBE_ROW);
+                    }
+                    _ => unreachable!(),
+                }
+            }
         }
+
+        self.state.write()?.async_status = async_status;
+
+        if async_status == AsyncStatus::IDLE {
+            self.state.write()?.result = None;
+        } else {
+            self.state.write()?.result = result.clone();
+        }
+
+        Ok(result)
     }
 
     /**
@@ -286,18 +291,13 @@ impl Connection {
      * See
      * [PQconsumeInput](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQCONSUMEINPUT).
      */
-    pub fn consume_input(&self) -> std::result::Result<(), String> {
-        log::trace!("Consume input");
+    pub fn consume_input(&self) -> std::result::Result<(), crate::Error> {
+        log::debug!("Consume input");
 
-        let success = unsafe { pq_sys::PQconsumeInput(self.into()) };
-
-        if success == 1 {
-            Ok(())
-        } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+        while self.parse_input()?.is_some() {
         }
+
+        Ok(())
     }
 
     /**
@@ -306,7 +306,7 @@ impl Connection {
      * See [PQisBusy](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQISBUSY).
      */
     pub fn is_busy(&self) -> bool {
-        unsafe { pq_sys::PQisBusy(self.into()) == 1 }
+        todo!()
     }
 
     /**
@@ -315,20 +315,16 @@ impl Connection {
      * See
      * [PQsetnonblocking](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSETNONBLOCKING).
      */
-    pub fn set_non_blocking(&self, non_blocking: bool) -> std::result::Result<(), ()> {
+    pub fn set_non_blocking(&self, non_blocking: bool) -> std::result::Result<(), crate::Error> {
         if non_blocking {
-            log::trace!("Set non blocking");
+            log::debug!("Set non blocking");
         } else {
-            log::trace!("Set blocking");
+            log::debug!("Set blocking");
         }
 
-        let status = unsafe { pq_sys::PQsetnonblocking(self.into(), non_blocking as i32) };
+        self.state.write()?.non_blocking = non_blocking;
 
-        if status < 0 {
-            Err(())
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 
     /**
@@ -338,7 +334,7 @@ impl Connection {
      * [PQisnonblocking](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQISNONBLOCKING).
      */
     pub fn is_non_blocking(&self) -> bool {
-        unsafe { pq_sys::PQisnonblocking(self.into()) == 1 }
+        self.state.read().unwrap().non_blocking
     }
 
     /**
@@ -346,15 +342,21 @@ impl Connection {
      *
      * See [PQflush](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQFLUSH).
      */
-    pub fn flush(&self) -> std::result::Result<(), ()> {
+    pub fn flush(&self) -> std::result::Result<(), crate::Error> {
         log::trace!("Flush");
 
-        let status = unsafe { pq_sys::PQflush(self.into()) };
+        todo!()
+    }
+}
 
-        if status == 0 {
-            Ok(())
-        } else {
-            Err(())
-        }
+// #![feature(option_get_or_insert_default)]
+fn get_or_insert_default(result: &mut Option<crate::Result>) -> &mut crate::Result {
+    if let None = *result {
+        *result = Some(crate::Result::default());
+    }
+
+    match result {
+        Some(result) => result,
+        None => unreachable!(),
     }
 }

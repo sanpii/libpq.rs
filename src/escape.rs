@@ -1,128 +1,95 @@
-pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Result<String, String> {
-    let c_str = crate::ffi::to_cstr(str);
-    unsafe {
-        let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as u64);
-
-        if raw.is_null() {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
-        }
-
-        let escaped = crate::ffi::to_string(raw);
-        pq_sys::PQfreemem(raw as *mut std::ffi::c_void);
-
-        Ok(escaped)
-    }
+pub(crate) fn literal(_: &crate::Connection, str: &str) -> std::result::Result<String, crate::Error> {
+    escape(str, false)
 }
 
-/**
- * Escape a string for use as an SQL identifier, such as a table, column, or function name.
- *
- * See [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
- */
-pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<String, String> {
-    let c_str = crate::ffi::to_cstr(str);
-    unsafe {
-        let raw = pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len() as u64);
+pub(crate) fn identifier(_: &crate::Connection, str: &str) -> std::result::Result<String, crate::Error> {
+    escape(str, true)
+}
 
-        if raw.is_null() {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
+fn escape(str: &str, as_ident: bool) -> std::result::Result<String, crate::Error> {
+    let quote_char = if as_ident {
+        '"'
+    } else {
+        '\''
+    };
+
+    let mut s = String::new();
+
+    s.push(quote_char);
+    for c in str.chars() {
+        if c == quote_char || (!as_ident && c == '\'') {
+            s.push(c);
         }
-
-        let escaped = crate::ffi::to_string(raw);
-        pq_sys::PQfreemem(raw as *mut std::ffi::c_void);
-
-        Ok(escaped)
+        s.push(c);
     }
+    s.push(quote_char);
+
+
+    Ok(s)
 }
 
 pub(crate) fn string_conn(
     conn: &crate::Connection,
     from: &str,
-) -> std::result::Result<String, String> {
-    let mut error = 0;
+) -> std::result::Result<String, crate::Error> {
+    let mut s = String::new();
+    let std_strings = conn.std_strings()?;
 
-    // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
-    let cstring = crate::ffi::new_cstring(2 * from.len() + 1);
-    let raw = cstring.into_raw();
-
-    let c_from = crate::ffi::to_cstr(from);
-
-    unsafe {
-        pq_sys::PQescapeStringConn(
-            conn.into(),
-            raw,
-            c_from.as_ptr(),
-            from.len() as u64,
-            &mut error,
-        );
-
-        if error != 0 {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
+    for c in from.chars() {
+        if c == '\'' || (std_strings && c == '\\') {
+            s.push(c);
         }
-    };
+        s.push(c);
+    }
 
-    let to = crate::ffi::from_raw(raw);
-
-    Ok(to)
-}
-
-#[deprecated(note = "Use libpq::Connection::escape_string instead")]
-pub fn string(from: &str) -> String {
-    let c_from = crate::ffi::to_cstr(from);
-    // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
-    let cstring = crate::ffi::new_cstring(2 * from.len() + 1);
-    let raw = cstring.into_raw();
-
-    unsafe {
-        pq_sys::PQescapeString(raw, c_from.as_ptr(), from.len() as u64);
-    };
-
-    crate::ffi::from_raw(raw)
+    Ok(s)
 }
 
 pub(crate) fn bytea_conn(
     conn: &crate::Connection,
     from: &[u8],
-) -> std::result::Result<Vec<u8>, String> {
-    let to = unsafe {
-        let mut len = 0;
-        let tmp =
-            pq_sys::PQescapeByteaConn(conn.into(), from.as_ptr(), from.len() as u64, &mut len);
-        if tmp.is_null() {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
+) -> std::result::Result<Vec<u8>, crate::Error> {
+    let mut v = Vec::new();
+    let std_strings = conn.std_strings()?;
+    let use_hex = conn.server_version() >= 90_000;
+
+    if use_hex {
+        if !std_strings {
+            v.push(b'\\');
         }
-        let to = std::slice::from_raw_parts(tmp, len as usize - 1).to_vec();
-        pq_sys::PQfreemem(tmp as *mut std::ffi::c_void);
+        v.push(b'\\');
+        v.push(b'x');
+    }
 
-        to
-    };
+    for b in from {
+        if use_hex {
+            static HEXTBL: &[u8] = b"0123456789abcdef";
 
-    Ok(to)
-}
+            v.push(HEXTBL[((b >> 4) & 0xF) as usize]);
+            v.push(HEXTBL[(b & 0xF) as usize]);
+        } else {
+            if *b < 0x20 || *b > 0x7e {
+                if !std_strings {
+                    v.push(b'\\');
+                }
+                v.push(b'\\');
+                v.push((b >> 6) + b'0');
+                v.push(((b >> 3) & 07) + b'0');
+                v.push((b & 07) + b'0');
+            } else if *b == b'\'' {
+                v.extend_from_slice(b"\\x00");
+            } else if *b == b'\\' {
+                if !std_strings {
+                    v.extend_from_slice(b"\\\\");
+                }
+                v.extend_from_slice(b"\\\\");
+            } else {
+                v.push(*b);
+            }
+        }
+    }
 
-/**
- * See [PQescapeBytea](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEBYTEA).
- */
-#[deprecated(note = "Use libpq::Connection::escape_bytea instead")]
-pub fn bytea(from: &[u8]) -> std::result::Result<Vec<u8>, String> {
-    let to = unsafe {
-        let mut len = 0;
-        let tmp = pq_sys::PQescapeBytea(from.as_ptr(), from.len() as u64, &mut len);
-        let to = std::slice::from_raw_parts(tmp, len as usize - 1).to_vec();
-        pq_sys::PQfreemem(tmp as *mut std::ffi::c_void);
-
-        to
-    };
-
-    Ok(to)
+    Ok(v)
 }
 
 /**
@@ -132,20 +99,8 @@ pub fn bytea(from: &[u8]) -> std::result::Result<Vec<u8>, String> {
  * See
  * [PQunescapeBytea](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQUNESCAPEBYTEA).
  */
-pub fn unescape_bytea(from: &[u8]) -> std::result::Result<Vec<u8>, ()> {
-    let to = unsafe {
-        let mut len = 0;
-        let tmp = pq_sys::PQunescapeBytea(from.as_ptr(), &mut len);
-        if tmp.is_null() {
-            return Err(());
-        }
-        let to = std::slice::from_raw_parts(tmp, len as usize).to_vec();
-        pq_sys::PQfreemem(tmp as *mut std::ffi::c_void);
-
-        to
-    };
-
-    Ok(to)
+pub fn unescape_bytea(from: &[u8]) -> std::result::Result<Vec<u8>, crate::Error> {
+   todo!()
 }
 
 #[cfg(test)]
@@ -155,8 +110,8 @@ mod test {
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            crate::escape::literal(&conn, "foo"),
-            Ok("'foo'".to_string())
+            crate::escape::literal(&conn, "foo").unwrap(),
+            "'foo'".to_string()
         );
     }
 
@@ -165,8 +120,8 @@ mod test {
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            crate::escape::identifier(&conn, "foo"),
-            Ok("\"foo\"".to_string())
+            crate::escape::identifier(&conn, "foo").unwrap(),
+            "\"foo\"".to_string()
         );
     }
 
@@ -175,15 +130,9 @@ mod test {
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            crate::escape::string_conn(&conn, "'foo'"),
-            Ok("''foo''".to_string())
+            crate::escape::string_conn(&conn, "'foo'").unwrap(),
+            "''foo''".to_string()
         );
-    }
-
-    #[test]
-    fn string() {
-        #![allow(deprecated)]
-        assert_eq!(crate::escape::string("'foo'"), "''foo''".to_string());
     }
 
     #[test]
@@ -191,20 +140,8 @@ mod test {
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            crate::escape::bytea_conn(&conn, b"\0"),
-            Ok(b"\\x00".to_vec())
+            crate::escape::bytea_conn(&conn, b"\0").unwrap(),
+            b"\\x00".to_vec()
         );
-    }
-
-    #[test]
-    fn bytea() {
-        #![allow(deprecated)]
-        assert_eq!(crate::escape::bytea(b"'foo'"), Ok(b"''foo''".to_vec()));
-    }
-
-    #[test]
-    fn unescape_bytea() {
-        #![allow(deprecated)]
-        assert_eq!(crate::escape::bytea(b"'foo'"), Ok(b"''foo''".to_vec()));
     }
 }

@@ -4,9 +4,25 @@ mod error_field;
 pub use attribute::*;
 pub use error_field::*;
 
-#[derive(Clone)]
+macro_rules! attr {
+    ($result:ident [ $n:ident ] . $field:ident) => {
+        if let Some(description) = &$result.description {
+            description.get($n).map(|x| x.$field.clone())
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
 pub struct Result {
-    result: *mut pq_sys::PGresult,
+    pub(crate) description: Option<crate::message::RowDescription>,
+    pub(crate) params: Option<crate::message::ParameterDescription>,
+    pub(crate) rows: Vec<crate::message::DataRow>,
+    pub(crate) cmd_status: Option<String>,
+    pub(crate) notices: Vec<crate::message::Notice>,
+    pub(crate) error_message: Option<crate::message::Notice>,
+    pub(crate) status: Option<crate::Status>,
 }
 
 impl Result {
@@ -16,10 +32,16 @@ impl Result {
      * See
      * [PQmakeEmptyPGresult](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQmakeEmptyPGresult).
      */
-    pub fn new(conn: &crate::Connection, status: crate::Status) -> Self {
-        let result = unsafe { pq_sys::PQmakeEmptyPGresult(conn.into(), status.into()) };
+    pub fn new(conn: Option<&crate::Connection>, status: crate::Status) -> Self {
+        Self {
+            status: Some(status),
 
-        result.into()
+            .. Default::default()
+        }
+    }
+
+    pub(crate) fn add_row(&mut self, row: crate::message::DataRow) {
+        self.rows.push(row);
     }
 
     /**
@@ -28,7 +50,15 @@ impl Result {
      * See [PQresultStatus](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTSTATUS).
      */
     pub fn status(&self) -> crate::Status {
-        unsafe { pq_sys::PQresultStatus(self.into()) }.into()
+        if let Some(status) = self.status {
+            status
+        } else if self.error_message.is_some() {
+            crate::Status::FatalError
+        } else if !self.rows.is_empty() {
+            crate::Status::TuplesOk
+        } else {
+            crate::Status::CommandOk
+        }
     }
 
     /**
@@ -37,7 +67,7 @@ impl Result {
      * See [PQresultErrorMessage](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORMESSAGE).
      */
     pub fn error_message(&self) -> Option<String> {
-        crate::ffi::to_option_string(unsafe { pq_sys::PQresultErrorMessage(self.into()) })
+        self.error_field(crate::result::ErrorField::MessagePrimary).map(|x| x.to_string())
     }
 
     /**
@@ -45,15 +75,11 @@ impl Result {
      *
      * See [PQresultErrorField](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORFIELD).
      */
-    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&'static str> {
-        unsafe {
-            let ptr = pq_sys::PQresultErrorField(self.into(), field.into());
-
-            if ptr.is_null() {
-                return None;
-            }
-
-            crate::ffi::to_option_str(ptr)
+    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&str> {
+        if let Some(err) = &self.error_message {
+            err.get(&field).map(|x| x.as_str())
+        } else {
+            None
         }
     }
 
@@ -63,7 +89,7 @@ impl Result {
      * See [PQntuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNTUPLES).
      */
     pub fn ntuples(&self) -> usize {
-        unsafe { pq_sys::PQntuples(self.into()) as usize }
+        self.rows.len()
     }
 
     /**
@@ -72,7 +98,11 @@ impl Result {
      * See [PQnfields](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNFIELDS).
      */
     pub fn nfields(&self) -> usize {
-        unsafe { pq_sys::PQnfields(self.into()) as usize }
+        if let Some(description) = &self.description {
+            description.nfields()
+        } else {
+            0
+        }
     }
 
     /**
@@ -81,13 +111,7 @@ impl Result {
      * See [PQfname](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFNAME).
      */
     pub fn field_name(&self, number: usize) -> Option<String> {
-        let raw = unsafe { pq_sys::PQfname(self.into(), number as i32) };
-
-        if raw.is_null() {
-            None
-        } else {
-            Some(crate::ffi::to_string(raw))
-        }
+        attr!(self[number].name)
     }
 
     /**
@@ -96,13 +120,10 @@ impl Result {
      * See [PQfnumber](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFNUMBER).
      */
     pub fn field_number(&self, name: &str) -> Option<usize> {
-        let c_name = crate::ffi::to_cstr(name);
-        let number = unsafe { pq_sys::PQfnumber(self.into(), c_name.as_ptr()) };
-
-        if number == -1 {
-            None
+        if let Some(description) = &self.description {
+            description.iter().position(|x| x.name == name)
         } else {
-            Some(number as usize)
+            None
         }
     }
 
@@ -112,13 +133,7 @@ impl Result {
      * See [PQftable](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTABLE).
      */
     pub fn field_table(&self, column: usize) -> Option<crate::Oid> {
-        let oid = unsafe { pq_sys::PQftable(self.into(), column as i32) };
-
-        if oid == crate::oid::INVALID {
-            None
-        } else {
-            Some(oid)
-        }
+        attr!(self[column].tableid)
     }
 
     /**
@@ -128,7 +143,7 @@ impl Result {
      * See [PQftablecol](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTABLECOL).
      */
     pub fn field_tablecol(&self, column: usize) -> usize {
-        unsafe { pq_sys::PQftablecol(self.into(), column as i32) as usize }
+        attr!(self[column].columnid).map(|x| x as usize).unwrap_or_default()
     }
 
     /**
@@ -137,7 +152,7 @@ impl Result {
      * See [PQfformat](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFFORMAT).
      */
     pub fn field_format(&self, column: usize) -> crate::Format {
-        unsafe { pq_sys::PQfformat(self.into(), column as i32) }.into()
+        attr!(self[column].format).map(|x| x.into()).unwrap_or(crate::Format::Text)
     }
 
     /**
@@ -146,7 +161,7 @@ impl Result {
      * See [PQftype](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTYPE).
      */
     pub fn field_type(&self, column: usize) -> crate::Oid {
-        unsafe { pq_sys::PQftype(self.into(), column as i32) }
+        attr!(self[column].typid).unwrap_or(crate::oid::INVALID)
     }
 
     /**
@@ -155,13 +170,7 @@ impl Result {
      * See [PQfmod](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFMOD).
      */
     pub fn field_mod(&self, column: usize) -> Option<i32> {
-        let raw = unsafe { pq_sys::PQfmod(self.into(), column as i32) };
-
-        if raw < 0 {
-            None
-        } else {
-            Some(raw)
-        }
+        attr!(self[column].atttypmod)
     }
 
     /**
@@ -172,13 +181,7 @@ impl Result {
      * See [PQfsize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFSIZE).
      */
     pub fn field_size(&self, column: usize) -> Option<usize> {
-        let raw = unsafe { pq_sys::PQfsize(self.into(), column as i32) };
-
-        if raw < 0 {
-            None
-        } else {
-            Some(raw as usize)
-        }
+        attr!(self[column].typlen).map(|x| x as usize)
     }
 
     /**
@@ -188,7 +191,11 @@ impl Result {
      * [PQbinaryTuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQBINARYTUPLES).
      */
     pub fn binary_tuples(&self) -> bool {
-        unsafe { pq_sys::PQbinaryTuples(self.into()) == 1 }
+        if let Some(description) = &self.description {
+            description.binary_tuple()
+        } else {
+            false
+        }
     }
 
     /**
@@ -197,17 +204,14 @@ impl Result {
      * See [PQgetvalue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE).
      */
     pub fn value(&self, row: usize, column: usize) -> Option<&[u8]> {
-        if self.is_null(row, column) {
-            None
+        if let Some(row) = self.rows.get(row) {
+            if let Some(column) = row.get(column) {
+                column.as_ref().map(|x| x.as_slice())
+            } else {
+                None
+            }
         } else {
-            let slice = unsafe {
-                let raw = pq_sys::PQgetvalue(self.into(), row as i32, column as i32) as *const u8;
-                let length = self.length(row, column);
-
-                std::slice::from_raw_parts(raw, length)
-            };
-
-            Some(slice)
+            None
         }
     }
 
@@ -217,7 +221,11 @@ impl Result {
      * See [PQgetisnull](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETISNULL).
      */
     pub fn is_null(&self, row: usize, column: usize) -> bool {
-        unsafe { pq_sys::PQgetisnull(self.into(), row as i32, column as i32) == 1 }
+        if let Some(row) = self.rows.get(row) {
+            row.get(column).map(|x| x.is_none()).unwrap_or(true)
+        } else {
+            true
+        }
     }
 
     /**
@@ -226,7 +234,7 @@ impl Result {
      * See [PQgetlength](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETLENGTH).
      */
     pub fn length(&self, row: usize, column: usize) -> usize {
-        unsafe { pq_sys::PQgetlength(self.into(), row as i32, column as i32) as usize }
+        self.value(row, column).unwrap_or_default().len()
     }
 
     /**
@@ -235,7 +243,11 @@ impl Result {
      * See [PQnparams](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNPARAMS).
      */
     pub fn nparams(&self) -> usize {
-        unsafe { pq_sys::PQnparams(self.into()) as usize }
+        if let Some(params) = &self.params {
+            params.len()
+        } else {
+            0
+        }
     }
 
     /**
@@ -244,12 +256,10 @@ impl Result {
      * See [PQparamtype](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQPARAMTYPE).
      */
     pub fn param_type(&self, param: usize) -> Option<crate::Oid> {
-        let oid = unsafe { pq_sys::PQparamtype(self.into(), param as i32) };
-
-        if oid == crate::oid::INVALID {
-            None
+        if let Some(params) = &self.params {
+            params.get(param).map(|x| x.oid)
         } else {
-            Some(oid)
+            None
         }
     }
 
@@ -260,32 +270,7 @@ impl Result {
      */
     #[cfg(unix)]
     pub fn print(&self, output: &dyn std::os::unix::io::AsRawFd, option: &crate::print::Options) {
-        let c_mode = crate::ffi::to_cstr("w");
-
-        let (_c_field_name, ptr_field_name) = crate::ffi::vec_to_nta(&option.field_name);
-
-        let c_field_sep = crate::ffi::to_cstr(&option.field_sep);
-        let c_table_opt = crate::ffi::to_cstr(&option.table_opt);
-        let c_caption = crate::ffi::to_cstr(&option.caption);
-
-        let c_option = pq_sys::_PQprintOpt {
-            header: option.header as i8,
-            align: option.align as i8,
-            standard: option.standard as i8,
-            html3: option.html3 as i8,
-            expanded: option.expanded as i8,
-            pager: option.pager as i8,
-            fieldSep: c_field_sep.as_ptr() as *mut i8,
-            tableOpt: c_table_opt.as_ptr() as *mut i8,
-            caption: c_caption.as_ptr() as *mut i8,
-            fieldName: ptr_field_name.as_ptr() as *mut *mut libc::c_char,
-        };
-
-        unsafe {
-            let stream = libc::fdopen(output.as_raw_fd(), c_mode.as_ptr());
-
-            pq_sys::PQprint(stream as *mut _, self.into(), &c_option);
-        }
+        todo!()
     }
 
     /**
@@ -294,7 +279,7 @@ impl Result {
      * See [PQcmdStatus](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCMDSTATUS).
      */
     pub fn cmd_status(&self) -> Option<String> {
-        crate::ffi::to_option_string(unsafe { pq_sys::PQcmdStatus(self.into()) })
+        self.cmd_status.clone()
     }
 
     /**
@@ -303,9 +288,11 @@ impl Result {
      * See [PQcmdTuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCMDTUPLES).
      */
     pub fn cmd_tuples(&self) -> usize {
-        let ntuples = crate::ffi::to_string(unsafe { pq_sys::PQcmdTuples(self.into()) });
-
-        ntuples.parse().unwrap_or_default()
+        if let Some(description) = &self.description {
+            description.len()
+        } else {
+            0
+        }
     }
 
     /**
@@ -314,23 +301,13 @@ impl Result {
      * See [PQoidValue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQOIDVALUE).
      */
     pub fn oid_value(&self) -> Option<crate::Oid> {
-        let oid = unsafe { pq_sys::PQoidValue(self.into()) };
-
-        if oid == crate::oid::INVALID {
-            None
+        if let Some(cmd_status) = self.cmd_status() {
+            cmd_status.strip_prefix("INSERT ")
+                .map(|x| x.matches(char::is_numeric).collect::<String>())
+                .map(|x| x.parse().unwrap_or(0))
         } else {
-            Some(oid)
+            None
         }
-    }
-
-    /**
-     * See [PQoidStatus](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQOIDSTATUS).
-     */
-    #[deprecated(
-        note = "This function is deprecated in favor of `libpq::Result::oid_value` and is not thread-safe."
-    )]
-    pub fn oid_status(&self) -> Option<String> {
-        crate::ffi::to_option_string(unsafe { pq_sys::PQoidStatus(self.into()) })
     }
 
     /**
@@ -339,14 +316,8 @@ impl Result {
      * See
      * [PQcopyResult](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQCOPYRESULT).
      */
-    pub fn copy(&self, flags: i32) -> std::result::Result<Self, ()> {
-        let raw = unsafe { pq_sys::PQcopyResult(self.into(), flags) };
-
-        if raw.is_null() {
-            Err(())
-        } else {
-            Ok(raw.into())
-        }
+    pub fn copy(&self, flags: i32) -> std::result::Result<Self, crate::Error> {
+        Ok(self.clone())
     }
 
     /**
@@ -358,18 +329,10 @@ impl Result {
     pub fn set_attrs(
         &mut self,
         attributes: &[&crate::result::Attribute],
-    ) -> std::result::Result<(), ()> {
-        let mut attr = attributes.iter().map(|x| x.into()).collect::<Vec<_>>();
+    ) -> std::result::Result<(), crate::Error> {
+        self.description = Some(crate::message::RowDescription::from(attributes));
 
-        let success = unsafe {
-            pq_sys::PQsetResultAttrs(self.into(), attributes.len() as i32, attr.as_mut_ptr())
-        };
-
-        if success == 0 {
-            Err(())
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 
     /**
@@ -382,44 +345,12 @@ impl Result {
         tuple: usize,
         field: usize,
         value: Option<&str>,
-    ) -> std::result::Result<(), ()> {
-        let (v, len) = if let Some(v) = value {
-            let cstring = std::ffi::CString::new(v).unwrap();
-            (cstring.into_raw(), v.len() as i32)
-        } else {
-            (std::ptr::null_mut(), -1)
-        };
-
-        let success =
-            unsafe { pq_sys::PQsetvalue(self.into(), tuple as i32, field as i32, v, len as i32) };
-
-        if success == 0 {
-            Err(())
-        } else {
+    ) -> std::result::Result<(), crate::Error> {
+        if let Some(row) = self.rows.get_mut(tuple) {
+            row.set_value(field, value.map(|x| x.as_bytes().to_vec()));
             Ok(())
-        }
-    }
-
-    /**
-     * Allocate subsidiary storage for a `Result` object.
-     *
-     * See
-     * [PQresultAlloc](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTALLOC).
-     *
-     * # Safety
-     *
-     * This function return a `void*` pointer.
-     */
-    pub unsafe fn alloc(
-        &mut self,
-        nbytes: usize,
-    ) -> std::result::Result<*mut core::ffi::c_void, ()> {
-        let space = pq_sys::PQresultAlloc(self.into(), nbytes as u64);
-
-        if space.is_null() {
-            Err(())
         } else {
-            Ok(space)
+            Err(crate::Error::Unknow)
         }
     }
 
@@ -428,9 +359,8 @@ impl Result {
      *
      * See [PQresultMemorySize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTMEMORYSIZE)
      */
-    #[cfg(feature = "v12")]
     pub fn memory_size(&self) -> u64 {
-        unsafe { pq_sys::PQresultMemorySize(self.into()) }
+        std::mem::size_of::<Self>() as u64
     }
 
     /**
@@ -445,82 +375,19 @@ impl Result {
         print_header: bool,
         quiet: bool,
     ) {
-        use std::os::unix::io::IntoRawFd;
+        todo!()
+    }
+}
 
-        let c_mode = crate::ffi::to_cstr("w");
+impl From<crate::Error> for Result {
+    fn from(error: crate::Error) -> Self {
+        let mut error_response = std::collections::HashMap::new();
+        error_response.insert(crate::result::ErrorField::MessagePrimary, error.to_string());
 
-        unsafe {
-            let fp = libc::fdopen(file.into_raw_fd(), c_mode.as_ptr());
+        Self {
+            error_message: Some(crate::message::Notice::new(error_response)),
 
-            let c_sep = field_sep.map(crate::ffi::to_cstr);
-            let sep = if let Some(c_sep) = c_sep {
-                c_sep.as_ptr()
-            } else {
-                std::ptr::null()
-            };
-
-            pq_sys::PQdisplayTuples(
-                self.into(),
-                fp as *mut _,
-                fill_align as i32,
-                sep,
-                print_header as i32,
-                quiet as i32,
-            );
+            .. Default::default()
         }
-    }
-}
-
-unsafe impl Send for Result {}
-
-unsafe impl Sync for Result {}
-
-impl Drop for Result {
-    fn drop(&mut self) {
-        unsafe { pq_sys::PQclear(self.into()) };
-    }
-}
-
-#[doc(hidden)]
-impl From<*mut pq_sys::PGresult> for Result {
-    fn from(result: *mut pq_sys::PGresult) -> Self {
-        Result { result }
-    }
-}
-
-#[doc(hidden)]
-impl From<&Result> for *mut pq_sys::PGresult {
-    fn from(result: &Result) -> *mut pq_sys::PGresult {
-        result.result
-    }
-}
-
-#[doc(hidden)]
-impl From<&mut Result> for *mut pq_sys::PGresult {
-    fn from(result: &mut Result) -> *mut pq_sys::PGresult {
-        result.result
-    }
-}
-
-#[doc(hidden)]
-impl From<&Result> for *const pq_sys::PGresult {
-    fn from(result: &Result) -> *const pq_sys::PGresult {
-        result.result
-    }
-}
-
-impl std::fmt::Debug for Result {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Result")
-            .field("inner", &self.result)
-            .field("status", &self.status())
-            .field("error_message", &self.error_message())
-            .field("ntuples", &self.ntuples())
-            .field("nfields", &self.nfields())
-            .field("cmd_status", &self.cmd_status())
-            .field("cmd_tuples", &self.cmd_tuples())
-            .field("oid_value", &self.oid_value())
-            .field("nparams", &self.nparams())
-            .finish()
     }
 }

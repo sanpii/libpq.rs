@@ -1,24 +1,26 @@
 mod cancel;
 mod info;
+mod config;
 mod notify;
+mod socket;
+mod state;
 mod status;
 
 pub use cancel::*;
+pub use config::*;
 pub use info::*;
 pub use notify::*;
 pub use status::*;
 
-use std::convert::TryInto;
+pub(crate) use socket::Socket;
+pub(crate) use state::*;
 
-pub type NoticeProcessor = pq_sys::PQnoticeProcessor;
-pub type NoticeReceiver = pq_sys::PQnoticeReceiver;
-
-#[derive(Clone)]
+#[derive(Debug)]
 pub struct Connection {
-    conn: *mut pq_sys::PGconn,
+    config: Config,
+    socket: Socket,
+    state: std::sync::RwLock<State>,
 }
-
-unsafe impl Send for Connection {}
 
 include!("_async.rs");
 include!("_cancel.rs");
@@ -26,9 +28,7 @@ include!("_connect.rs");
 include!("_control.rs");
 include!("_copy.rs");
 include!("_exec.rs");
-#[cfg(feature = "v12")]
 include!("_gss.rs");
-include!("_notice_processing.rs");
 include!("_notify.rs");
 include!("_single_row_mode.rs");
 include!("_ssl.rs");
@@ -36,106 +36,48 @@ include!("_status.rs");
 include!("_threading.rs");
 
 impl Connection {
-    fn transform_params(
-        param_values: &[Option<Vec<u8>>],
-        param_formats: &[crate::Format],
-    ) -> (Vec<*const i8>, Vec<i32>, Vec<i32>) {
-        if param_values.is_empty() {
-            return Default::default();
+    fn send_query_start(&self) -> Result<(), crate::Error> {
+        let async_status = self.state.read()?.async_status;
+
+        if async_status != AsyncStatus::IDLE
+            && async_status != AsyncStatus::COPY_IN
+            && async_status != AsyncStatus::COPY_OUT
+        {
+            return Err(crate::Error::InvalidState("another command is already in progress".to_string()));
         }
 
-        let mut values = Vec::new();
-        let mut formats = Vec::new();
-        let mut lengths = Vec::new();
+        self.consume_input()?;
+        self.state.write()?.single_row_mode = false;
 
-        for (x, value) in param_values.iter().enumerate() {
-            let format = param_formats.get(x).unwrap_or(&crate::Format::Text);
-            formats.push(format.into());
+        Ok(())
+    }
 
-            if let Some(v) = value {
-                if format == &crate::Format::Text && v.last() != Some(&b'\0') {
-                    panic!("Param value as text should be null terminated");
-                }
-                values.push(v.as_ptr() as *const i8);
-                lengths.push(v.len() as i32);
-            } else {
-                values.push(std::ptr::null());
-                lengths.push(0);
-            }
-        }
+    fn send(&self, message: crate::Message, new_status: AsyncStatus) -> Result<(), crate::Error> {
+        self.socket.send(message)?;
 
-        (values, formats, lengths)
+        self.state.write()?.async_status.insert(new_status);
+
+        Ok(())
+    }
+
+    fn sync(&self) -> Result<(), crate::Error> {
+        self.socket.send(crate::Message::Sync)
+    }
+
+    pub(crate) fn std_strings(&self) -> std::result::Result<bool, crate::Error> {
+        let std_strings = self.state.read()?.parameters
+            .get(&"standard_conforming_strings".to_string()) == Some(&"on".to_string());
+
+        Ok(std_strings)
     }
 }
 
-#[doc(hidden)]
-impl From<&Connection> for *mut pq_sys::pg_conn {
-    fn from(connection: &Connection) -> *mut pq_sys::pg_conn {
-        connection.conn
-    }
-}
+impl Clone for Connection {
+    fn clone(&self) -> Self {
+        let mut connection = Self::start_with_config(&self.config).unwrap();
+        connection.state = std::sync::RwLock::new(self.state.read().unwrap().clone());
 
-#[doc(hidden)]
-impl From<&mut Connection> for *mut pq_sys::pg_conn {
-    fn from(connection: &mut Connection) -> *mut pq_sys::pg_conn {
-        connection.conn
-    }
-}
-
-#[doc(hidden)]
-impl From<&Connection> for *const pq_sys::pg_conn {
-    fn from(connection: &Connection) -> *const pq_sys::pg_conn {
-        connection.conn
-    }
-}
-
-#[doc(hidden)]
-impl std::convert::TryFrom<*mut pq_sys::pg_conn> for Connection {
-    type Error = String;
-
-    fn try_from(conn: *mut pq_sys::pg_conn) -> std::result::Result<Self, Self::Error> {
-        let s = Self { conn };
-
-        if s.status() == crate::connection::Status::Bad {
-            Err(s
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
-        } else {
-            Ok(s)
-        }
-    }
-}
-
-impl Drop for Connection {
-    fn drop(&mut self) {
-        unsafe {
-            pq_sys::PQfinish(self.into());
-        }
-    }
-}
-
-impl std::fmt::Debug for Connection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Connection")
-            .field("inner", &self.conn)
-            .field("db", &self.db())
-            .field("user", &self.user())
-            .field("pass", &self.pass())
-            .field("host", &self.host())
-            .field("port", &self.port())
-            .field("options", &self.options())
-            .field("status", &self.status())
-            .field("transaction_status", &self.transaction_status())
-            .field("protocol_version", &self.protocol_version())
-            .field("server_version", &self.server_version())
-            .field("error_message", &self.error_message())
-            .field("socket", &self.socket())
-            .field("backend_pid", &self.backend_pid())
-            .field("info", &crate::v2::connection::info(&self))
-            .field("needs_password", &self.needs_password())
-            .field("used_password", &self.used_password())
-            .field("ssl_in_use", &self.ssl_in_use())
-            .finish()
+        connection
     }
 }
 
@@ -147,7 +89,7 @@ mod test {
         assert!(crate::Connection::is_thread_safe());
 
         let thread = std::thread::spawn(move || {
-            assert_eq!(conn.exec("SELECT 1").status(), crate::Status::TupplesOk)
+            assert_eq!(conn.exec("SELECT 1").status(), crate::Status::TuplesOk)
         });
 
         thread.join().ok();
@@ -172,7 +114,7 @@ mod test {
     fn exec() {
         let conn = crate::test::new_conn();
         let results = conn.exec("SELECT 1 as one, 2 as two from generate_series(1,2)");
-        assert_eq!(results.status(), crate::Status::TupplesOk);
+        assert_eq!(results.status(), crate::Status::TuplesOk);
         assert_eq!(results.ntuples(), 2);
         assert_eq!(results.nfields(), 2);
 
@@ -198,7 +140,7 @@ mod test {
             &[],
             crate::Format::Text,
         );
-        assert_eq!(results.status(), crate::Status::TupplesOk);
+        assert_eq!(results.status(), crate::Status::TuplesOk);
 
         assert_eq!(results.value(0, 0), Some(&b"1"[..]));
     }
@@ -214,19 +156,6 @@ mod test {
             crate::Format::Text,
         );
         assert_eq!(results.status(), crate::Status::FatalError);
-    }
-
-    #[test]
-    #[should_panic]
-    fn exec_text() {
-        let conn = crate::test::new_conn();
-        let _ = conn.exec_params(
-            "SELECT $1",
-            &[],
-            &[Some(b"foo".to_vec())],
-            &[],
-            crate::Format::Text,
-        );
     }
 
     #[test]
@@ -323,8 +252,8 @@ mod test {
             .unwrap();
         let result = conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid]);
         assert_eq!(
-            result,
-            Err("another command is already in progress\n".to_string())
+            result.err().unwrap().to_string(),
+            "another command is already in progress".to_string()
         );
     }
 
@@ -436,14 +365,21 @@ mod test {
     }
 
     #[test]
-    #[cfg(unix)]
+    #[ignore = "Should be launch alone"]
     fn trace() {
-        let conn = crate::test::new_conn();
-        let file = std::fs::File::create("trace.txt").unwrap();
+        let dsn = std::env::var("PQ_DSN").unwrap_or_else(|_| "host=localhost".to_string());
+        let conn = crate::Connection::new(&dsn).unwrap();
 
-        conn.trace(file);
-        conn.exec("SELECT 1");
-        conn.untrace();
+        flexi_logger::Logger::with_str("trace")
+            .log_to_file()
+            .print_message()
+            .create_symlink("trace.txt")
+            .format_for_files(|w, _, record| {
+                write!(w, "{}", record.args())
+            })
+            .start()
+            .unwrap();
+
         conn.exec("SELECT 1");
 
         use std::io::Read;
@@ -451,7 +387,7 @@ mod test {
         let mut trace = String::new();
         file.read_to_string(&mut trace).unwrap();
         assert_eq!(
-            trace,
+            trace.trim_start_matches('\0'),
             r#"To backend> Msg Q
 To backend> "SELECT 1"
 To backend> Msg complete, length 14
@@ -473,8 +409,6 @@ From backend (1)> 1
 From backend> C
 From backend (#4)> 13
 From backend> "SELECT 1"
-From backend> Z
-From backend (#4)> 5
 From backend> Z
 From backend (#4)> 5
 From backend> I

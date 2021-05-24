@@ -27,17 +27,3 @@ impl ToString for Attribute {
         format!("{:?}", self).to_lowercase()
     }
 }
-
-#[doc(hidden)]
-impl From<&String> for Attribute {
-    fn from(s: &String) -> Self {
-        match s.as_str() {
-            "library" => Self::Library,
-            "protocol" => Self::Protocol,
-            "key_bits" => Self::KeyBits,
-            "cipher" => Self::Cipher,
-            "compression" => Self::Compression,
-            _ => unimplemented!(),
-        }
-    }
-}

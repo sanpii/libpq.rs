@@ -1,50 +1,38 @@
 #[derive(Clone, Debug)]
 pub struct Cancel {
-    cancel: *mut pq_sys::pg_cancel,
+    raddr: std::net::SocketAddr,
+    be_pid: i32,
+    be_key: i32,
 }
 
+const CANCEL_REQUEST_CODE: i32 = 1234 << 16 | 5678;
+
 impl Cancel {
+    pub(crate) fn from(connection: &crate::Connection) -> Result<Self, crate::Error> {
+        let cancel = Self {
+            raddr: connection.socket.peer_addr()?,
+            be_pid: connection.state.read()?.be_pid,
+            be_key: connection.state.read()?.be_key,
+        };
+
+        Ok(cancel)
+    }
+
     /**
      * Requests that the server abandon processing of the current command.
      *
      * See [PQcancel](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQCANCEL).
      */
-    pub fn request(&self) -> std::result::Result<(), String> {
+    pub fn request(&self) -> std::result::Result<(), crate::Error> {
         log::trace!("Canceling");
 
-        let capacity = 256;
-        let c_error = crate::ffi::new_cstring(capacity);
-        let ptr_error = c_error.into_raw();
+        use std::io::Write;
 
-        let sucess = unsafe { pq_sys::PQcancel(self.into(), ptr_error, capacity as i32) };
-        let error = crate::ffi::from_raw(ptr_error);
+        let message = crate::Message::cancel_request(CANCEL_REQUEST_CODE, self.be_pid, self.be_key);
 
-        if sucess == 1 {
-            Ok(())
-        } else {
-            Err(error)
-        }
-    }
-}
+        let mut socket = std::net::TcpStream::connect(self.raddr)?;
+        socket.write_all(&message.to_bytes())?;
 
-#[doc(hidden)]
-impl From<*mut pq_sys::pg_cancel> for Cancel {
-    fn from(cancel: *mut pq_sys::pg_cancel) -> Self {
-        Self { cancel }
-    }
-}
-
-#[doc(hidden)]
-impl From<&Cancel> for *mut pq_sys::pg_cancel {
-    fn from(cancel: &Cancel) -> *mut pq_sys::pg_cancel {
-        cancel.cancel
-    }
-}
-
-impl Drop for Cancel {
-    fn drop(&mut self) {
-        unsafe {
-            pq_sys::PQfreeCancel(self.cancel);
-        }
+        Ok(())
     }
 }

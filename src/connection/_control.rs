@@ -9,7 +9,13 @@ impl Connection {
      * [PQclientEncoding](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQCLIENTENCODING).
      */
     pub fn client_encoding(&self) -> crate::Encoding {
-        unsafe { pq_sys::PQclientEncoding(self.into()) }.into()
+        self.state.read()
+            .unwrap()
+            .parameters
+            .get("client_encoding")
+            .cloned()
+            .unwrap_or_else(|| "US-ASCII".to_string())
+            .into()
     }
 
     /**
@@ -18,13 +24,9 @@ impl Connection {
      * See [PQsetClientEncoding](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETCLIENTENCODING).
      */
     pub fn set_client_encoding(&self, encoding: crate::Encoding) {
-        log::trace!("Setting client encoding to '{:?}'", encoding);
+        log::debug!("Setting client encoding to '{:?}'", encoding);
 
-        let c_encoding = crate::ffi::to_cstr(&encoding.to_string());
-
-        unsafe {
-            pq_sys::PQsetClientEncoding(self.into(), c_encoding.as_ptr());
-        }
+        self.exec(&format!("set client_encoding to '{}'", encoding.to_string()));
     }
 
     /**
@@ -34,41 +36,12 @@ impl Connection {
      * See [PQsetErrorVerbosity](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETERRORVERBOSITY).
      */
     pub fn set_error_verbosity(&self, verbosity: crate::Verbosity) -> crate::Verbosity {
-        log::trace!("Setting client encoding to '{:?}'", verbosity);
+        log::debug!("Setting client encoding to '{:?}'", verbosity);
 
-        unsafe { pq_sys::PQsetErrorVerbosity(self.into(), verbosity.into()) }.into()
-    }
+        let old = self.state.read().unwrap().verbosity;
 
-    /**
-     * Enables tracing of the client/server communication to a debugging file stream.
-     *
-     * See [PQtrace](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQTRACE).
-     */
-    #[cfg(unix)]
-    pub fn trace(&self, file: std::fs::File) {
-        use std::os::unix::io::IntoRawFd;
+        self.state.write().unwrap().verbosity = verbosity;
 
-        log::trace!("Enable trace");
-
-        let c_mode = crate::ffi::to_cstr("w");
-
-        unsafe {
-            let stream = libc::fdopen(file.into_raw_fd(), c_mode.as_ptr());
-            pq_sys::PQtrace(self.into(), stream as *mut _);
-        }
-    }
-
-    /**
-     * Disables tracing started by `libpq::Connection::trace`.
-     *
-     * See [PQuntrace](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQUNTRACE).
-     */
-    #[cfg(unix)]
-    pub fn untrace(&self) {
-        log::trace!("Disable trace");
-
-        unsafe {
-            pq_sys::PQuntrace(self.into());
-        }
+        old
     }
 }

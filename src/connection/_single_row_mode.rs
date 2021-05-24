@@ -8,15 +8,22 @@ impl Connection {
      * See
      * [PQsetSingleRowMode](https://www.postgresql.org/docs/current/libpq-single-row-mode.html#LIBPQ-PQSETSINGLEROWMODE).
      */
-    pub fn set_single_row_mode(&self) -> std::result::Result<(), ()> {
-        log::trace!("Set single row mode");
+    pub fn set_single_row_mode(&self) -> std::result::Result<(), crate::Error> {
+        log::debug!("Set single row mode");
 
-        let success = unsafe { pq_sys::PQsetSingleRowMode(self.into()) };
+        let mut state = self.state.write()?;
 
-        if success == 1 {
+        if state.async_status.contains(AsyncStatus::PREPARE)
+            || state.async_status.contains(AsyncStatus::EXECUTE)
+        {
+            state.single_row_mode = true;
+
             Ok(())
         } else {
-            Err(())
+            Err(
+                crate::Error::InvalidState("Change single row mode only after query launched and before result received".to_string())
+            )
         }
+
     }
 }

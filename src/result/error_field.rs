@@ -1,5 +1,5 @@
 // @see https://github.com/postgres/postgres/blob/REL_12_2/src/include/postgres_ext.h#L55
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[repr(i32)]
 pub enum ErrorField {
     /** The severity. */
@@ -52,6 +52,32 @@ pub enum ErrorField {
 
 impl From<ErrorField> for i32 {
     fn from(error_field: ErrorField) -> i32 {
-        unsafe { std::mem::transmute(error_field) }
+        error_field as i32
+    }
+}
+
+impl From<char> for ErrorField {
+    fn from(c: char) -> Self {
+        match c {
+            'S' => Self::Severity,
+            'V' => Self::SeverityNonlocalized,
+            'C' => Self::Sqlstate,
+            'M' => Self::MessagePrimary,
+            'D' => Self::MessageDetail,
+            'H' => Self::MessageHint,
+            'P' => Self::StatementPosition,
+            'p' => Self::InternalPosition,
+            'q' => Self::InternalQuery,
+            'W' => Self::Context,
+            's' => Self::SchemaName,
+            't' => Self::TableName,
+            'c' => Self::ColumnName,
+            'd' => Self::DatatypeName,
+            'n' => Self::ConstraintName,
+            'F' => Self::SourceFile,
+            'L' => Self::SourceLine,
+            'R' => Self::SourceFunction,
+            _ => unreachable!(),
+        }
     }
 }

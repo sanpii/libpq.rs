@@ -9,19 +9,16 @@ pub struct Attribute {
     pub atttypmod: i32,
 }
 
-#[doc(hidden)]
-impl From<&&Attribute> for pq_sys::pgresAttDesc {
-    fn from(attribute: &&Attribute) -> pq_sys::pgresAttDesc {
-        let name = std::ffi::CString::new(attribute.name.clone()).unwrap();
-
-        pq_sys::pgresAttDesc {
-            name: name.into_raw(),
-            tableid: attribute.tableid,
-            columnid: attribute.columnid,
-            format: attribute.format,
-            typid: attribute.typid,
-            typlen: attribute.typlen,
-            atttypmod: attribute.atttypmod,
+impl From<&mut crate::Payload> for Attribute {
+    fn from(payload: &mut crate::Payload) -> Self {
+        Self {
+            name: payload.next(),
+            tableid: payload.next(),
+            columnid: payload.next::<i16>() as i32,
+            typid: payload.next(),
+            typlen: payload.next::<i16>() as i32,
+            atttypmod: payload.next(),
+            format: payload.next::<i16>() as i32,
         }
     }
 }

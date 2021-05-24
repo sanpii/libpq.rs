@@ -21,32 +21,7 @@ pub enum Status {
     /** Wait for any pending message and consume them. */
     Consume,
     /** Negotiating GSSAPI. */
-    #[cfg(feature = "v11")]
     GssStartup,
     /** Check if we have a proper target connection */
-    #[cfg(feature = "v11")]
     CheckTarget,
-}
-
-impl From<pq_sys::ConnStatusType> for Status {
-    fn from(status: pq_sys::ConnStatusType) -> Self {
-        match status {
-            pq_sys::ConnStatusType::CONNECTION_OK => Self::Ok,
-            pq_sys::ConnStatusType::CONNECTION_BAD => Self::Bad,
-            pq_sys::ConnStatusType::CONNECTION_STARTED => Self::Started,
-            pq_sys::ConnStatusType::CONNECTION_MADE => Self::Made,
-            pq_sys::ConnStatusType::CONNECTION_AWAITING_RESPONSE => Self::AwaitingResponse,
-            pq_sys::ConnStatusType::CONNECTION_AUTH_OK => Self::AuthOk,
-            pq_sys::ConnStatusType::CONNECTION_SETENV => Self::Setenv,
-            pq_sys::ConnStatusType::CONNECTION_SSL_STARTUP => Self::SslStartup,
-            pq_sys::ConnStatusType::CONNECTION_NEEDED => Self::Needed,
-            pq_sys::ConnStatusType::CONNECTION_CHECK_WRITABLE => Self::CheckWritable,
-            pq_sys::ConnStatusType::CONNECTION_CONSUME => Self::Consume,
-            #[cfg(feature = "v11")]
-            pq_sys::ConnStatusType::CONNECTION_GSS_STARTUP => Self::GssStartup,
-            #[cfg(feature = "v11")]
-            pq_sys::ConnStatusType::CONNECTION_CHECK_TARGET => Self::CheckTarget,
-            _ => unreachable!(),
-        }
-    }
 }

@@ -10,34 +10,11 @@ pub enum Verbosity {
     /** includes all available fields. */
     Verbose,
     /** only error severity and SQLSTATE code */
-    #[cfg(feature = "v11")]
     Sqlstate,
 }
 
-#[doc(hidden)]
-impl From<pq_sys::PGVerbosity> for Verbosity {
-    fn from(verbosity: pq_sys::PGVerbosity) -> Self {
-        match verbosity {
-            pq_sys::PGVerbosity::PQERRORS_TERSE => Self::Terse,
-            pq_sys::PGVerbosity::PQERRORS_DEFAULT => Self::Default,
-            pq_sys::PGVerbosity::PQERRORS_VERBOSE => Self::Verbose,
-            #[cfg(feature = "v11")]
-            pq_sys::PGVerbosity::PQERRORS_SQLSTATE => Self::Sqlstate,
-            _ => unreachable!(),
-        }
-    }
-}
-
-#[doc(hidden)]
-impl From<Verbosity> for pq_sys::PGVerbosity {
-    fn from(verbosity: Verbosity) -> Self {
-        match verbosity {
-            Verbosity::Terse => pq_sys::PGVerbosity::PQERRORS_TERSE,
-            Verbosity::Default => pq_sys::PGVerbosity::PQERRORS_DEFAULT,
-            Verbosity::Verbose => pq_sys::PGVerbosity::PQERRORS_VERBOSE,
-            #[cfg(feature = "v11")]
-            Verbosity::Sqlstate => pq_sys::PGVerbosity::PQERRORS_SQLSTATE,
-            _ => unreachable!(),
-        }
+impl Default for Verbosity {
+    fn default() -> Self {
+        Self::Default
     }
 }
