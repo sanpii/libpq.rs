@@ -1,0 +1,226 @@
+@startuml
+
+concise "AuthentificationRequest" as AR
+0 is "**R**": char
++1 is len: i32
++4 is method: int32
++4 is optional: char[len - 8]
++4 is {-}
+
+concise "AuthentificationRequestMD5" as AR5
+0 is "**R**": char
++1 is len: i32
++4 is method: char
++4 is salt: char[4]
++4 is {-}
+
+concise "Bind" as B
+0 is "**B**": char
++1 is len: i32
++4 is portal: char[]
++3 is 0x0 #line:gray
++1 is stmt: char[]
++3 is 0x0 #line:gray
++1 is numformats: i16
++2 is format #gold : i16
++2 is numparams: i16
++2 is paramlen #gold : i32
++4 is param #gold: char[paramlen]
++4 is numresults: i16
++2 is resultformat #gold: i16
++2 is {-}
+@15 <-> @17 : × numformats
+@19 <-> @27 : × numparams
+@29 <-> @31 : × numresults
+
+concise "CancelRequest" as CR
+0 is len: i32
++4 is cancelcode: i32
++4 is pid: i32
++4 is secret: i32
++4 is {-}
+
+concise "CommandComplete" as CC
+0 is "**C**": char
++1 is len: i32
++4 is tag: char[]
++3 is 0x0 #line:gray
++1 is {-}
+
+concise "CopyData" as CD
+0 is "**d**": char
++1 is len: i32
++4 is data: char[len - 4]
++4 is {-}
+
+concise "CopyDone" as CE
+0 is "**c**": char
++1 is len: i32
++4 is {-}
+
+concise "CopyInResponse" as CIR
+0 is "**G**": char
++1 is len: i32
++4 is format: i8
++1 is numfields: i16
++2 is format #gold : i16
++2 is {-}
+@8 <-> @10 : × numfields
+
+concise "CopyOutResponse" as COR
+0 is "**H**": char
++1 is format: u8
++1 is len: i16
++2 is storage: char[len]
++4 is {-}
+
+concise "DataRow" as DR
+0 is "**D**": char
++1 is len: i32
++4 is numfields: i16
++2 is fieldlen #gold : i32
++4 is data #gold : char[fieldlen]
++4 is {-}
+@7 <-> @15 : × numfields
+
+concise "Describe" as D
+0 is "**D**": char
++1 is len: i32
++4 is type: char (S or P)
++1 is name: char[]
++3 is 0x0 #line:gray
++1 is {-}
+
+concise "EmptyQuery" as EQ
+0 is "**I**": char
++1 is len: i32
++4 is {-}
+
+concise "ErrorResponse" as ER
+0 is "**E**": char
++1 is len: i32
++4 is code #gold : char
++1 is value #gold : char[]
++3 is 0x0 #gold;line:gray
++1 is 0x0 #line:gray
++1 is {-}
+
+concise "Execute" as E
+0 is "**E**": char
++1 is len: i32
++4 is portal: char[]
++3 is 0x0 #line:gray
++1 is row_limit: i32
++4 is {-}
+
+concise "FunctionCall" as FC
+0 is "**d**": char
++1 is len: i32
++4 is funoid: i32
++4 is numformats: i16
++2 is format #gold : i16
++2 is numparams: i16
++2 is paramlen #gold : i32
++4 is param #gold: char[paramlen]
++4 is resultformat #gold: i16
++2 is {-}
+@11 <-> @13 : × numformats
+@15 <-> @25 : × numparams
+
+concise "Notification" as N
+0 is "**N**": char
++1 is len: i32
++4 is code #gold : char
++1 is value #gold : char[]
++3 is 0x0 #gold;line:gray
++1 is 0x0 #line:gray
++1 is {-}
+
+concise "NotificationResponse" as NR
+0 is "**d**": char
++1 is len: i32
++4 is pid: i32
++4 is channel: char[]
++3 is 0x0 #line:gray
++1 is payload: char[]
++3 is 0x0 #line:gray
++1 is {-}
+
+concise "ParameterDescription" as PD
+0 is "**D**": char
++1 is len: i32
++4 is numparams: i16
++2 is paramoid #gold : i16
++2 is {-}
+@7 <-> @9 : × numparams
+
+concise "ParameterStatus" as PS
+0 is "**S**": char
++1 is len: i32
++4 is name: char[]
++3 is 0x0 #line:gray
++1 is value: char[]
++3 is 0x0 #line:gray
++1 is {-}
+
+concise "Parse" as P
+0 is "**Z**": char
++1 is len: i32
++4 is stmt: char[]
++3 is 0x0 #line:gray
++1 is query: char[]
++3 is 0x0 #line:gray
++1 is numparams: i16
++2 is paramoid #gold : i32
++4 is {-}
+@15 <-> @19 : × numparams
+
+concise "Query" as Q
+0 is "**Q**": char
++1 is len: i32
++4 is query: char[]
++3 is 0x0 #line:gray
++1 is {-}
+
+concise "ReadyForQuery" as RFQ
+0 is "**Z**": char
++1 is len: i32
++4 is status: char (I, T or E)
++1 is {-}
+
+concise "RowDescription" as RD
+0 is "**T**": char
++1 is len: i32
++4 is numfields: i16
++2 is col #gold : char[]
++3 is 0x0 #gold;line:gray
++1 is tableoid #gold : i32
++4 is colno #gold : i16
++2 is typeoid #gold : i32
++4 is typelen #gold : i16
++2 is typmod #gold : i32
++4 is format #gold : i16
++2 is {-}
+@7 <-> @29 : × numfields
+
+concise "SslNegotiation" as SN
+0 is len: i32
++4 is sslcode: i32
++4 is {-}
+
+concise "Startup" as SP
+0 is len: i32
++4 is protocol: i32
++4 is name #gold : char[]
++3 is 0x0 #gold;line:gray
++1 is value #gold : char[]
++3 is 0x0 #gold;line:gray
++1 is 0x0 #line:gray
++1 is {-}
+
+concise "Sync" as S
+0 is "**S**": char
++1 is len: i32
++4 is {-}
+
+@enduml

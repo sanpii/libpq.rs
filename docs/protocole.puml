@@ -1,0 +1,210 @@
+@startuml
+
+== Connection ==
+
+[-> client: PQconnectdb
+client -> client ++: PQconnectPoll
+    client --> server: //Startup//
+    alt
+        client <-- server: //AuthentificationOk//
+    else
+        client <-- server: //AuthentificationRequest//
+        client --> server: //PasswordMessage//
+    end
+    loop
+        client <-- server: //ParameterStatus//
+    end
+    loop
+        client <-- server: //BackendKeyData//
+    end
+    client <-- server: //ReadyForQuery//
+return
+[<- client: PGconn
+
+newpage
+
+== Simple query ==
+
+[-> client: PQexec
+
+client -> client ++: PQexecStart
+    loop result != NULL
+        client -> client ++: PQgetResult
+        return
+    end
+    alt PGRES_COPY_IN
+        client -> client ++: PQputCopyEnd
+        return
+    else PGRES_COPY_OUT
+        note across #lightblue: asyncStatus = PGASYNC_BUSY
+    else PGRES_COPY_BOTH
+        note across #lightpink: PQexec not allowed during COPY BOTH
+    end
+return
+
+client -> client ++: PQsendQuery
+    client --> server: //Query//
+    note across #lightgreen: queryclass = PGQUERY_SIMPLE
+    note across #lightblue: asyncStatus = PGASYNC_BUSY
+return
+
+client -> client ++: PQexecFinish
+    client -> client ++: PQgetResult
+        alt
+            client <-- server: //RowDescription//
+            note across #lightblue: asyncStatus = PGASYNC_READY
+            loop
+                client <-- server: //DataRow//
+            end
+            client <-- server: //CommandComplete//
+            note across #lightblue: asyncStatus = PGASYNC_READY
+            client <-- server: //ReadyForQuery//
+            note across #lightblue: asyncStatus = PGASYNC_IDLE
+        else
+            client <-- server: //ErrorResponse//
+            note across #lightblue: asyncStatus = PGASYNC_READY
+        end
+    return
+return
+
+[<- client: PGresult
+
+newpage
+
+== Extended query ==
+
+[-> client: PQsendQuery
+client -> client ++: PQsendQueryParams
+    client --> server: //Parse//
+    client --> server: //Bind//
+    client --> server: //DescribePortal//
+    client --> server: //Execute//
+    client --> server: //Sync//
+    note across #lightgreen: queryclass = PGQUERY_EXTENDED
+    note across #lightblue: asyncStatus = PGASYNC_BUSY
+return
+[<- client
+
+...
+
+[-> client: PQgetResult
+alt
+    client <-- server: //ParseComplete//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+    client <-- server: //BindComplete//
+    client <-- server: //RowDescription//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+    loop
+        client <-- server: //DataRow//
+    end
+    client <-- server: //CommandComplete//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+    client <-- server: //ReadyForQuery//
+    note across #lightblue: asyncStatus = PGASYNC_IDLE
+else
+    client <-- server: //ErrorResponse//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+end
+[<- client: PGresult
+
+newpage
+
+== Prepared query ==
+
+[-> client: PQsendPrepare
+    client --> server: //Parse//
+    client --> server: //Sync//
+    note across #lightgreen: queryclass = PGQUERY_PREPARE
+    note across #lightblue: asyncStatus = PGASYNC_BUSY
+[<- client
+
+...
+
+[-> client: PQsendQueryPrepared
+    client --> server: //Bind//
+    client --> server: //DescribePortal//
+    client --> server: //Execute//
+    client --> server: //Sync//
+    note across #lightgreen: queryclass = PGQUERY_PREPARE
+    note across #lightblue: asyncStatus = PGASYNC_BUSY
+[<- client
+
+...
+
+[-> client: PQgetResult
+alt
+    client <-- server: //ParseComplete//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+    client <-- server: //BindComplete//
+    client <-- server: //RowDescription//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+    loop
+        client <-- server: //DataRow//
+    end
+    client <-- server: //CommandComplete//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+    client <-- server: //ReadyForQuery//
+    note across #lightblue: asyncStatus = PGASYNC_IDLE
+else
+    client <-- server: //ErrorResponse//
+    note across #lightblue: asyncStatus = PGASYNC_READY
+end
+[<- client: PGresult
+
+newpage
+
+== Copy in ==
+
+note across: copy tmp (id) from stdin;
+[-> client: PQexec
+    client --> server: //Query//
+    note across #lightgreen: queryclass = PGQUERY_SIMPLE
+    note across #lightblue: asyncStatus = PGASYNC_BUSY
+    client <-- server: //CopyIn//
+    note across #lightblue: asyncStatus = PGASYNC_COPY_IN
+[<- client: PGresult
+
+...
+
+loop
+    [-> client: PQputCopyData
+        client --> server: //CopyData//
+    [<- client
+end
+
+...
+
+[-> client: PQputCopyEnd
+    alt
+        client --> server: //CopyDone//
+    else
+        client --> server: //CopyFail//
+    end
+    client --> server: //Sync//
+    note across #lightblue: asyncStatus ~= PGASYNC_COPY_IN
+    client <-- server: //CommandComplete//
+    client <-- server: //ReadyForQuery//
+[<- client
+
+newpage
+
+== Copy out ==
+
+note across: copy tmp (id) to stdout;
+[-> client: PQexec
+    client --> server: //Query//
+    note across #lightgreen: queryclass = PGQUERY_SIMPLE
+    note across #lightblue: asyncStatus = PGASYNC_BUSY
+    client <-- server: //CopyOut//
+    note across #lightblue: asyncStatus = PGASYNC_COPY_OUT
+[<- client: PGresult
+
+...
+
+loop
+    [-> client: PQgetCopyData
+        client <-- server: //CopyOut//
+    [<- client
+end
+
+@enduml
