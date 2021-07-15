@@ -23,7 +23,7 @@ path = "libpq-sys"
 version = "0.6"
 
 [dev-dependencies]
-env_logger = "0.8"
+env_logger = "0.9"
 
 [build-dependencies.codegen]
 version = "0.1"
