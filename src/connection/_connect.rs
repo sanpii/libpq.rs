@@ -203,6 +203,6 @@ impl Connection {
      */
     #[deprecated(since="1.2.0", note="In v2, this function will return an HashMap, use v2::connection::info instead")]
     pub fn info(&self) -> crate::connection::Info {
-        crate::v2::connection::info(&self).iter().next().unwrap().1.clone()
+        crate::v2::connection::info(self).iter().next().unwrap().1.clone()
     }
 }

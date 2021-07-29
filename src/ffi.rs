@@ -67,7 +67,7 @@ pub(crate) fn vec_to_nta<S: ToString>(v: &[S]) -> (Vec<std::ffi::CString>, Vec<*
         .iter()
         .map(|x| crate::ffi::to_cstr(&x.to_string()))
         .collect::<Vec<_>>();
-    let mut ptr = c.iter().map(|ref x| x.as_ptr()).collect::<Vec<_>>();
+    let mut ptr = c.iter().map(|x| x.as_ptr()).collect::<Vec<_>>();
     ptr.push(std::ptr::null());
 
     (c, ptr)
