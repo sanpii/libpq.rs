@@ -1,7 +1,7 @@
 use std::os::raw::c_char;
 
 pub(crate) fn to_cstr(s: &str) -> std::ffi::CString {
-    std::ffi::CString::new(s).unwrap()
+    unsafe { std::ffi::CString::from_vec_unchecked(s.as_bytes().to_vec()) }
 }
 
 pub(crate) fn to_str(s: *const c_char) -> &'static str {
