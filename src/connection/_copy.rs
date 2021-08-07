@@ -9,23 +9,9 @@ impl Connection {
      * See
      * [PQputCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYDATA).
      */
+    #[deprecated(since="1.4.0", note="In v2, this function will take a &[u8], use v2::connection::put_copy_data instead")]
     pub fn put_copy_data(&self, buffer: &str) -> std::result::Result<(), String> {
-        log::trace!("Sending copy data");
-
-        let c_buffer = crate::ffi::to_cstr(buffer);
-
-        let success = unsafe {
-            pq_sys::PQputCopyData(self.into(), c_buffer.as_ptr(), buffer.len() as i32)
-        };
-
-        match success {
-            -1 => Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string())),
-            0 => Err("Full buffers".to_string()),
-            1 => Ok(()),
-            _ => unreachable!(),
-        }
+        crate::v2::connection::put_copy_data(self, buffer.as_bytes())
     }
 
     /**
