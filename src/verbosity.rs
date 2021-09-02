@@ -23,6 +23,7 @@ impl From<pq_sys::PGVerbosity> for Verbosity {
             pq_sys::PGVerbosity::PQERRORS_VERBOSE => Self::Verbose,
             #[cfg(feature = "v11")]
             pq_sys::PGVerbosity::PQERRORS_SQLSTATE => Self::Sqlstate,
+            #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
     }
@@ -37,6 +38,7 @@ impl From<Verbosity> for pq_sys::PGVerbosity {
             Verbosity::Verbose => pq_sys::PGVerbosity::PQERRORS_VERBOSE,
             #[cfg(feature = "v11")]
             Verbosity::Sqlstate => pq_sys::PGVerbosity::PQERRORS_SQLSTATE,
+            #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
     }
