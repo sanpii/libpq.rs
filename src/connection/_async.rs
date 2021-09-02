@@ -48,7 +48,7 @@ impl Connection {
 
             for (x, value) in param_values.iter().enumerate() {
                 let v = if let Some(s) = value {
-                    String::from_utf8(s.to_vec()).unwrap_or_else(|_| "?".to_string())
+                    String::from_utf8(s.to_vec()).unwrap_or_else(|_| "�".to_string())
                 } else {
                     "null".to_string()
                 };
@@ -172,7 +172,7 @@ impl Connection {
                 .map(|x| if let Some(s) = x {
                     match String::from_utf8(s.to_vec()) {
                         Ok(str) => format!("'{}'", str),
-                        Err(_) => "?".to_string(),
+                        Err(_) => "�".to_string(),
                     }
                 } else {
                     "null".to_string()
