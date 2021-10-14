@@ -35,7 +35,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --features v13
+          args: --features v14
 
   tests:
     name: Tests
@@ -43,7 +43,7 @@ jobs:
       matrix:
         rust: ["stable", "beta", "nightly"]
         os: ["ubuntu-latest", "macos-latest"]
-        pg: ["11", "12", "13"]
+        pg: ["11", "12", "13", "14"]
         mode: ["debug", "release"]
         exclude:
           - os: "macos-latest"
@@ -52,6 +52,8 @@ jobs:
             pg: "11"
           - os: "macos-latest"
             pg: "12"
+          - os: "macos-latest"
+            pg: "13"
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -118,6 +120,6 @@ jobs:
           sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
 
       - name: build
-        run: cargo test --no-run --features v13
+        run: cargo test --no-run --features v14
       - name: valgrind
         run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)

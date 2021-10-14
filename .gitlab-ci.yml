@@ -27,7 +27,7 @@ lint:clippy:
     <<: *pg
     variables:
         MODE: debug
-        PG: "13"
+        PG: "14"
     stage: lint
     script:
         - rustup component add clippy
@@ -39,7 +39,7 @@ test:
     parallel:
         matrix:
             - MODE: ['debug', 'release']
-              PG: ['9.5', '9.6', '10', '11', '12', '13']
+              PG: ['9.5', '9.6', '10', '11', '12', '13', '14']
     script: |
         feature=''
 
@@ -59,7 +59,7 @@ valgrind:
     <<: *pg
     variables:
         MODE: debug
-        PG: "13"
+        PG: "14"
     script:
       - cargo test --no-run --features "v$PG"
       - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)

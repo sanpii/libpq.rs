@@ -22,6 +22,8 @@ mod encoding;
 mod format;
 mod oid;
 mod status;
+#[cfg(feature = "v14")]
+mod trace;
 mod verbosity;
 
 pub use connection::Connection;

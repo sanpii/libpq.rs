@@ -176,15 +176,18 @@ fn parse_types() -> BTreeMap<u32, Type> {
         .map(|m| (m["typname"].clone(), m["oid"].parse::<u32>().unwrap()))
         .collect::<HashMap<_, _>>();
 
-    let range_elements = raw_ranges
-        .iter()
-        .map(|m| {
-            (
-                oids_by_name[&*m["rngtypid"]],
-                oids_by_name[&*m["rngsubtype"]],
-            )
-        })
-        .collect::<HashMap<_, _>>();
+    let mut range_elements = HashMap::new();
+
+    for range in raw_ranges {
+        range_elements.insert(
+            oids_by_name[&*range["rngtypid"]],
+            oids_by_name[&*range["rngsubtype"]],
+        );
+        range_elements.insert(
+            oids_by_name[&*range["rngmultitypid"]],
+            oids_by_name[&*range["rngsubtype"]],
+        );
+    }
 
     let range_vector_re = Regex::new("(range|vector)$").unwrap();
     let array_re = Regex::new("^_(.*)").unwrap();

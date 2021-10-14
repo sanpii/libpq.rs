@@ -1511,6 +1511,13 @@ pub const DATABASE_DROPPED: State = State {
     kind: Kind::Error,
     message: Some("database dropped"),
 };
+/// idle session timeout
+pub const IDLE_SESSION_TIMEOUT: State = State {
+    code: "57P05",
+    name: "IDLE_SESSION_TIMEOUT",
+    kind: Kind::Error,
+    message: Some("idle session timeout"),
+};
 /// system error
 pub const SYSTEM_ERROR: State = State {
     code: "58000",
@@ -2026,6 +2033,7 @@ impl State {
             "57P02" => CRASH_SHUTDOWN,
             "57P03" => CANNOT_CONNECT_NOW,
             "57P04" => DATABASE_DROPPED,
+            "57P05" => IDLE_SESSION_TIMEOUT,
             "58000" => SYSTEM_ERROR,
             "58030" => IO_ERROR,
             "58P01" => UNDEFINED_FILE,

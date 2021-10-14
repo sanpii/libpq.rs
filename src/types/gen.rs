@@ -1297,6 +1297,86 @@ pub const REGCOLLATION_ARRAY: Type = Type {
     kind: Kind::Array(4191),
 };
 
+/// INT4MULTIRANGE - multirange of integers
+pub const INT4MULTI_RANGE: Type = Type {
+    oid: 4451,
+    descr: "INT4MULTIRANGE - multirange of integers",
+    name: "int4multirange",
+    kind: Kind::Range(23),
+};
+
+/// NUMMULTIRANGE - multirange of numerics
+pub const NUMMULTI_RANGE: Type = Type {
+    oid: 4532,
+    descr: "NUMMULTIRANGE - multirange of numerics",
+    name: "nummultirange",
+    kind: Kind::Range(1700),
+};
+
+/// TSMULTIRANGE - multirange of timestamps without time zone
+pub const TSMULTI_RANGE: Type = Type {
+    oid: 4533,
+    descr: "TSMULTIRANGE - multirange of timestamps without time zone",
+    name: "tsmultirange",
+    kind: Kind::Range(1114),
+};
+
+/// TSTZMULTIRANGE - multirange of timestamps with time zone
+pub const TSTZMULTI_RANGE: Type = Type {
+    oid: 4534,
+    descr: "TSTZMULTIRANGE - multirange of timestamps with time zone",
+    name: "tstzmultirange",
+    kind: Kind::Range(1184),
+};
+
+/// DATEMULTIRANGE - multirange of dates
+pub const DATEMULTI_RANGE: Type = Type {
+    oid: 4535,
+    descr: "DATEMULTIRANGE - multirange of dates",
+    name: "datemultirange",
+    kind: Kind::Range(1082),
+};
+
+/// INT8MULTIRANGE - multirange of bigints
+pub const INT8MULTI_RANGE: Type = Type {
+    oid: 4536,
+    descr: "INT8MULTIRANGE - multirange of bigints",
+    name: "int8multirange",
+    kind: Kind::Range(20),
+};
+
+/// ANYMULTIRANGE - pseudo-type representing a polymorphic base type that is a multirange
+pub const ANYMULTI_RANGE: Type = Type {
+    oid: 4537,
+    descr: "ANYMULTIRANGE - pseudo-type representing a polymorphic base type that is a multirange",
+    name: "anymultirange",
+    kind: Kind::Pseudo,
+};
+
+/// ANYCOMPATIBLEMULTIRANGE - pseudo-type representing a multirange over a polymorphic common type
+pub const ANYCOMPATIBLEMULTI_RANGE: Type = Type {
+    oid: 4538,
+    descr: "ANYCOMPATIBLEMULTIRANGE - pseudo-type representing a multirange over a polymorphic common type",
+    name: "anycompatiblemultirange",
+    kind: Kind::Pseudo,
+};
+
+/// PG_BRIN_BLOOM_SUMMARY - BRIN bloom summary
+pub const PG_BRIN_BLOOM_SUMMARY: Type = Type {
+    oid: 4600,
+    descr: "PG_BRIN_BLOOM_SUMMARY - BRIN bloom summary",
+    name: "pg_brin_bloom_summary",
+    kind: Kind::String,
+};
+
+/// PG_BRIN_MINMAX_MULTI_SUMMARY - BRIN minmax-multi summary
+pub const PG_BRIN_MINMAX_MULTI_SUMMARY: Type = Type {
+    oid: 4601,
+    descr: "PG_BRIN_MINMAX_MULTI_SUMMARY - BRIN minmax-multi summary",
+    name: "pg_brin_minmax_multi_summary",
+    kind: Kind::String,
+};
+
 /// PG_MCV_LIST - multivariate MCV list
 pub const PG_MCV_LIST: Type = Type {
     oid: 5017,
@@ -1359,6 +1439,54 @@ pub const ANYCOMPATIBLE_RANGE: Type = Type {
     descr: "ANYCOMPATIBLERANGE - pseudo-type representing a range over a polymorphic common type",
     name: "anycompatiblerange",
     kind: Kind::Pseudo,
+};
+
+/// INT4MULTIRANGE&#91;&#93;
+pub const INT4MULTI_RANGE_ARRAY: Type = Type {
+    oid: 6150,
+    descr: "INT4MULTIRANGE&#91;&#93;",
+    name: "_int4multirange",
+    kind: Kind::Array(4451),
+};
+
+/// NUMMULTIRANGE&#91;&#93;
+pub const NUMMULTI_RANGE_ARRAY: Type = Type {
+    oid: 6151,
+    descr: "NUMMULTIRANGE&#91;&#93;",
+    name: "_nummultirange",
+    kind: Kind::Array(4532),
+};
+
+/// TSMULTIRANGE&#91;&#93;
+pub const TSMULTI_RANGE_ARRAY: Type = Type {
+    oid: 6152,
+    descr: "TSMULTIRANGE&#91;&#93;",
+    name: "_tsmultirange",
+    kind: Kind::Array(4533),
+};
+
+/// TSTZMULTIRANGE&#91;&#93;
+pub const TSTZMULTI_RANGE_ARRAY: Type = Type {
+    oid: 6153,
+    descr: "TSTZMULTIRANGE&#91;&#93;",
+    name: "_tstzmultirange",
+    kind: Kind::Array(4534),
+};
+
+/// DATEMULTIRANGE&#91;&#93;
+pub const DATEMULTI_RANGE_ARRAY: Type = Type {
+    oid: 6155,
+    descr: "DATEMULTIRANGE&#91;&#93;",
+    name: "_datemultirange",
+    kind: Kind::Array(4535),
+};
+
+/// INT8MULTIRANGE&#91;&#93;
+pub const INT8MULTI_RANGE_ARRAY: Type = Type {
+    oid: 6157,
+    descr: "INT8MULTIRANGE&#91;&#93;",
+    name: "_int8multirange",
+    kind: Kind::Array(4536),
 };
 
 impl std::convert::TryFrom<u32> for Type {
@@ -1529,6 +1657,16 @@ impl std::convert::TryFrom<u32> for Type {
             4097 => Ok(REGROLE_ARRAY),
             4191 => Ok(REGCOLLATION),
             4192 => Ok(REGCOLLATION_ARRAY),
+            4451 => Ok(INT4MULTI_RANGE),
+            4532 => Ok(NUMMULTI_RANGE),
+            4533 => Ok(TSMULTI_RANGE),
+            4534 => Ok(TSTZMULTI_RANGE),
+            4535 => Ok(DATEMULTI_RANGE),
+            4536 => Ok(INT8MULTI_RANGE),
+            4537 => Ok(ANYMULTI_RANGE),
+            4538 => Ok(ANYCOMPATIBLEMULTI_RANGE),
+            4600 => Ok(PG_BRIN_BLOOM_SUMMARY),
+            4601 => Ok(PG_BRIN_MINMAX_MULTI_SUMMARY),
             5017 => Ok(PG_MCV_LIST),
             5038 => Ok(PG_SNAPSHOT),
             5039 => Ok(PG_SNAPSHOT_ARRAY),
@@ -1537,6 +1675,12 @@ impl std::convert::TryFrom<u32> for Type {
             5078 => Ok(ANYCOMPATIBLEARRAY),
             5079 => Ok(ANYCOMPATIBLENONARRAY),
             5080 => Ok(ANYCOMPATIBLE_RANGE),
+            6150 => Ok(INT4MULTI_RANGE_ARRAY),
+            6151 => Ok(NUMMULTI_RANGE_ARRAY),
+            6152 => Ok(TSMULTI_RANGE_ARRAY),
+            6153 => Ok(TSTZMULTI_RANGE_ARRAY),
+            6155 => Ok(DATEMULTI_RANGE_ARRAY),
+            6157 => Ok(INT8MULTI_RANGE_ARRAY),
 
             _ => Err("unknow type".to_string()),
         }
@@ -1710,6 +1854,16 @@ impl std::str::FromStr for Type {
             "_regrole" => Ok(REGROLE_ARRAY),
             "regcollation" => Ok(REGCOLLATION),
             "_regcollation" => Ok(REGCOLLATION_ARRAY),
+            "int4multirange" => Ok(INT4MULTI_RANGE),
+            "nummultirange" => Ok(NUMMULTI_RANGE),
+            "tsmultirange" => Ok(TSMULTI_RANGE),
+            "tstzmultirange" => Ok(TSTZMULTI_RANGE),
+            "datemultirange" => Ok(DATEMULTI_RANGE),
+            "int8multirange" => Ok(INT8MULTI_RANGE),
+            "anymultirange" => Ok(ANYMULTI_RANGE),
+            "anycompatiblemultirange" => Ok(ANYCOMPATIBLEMULTI_RANGE),
+            "pg_brin_bloom_summary" => Ok(PG_BRIN_BLOOM_SUMMARY),
+            "pg_brin_minmax_multi_summary" => Ok(PG_BRIN_MINMAX_MULTI_SUMMARY),
             "pg_mcv_list" => Ok(PG_MCV_LIST),
             "pg_snapshot" => Ok(PG_SNAPSHOT),
             "_pg_snapshot" => Ok(PG_SNAPSHOT_ARRAY),
@@ -1718,6 +1872,12 @@ impl std::str::FromStr for Type {
             "anycompatiblearray" => Ok(ANYCOMPATIBLEARRAY),
             "anycompatiblenonarray" => Ok(ANYCOMPATIBLENONARRAY),
             "anycompatiblerange" => Ok(ANYCOMPATIBLE_RANGE),
+            "_int4multirange" => Ok(INT4MULTI_RANGE_ARRAY),
+            "_nummultirange" => Ok(NUMMULTI_RANGE_ARRAY),
+            "_tsmultirange" => Ok(TSMULTI_RANGE_ARRAY),
+            "_tstzmultirange" => Ok(TSTZMULTI_RANGE_ARRAY),
+            "_datemultirange" => Ok(DATEMULTI_RANGE_ARRAY),
+            "_int8multirange" => Ok(INT8MULTI_RANGE_ARRAY),
 
             _ => Err("unknow type".to_string()),
         }
