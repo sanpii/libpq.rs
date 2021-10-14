@@ -41,27 +41,7 @@ impl Connection {
         let (values, formats, lengths) =
             Self::transform_params(param_values, param_formats);
 
-        if log::log_enabled!(log::Level::Trace) {
-            use std::convert::TryFrom;
-
-            let mut p = Vec::new();
-
-            for (x, value) in param_values.iter().enumerate() {
-                let v = if let Some(s) = value {
-                    String::from_utf8(s.to_vec()).unwrap_or_else(|_| "�".to_string())
-                } else {
-                    "null".to_string()
-                };
-                let default_type = crate::types::TEXT;
-                let t = crate::Type::try_from(
-                    *param_types.get(x).unwrap_or(&default_type.oid)
-                ).unwrap_or(default_type);
-
-                p.push(format!("'{}'::{}", v, t.name));
-            }
-
-            log::trace!("Sending query '{}' with params [{}]", command, p.join(", "));
-        }
+        Self::trace_query("Sending", command, param_types, param_values, param_formats);
 
         let c_command = crate::ffi::to_cstr(command);
 
@@ -112,23 +92,8 @@ impl Connection {
         query: &str,
         param_types: &[crate::Oid],
     ) -> std::result::Result<(), String> {
-        log::trace!(
-            "Sending prepare {} query '{}' with param types [{}]",
-            name.unwrap_or("anonymous"),
-            query,
-            param_types
-                .iter()
-                .map(|oid| {
-                    use std::convert::TryFrom;
-
-                    let t = crate::Type::try_from(*oid)
-                        .unwrap_or(crate::types::UNKNOWN);
-
-                    t.name
-                })
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
+        let prefix = format!("Sending prepare {}", name.unwrap_or("anonymous"));
+        Self::trace_query(&prefix, query, param_types, &[], &[]);
 
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
         let c_query = crate::ffi::to_cstr(query);
@@ -164,22 +129,8 @@ impl Connection {
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> std::result::Result<(), String> {
-        log::trace!(
-            "Send {} prepared query with params [{}]",
-            name.unwrap_or("anonymous"),
-            param_values
-                .iter()
-                .map(|x| if let Some(s) = x {
-                    match String::from_utf8(s.to_vec()) {
-                        Ok(str) => format!("'{}'", str),
-                        Err(_) => "�".to_string(),
-                    }
-                } else {
-                    "null".to_string()
-                })
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
+        let prefix = format!("Send {} prepared query", name.unwrap_or("anonymous"));
+        Self::trace_query(&prefix, "", &[], param_values, param_formats);
 
         let (values, formats, lengths) =
             Self::transform_params(param_values, param_formats);
