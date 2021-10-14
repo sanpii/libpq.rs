@@ -34,6 +34,7 @@ include!("_single_row_mode.rs");
 include!("_ssl.rs");
 include!("_status.rs");
 include!("_threading.rs");
+include!("_trace.rs");
 
 impl Connection {
     fn transform_params(
@@ -484,6 +485,9 @@ mod test {
         let file = std::fs::File::create("trace.txt").unwrap();
 
         conn.trace(file);
+        #[cfg(feature = "v14")]
+        conn.trace_set_flags(crate::trace::Flags::SUPPRESS_TIMESTAMPS);
+
         conn.exec("SELECT 1");
         conn.untrace();
         conn.exec("SELECT 1");
@@ -492,9 +496,24 @@ mod test {
         let mut file = std::fs::File::open("trace.txt").unwrap();
         let mut trace = String::new();
         file.read_to_string(&mut trace).unwrap();
-        assert_eq!(
-            trace,
-            r#"To backend> Msg Q
+
+        /*
+         * https://github.com/postgres/postgres/commit/198b3716dba68544b55cb97bd120738a86d5df2d
+         */
+        if cfg!(feature = "v14") {
+            assert_eq!(
+                trace,
+                r#"F	13	Query	 "SELECT 1"
+B	33	RowDescription	 1 "?column?" 0 0 23 4 -1 0
+B	11	DataRow	 1 1 '1'
+B	13	CommandComplete	 "SELECT 1"
+B	5	ReadyForQuery	 I
+"#
+            );
+        } else {
+            assert_eq!(
+                trace,
+                r#"To backend> Msg Q
 To backend> "SELECT 1"
 To backend> Msg complete, length 14
 From backend> T
@@ -521,6 +540,7 @@ From backend> Z
 From backend (#4)> 5
 From backend> I
 "#
-        );
+            );
+        }
     }
 }
