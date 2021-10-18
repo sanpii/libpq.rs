@@ -269,7 +269,7 @@ fn impl_try_from_u32(w: &mut BufWriter<File>, types: &BTreeMap<u32, Type>) -> st
     writeln!(
         w,
         "
-impl std::convert::TryFrom<u32> for Type {{
+impl TryFrom<u32> for Type {{
     type Error = String;
 
     fn try_from(oid: u32) -> std::result::Result<Self, Self::Error> {{

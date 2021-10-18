@@ -6,6 +6,7 @@ description = "Auto-generated rust bindings for libpq"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/sanpii/libpq"
 links = "pq"
+edition = "2021"
 
 [build-dependencies]
 bindgen = "0.59"

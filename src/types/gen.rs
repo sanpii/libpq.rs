@@ -1489,7 +1489,7 @@ pub const INT8MULTI_RANGE_ARRAY: Type = Type {
     kind: Kind::Array(4536),
 };
 
-impl std::convert::TryFrom<u32> for Type {
+impl TryFrom<u32> for Type {
     type Error = String;
 
     fn try_from(oid: u32) -> std::result::Result<Self, Self::Error> {

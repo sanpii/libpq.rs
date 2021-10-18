@@ -8,8 +8,6 @@ pub use info::*;
 pub use notify::*;
 pub use status::*;
 
-use std::convert::TryInto;
-
 pub type NoticeProcessor = pq_sys::PQnoticeProcessor;
 pub type NoticeReceiver = pq_sys::PQnoticeReceiver;
 
@@ -76,8 +74,6 @@ impl Connection {
         param_formats: &[crate::Format],
     ) {
         if log::log_enabled!(log::Level::Trace) {
-            use std::convert::TryFrom;
-
             let mut msg = prefix.to_string();
 
             let mut p = Vec::new();
@@ -133,7 +129,7 @@ impl From<&Connection> for *const pq_sys::pg_conn {
 }
 
 #[doc(hidden)]
-impl std::convert::TryFrom<*mut pq_sys::pg_conn> for Connection {
+impl TryFrom<*mut pq_sys::pg_conn> for Connection {
     type Error = String;
 
     fn try_from(conn: *mut pq_sys::pg_conn) -> std::result::Result<Self, Self::Error> {
