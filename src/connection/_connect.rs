@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 /**
  * [Database Connection Control Functions](https://www.postgresql.org/docs/current/libpq-connect.html)
  */
@@ -201,8 +203,28 @@ impl Connection {
      * See
      * [PQconninfo](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNINFO).
      */
-    #[deprecated(since="1.2.0", note="In v2, this function will return an HashMap, use v2::connection::info instead")]
-    pub fn info(&self) -> crate::connection::Info {
-        crate::v2::connection::info(self).iter().next().unwrap().1.clone()
+    pub fn info(&self) -> HashMap<String, crate::connection::Info> {
+        let mut infos = HashMap::new();
+
+        unsafe {
+            let mut i = 0;
+            let raw = pq_sys::PQconninfo(self.into());
+
+            loop {
+                let current = raw.offset(i);
+
+                if (*current).keyword.is_null() {
+                    break;
+                }
+
+                let info: crate::connection::Info = current.into();
+                infos.insert(info.keyword.clone(), info);
+                i += 1;
+            }
+
+            pq_sys::PQconninfoFree(raw);
+        }
+
+        infos
     }
 }
