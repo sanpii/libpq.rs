@@ -46,6 +46,7 @@ impl From<pq_sys::ConnStatusType> for Status {
             pq_sys::ConnStatusType::CONNECTION_GSS_STARTUP => Self::GssStartup,
             #[cfg(feature = "v11")]
             pq_sys::ConnStatusType::CONNECTION_CHECK_TARGET => Self::CheckTarget,
+            #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
     }
