@@ -94,6 +94,9 @@ jobs:
             echo "feature=v$(echo ${{ matrix.pg }} | sed 's/\./_/')" >> $GITHUB_ENV
           fi
 
+      - name: Rustup update
+        run: rustup update
+
       - name: Run tests (debug)
         if: matrix.mode == 'debug'
         run: cargo test --workspace --features "${{ env.feature }}"
