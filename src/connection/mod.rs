@@ -39,7 +39,7 @@ impl Connection {
     fn transform_params(
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
-    ) -> (Vec<*const i8>, Vec<i32>, Vec<i32>) {
+    ) -> (Vec<*const libc::c_char>, Vec<i32>, Vec<i32>) {
         if param_values.is_empty() {
             return Default::default();
         }
@@ -56,7 +56,7 @@ impl Connection {
                 if format == &crate::Format::Text && v.last() != Some(&b'\0') {
                     panic!("Param value as text should be null terminated");
                 }
-                values.push(v.as_ptr() as *const i8);
+                values.push(v.as_ptr() as *const libc::c_char);
                 lengths.push(v.len() as i32);
             } else {
                 values.push(std::ptr::null());

@@ -269,15 +269,15 @@ impl Result {
         let c_caption = crate::ffi::to_cstr(&option.caption);
 
         let c_option = pq_sys::_PQprintOpt {
-            header: option.header as i8,
-            align: option.align as i8,
-            standard: option.standard as i8,
-            html3: option.html3 as i8,
-            expanded: option.expanded as i8,
-            pager: option.pager as i8,
-            fieldSep: c_field_sep.as_ptr() as *mut i8,
-            tableOpt: c_table_opt.as_ptr() as *mut i8,
-            caption: c_caption.as_ptr() as *mut i8,
+            header: option.header as pq_sys::pqbool,
+            align: option.align as pq_sys::pqbool,
+            standard: option.standard as pq_sys::pqbool,
+            html3: option.html3 as pq_sys::pqbool,
+            expanded: option.expanded as pq_sys::pqbool,
+            pager: option.pager as pq_sys::pqbool,
+            fieldSep: c_field_sep.as_ptr() as *mut libc::c_char,
+            tableOpt: c_table_opt.as_ptr() as *mut libc::c_char,
+            caption: c_caption.as_ptr() as *mut libc::c_char,
             fieldName: ptr_field_name.as_ptr() as *mut *mut libc::c_char,
         };
 
@@ -414,7 +414,7 @@ impl Result {
         &mut self,
         nbytes: usize,
     ) -> std::result::Result<*mut core::ffi::c_void, ()> {
-        let space = pq_sys::PQresultAlloc(self.into(), nbytes as u64);
+        let space = pq_sys::PQresultAlloc(self.into(), nbytes as pq_sys::size_t);
 
         if space.is_null() {
             Err(())
