@@ -3,7 +3,7 @@ members = ["codegen", "libpq-sys", "."]
 
 [package]
 name = "libpq"
-version = "1.4.0"
+version = "1.4.1"
 authors = ["Sanpi <sanpi@homecomputing.fr>"]
 edition = "2018"
 license = "MIT"
