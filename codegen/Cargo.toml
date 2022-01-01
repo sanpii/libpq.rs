@@ -8,5 +8,8 @@ edition = "2018"
 attohttpc = "0.18"
 marksman_escape = "0.1"
 regex = "1.0"
-structopt = "0.3"
 thiserror = "1.0"
+
+[dependencies.clap]
+version = "3.0"
+features = ["derive"]

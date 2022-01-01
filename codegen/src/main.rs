@@ -4,15 +4,15 @@ mod type_gen;
 
 pub use errors::*;
 
-use structopt::StructOpt;
+use clap::Parser;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Opt {
     version: u8,
 }
 
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
 
     download("src/backend/utils/errcodes.txt", opt.version)?;
     download("src/include/catalog/pg_type.dat", opt.version)?;
