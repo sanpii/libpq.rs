@@ -77,8 +77,7 @@ impl Connection {
             -1 => Err("COPY is done".to_string()),
             0 => Err("COPY still in progress".to_string()),
             nbytes => unsafe {
-                let buffer: Vec<u8> =
-                    std::slice::from_raw_parts(ptr as *const u8, nbytes as usize).to_vec();
+                let buffer = std::slice::from_raw_parts(ptr as *const u8, nbytes as usize).to_vec();
                 pq_sys::PQfreemem(ptr as *mut std::ffi::c_void);
                 Ok(buffer)
             },
