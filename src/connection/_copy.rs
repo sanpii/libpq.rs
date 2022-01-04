@@ -61,9 +61,10 @@ impl Connection {
      * This method returns `Vec<u8>` since `libpq` can return binary data.
      * If you want a string, use [`String::from_utf8_lossy`].
      *
-     * [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
      * See
      * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA).
+     *
+     * [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
      */
     pub fn copy_data(&self, r#async: bool) -> std::result::Result<Vec<u8>, String> {
         let mut ptr = std::ptr::null_mut();
