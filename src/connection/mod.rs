@@ -457,7 +457,7 @@ mod test {
 
         let result = conn.exec("copy tmp to stdout");
         assert_eq!(result.status(), crate::Status::CopyOut);
-        assert_eq!(conn.copy_data(false).unwrap(), "1\n".to_string());
+        assert_eq!(conn.copy_data(false).unwrap(), b"1\n");
     }
 
     #[test]
