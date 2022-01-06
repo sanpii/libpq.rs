@@ -7,9 +7,13 @@ pub fn password(passwd: &str, user: &str) -> String {
     let c_passwd = crate::ffi::to_cstr(passwd);
     let c_user = crate::ffi::to_cstr(user);
 
-    let encrypt = unsafe { pq_sys::PQencryptPassword(c_passwd.as_ptr(), c_user.as_ptr()) };
+    unsafe {
+        let ptr = pq_sys::PQencryptPassword(c_passwd.as_ptr(), c_user.as_ptr());
+        let encrypt = std::ffi::CStr::from_ptr(ptr).to_str().unwrap().to_string();
+        pq_sys::PQfreemem(ptr as *mut std::ffi::c_void);
 
-    crate::ffi::from_raw(encrypt)
+        encrypt
+    }
 }
 
 #[cfg(test)]
