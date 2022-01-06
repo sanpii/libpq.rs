@@ -35,6 +35,51 @@ include!("_threading.rs");
 include!("_trace.rs");
 
 impl Connection {
+    /**
+     * Prepares the encrypted form of a PostgreSQL password.
+     *
+     * See [PQencryptPasswordConn](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQENCRYPTPASSWORDCONN).
+     */
+    pub fn encrypt_password(
+        &self,
+        passwd: &str,
+        user: &str,
+        algorithm: Option<&str>,
+    ) -> Result<String, String> {
+        let c_passwd = crate::ffi::to_cstr(passwd);
+        let c_user = crate::ffi::to_cstr(user);
+
+        unsafe {
+            let ptr = if let Some(algorithm) = algorithm {
+                let c_algorithm = crate::ffi::to_cstr(algorithm);
+                pq_sys::PQencryptPasswordConn(
+                    self.into(),
+                    c_passwd.as_ptr(),
+                    c_user.as_ptr(),
+                    c_algorithm.as_ptr(),
+                )
+            } else {
+                pq_sys::PQencryptPasswordConn(
+                    self.into(),
+                    c_passwd.as_ptr(),
+                    c_user.as_ptr(),
+                    std::ptr::null(),
+                )
+            };
+
+            if ptr.is_null() {
+                Err(self
+                    .error_message()
+                    .unwrap_or_else(|| "Unknow error".to_string()))
+            } else {
+                let encrypt = std::ffi::CStr::from_ptr(ptr).to_str().unwrap().to_string();
+                pq_sys::PQfreemem(ptr as *mut std::ffi::c_void);
+
+                Ok(encrypt)
+            }
+        }
+    }
+
     fn transform_params(
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
@@ -556,6 +601,26 @@ B	11	DataRow	 1 1 '1'
 B	13	CommandComplete	 "SELECT 1"
 B	5	ReadyForQuery	 I
 "#
+        );
+    }
+
+    #[test]
+    fn encrypt_password() {
+        let conn = crate::test::new_conn();
+
+        assert_eq!(
+            conn.encrypt_password("1234", "postgres", Some("md5")),
+            Ok("md524bb002702969490e41e26e1a454036c".to_string())
+        );
+    }
+
+    #[test]
+    fn invalid_encrypt_password() {
+        let conn = crate::test::new_conn();
+
+        assert_eq!(
+            conn.encrypt_password("1234", "postgres", Some("test")),
+            Err("unrecognized password encryption algorithm \"test\"\n".to_string()),
         );
     }
 }
