@@ -457,7 +457,58 @@ mod test {
 
         let result = conn.exec("copy tmp to stdout");
         assert_eq!(result.status(), crate::Status::CopyOut);
-        assert_eq!(conn.copy_data(false).unwrap(), "1\n".to_string());
+        assert_eq!(conn.copy_data(false).unwrap(), b"1\n");
+    }
+
+    #[test]
+    fn copy_binary() {
+        /* Construct binary data with only one tuple */
+        /* see Binary Format in https://www.postgresql.org/docs/current/sql-copy.html */
+        let binary_data = {
+            let header = {
+                let header_signature = b"PGCOPY\n\xFF\r\n\0";
+                let header_flags = b"\0\0\0\0";
+                let header_extension_length = b"\0\0\0\0";
+
+                header_signature
+                    .iter()
+                    .chain(header_flags.iter())
+                    .chain(header_extension_length.iter())
+                    .cloned()
+                    .collect::<Vec<u8>>()
+            };
+            let tuples = {
+                let tuple_0_field_count = b"\x00\x01";
+                let tuple_0_field_0_length = b"\x00\x00\x00\x07";
+                let tuple_0_field_0_data = b"\xFF\x00\xFF\x00\xFF\x00\xFF";
+
+                tuple_0_field_count
+                    .iter()
+                    .chain(tuple_0_field_0_length.iter())
+                    .chain(tuple_0_field_0_data.iter())
+                    .cloned()
+                    .collect::<Vec<u8>>()
+            };
+            header
+                .iter()
+                .chain(tuples.iter())
+                .cloned()
+                .collect::<Vec<u8>>()
+        };
+
+        let conn = crate::test::new_conn();
+        conn.exec("create temporary table tmp (code bytea);");
+
+        let result = conn.exec("copy tmp (code) from stdin binary;");
+        assert_eq!(result.status(), crate::Status::CopyIn);
+        conn.put_copy_data(&binary_data).unwrap();
+        conn.put_copy_end(None).unwrap();
+        let result = conn.exec("select * from tmp");
+        assert_eq!(result.ntuples(), 1);
+
+        let result = conn.exec("copy tmp to stdout binary;");
+        assert_eq!(result.status(), crate::Status::CopyOut);
+        assert_eq!(conn.copy_data(false).unwrap(), binary_data);
     }
 
     #[test]
