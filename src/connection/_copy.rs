@@ -52,7 +52,6 @@ impl Connection {
         let mut ptr = std::ptr::null_mut();
 
         let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
-        let buffer = crate::ffi::from_raw(ptr);
 
         match success {
             -2 => Err(self
@@ -60,7 +59,12 @@ impl Connection {
                 .unwrap_or_else(|| "Unknow error".to_string())),
             -1 => Err("COPY is done".to_string()),
             0 => Err("COPY still in progress".to_string()),
-            _ => Ok(buffer),
+            nbytes => unsafe {
+                let buffer = std::slice::from_raw_parts(ptr as *const u8, nbytes as usize).to_vec();
+                pq_sys::PQfreemem(ptr as *mut std::ffi::c_void);
+
+                Ok(String::from_utf8_lossy(&buffer).to_string())
+            }
         }
     }
 }
