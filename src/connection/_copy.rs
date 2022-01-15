@@ -56,17 +56,14 @@ impl Connection {
     }
 
     /**
-     * Receives data from the server during `libpq::Status::CopyOut` state.
+     * Receives data from the server during `libpq::Status::CopyOut` or `libpq::Status::CopyBoth` state.
      *
-     * This method returns `Vec<u8>` since `libpq` can return binary data.
-     * If you want a string, use [`String::from_utf8_lossy`].
+     * On success, this method returns [`_Bytes`].
      *
      * See
-     * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA).
-     *
-     * [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
+     * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA)
      */
-    pub fn copy_data(&self, r#async: bool) -> std::result::Result<Vec<u8>, String> {
+    pub fn copy_data(&self, r#async: bool) -> std::result::Result<_Bytes, String> {
         let mut ptr = std::ptr::null_mut();
 
         let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
@@ -77,11 +74,7 @@ impl Connection {
                 .unwrap_or_else(|| "Unknow error".to_string())),
             -1 => Err("COPY is done".to_string()),
             0 => Err("COPY still in progress".to_string()),
-            nbytes => unsafe {
-                let buffer = std::slice::from_raw_parts(ptr as *const u8, nbytes as usize).to_vec();
-                pq_sys::PQfreemem(ptr as *mut std::ffi::c_void);
-                Ok(buffer)
-            },
+            nbytes => Ok(_Bytes::from_raw(ptr as *const u8, nbytes as usize)),
         }
     }
 }
