@@ -111,9 +111,7 @@ impl Connection {
     pub fn parameter_status(&self, param: &str) -> String {
         let c_param = crate::ffi::to_cstr(param);
 
-        crate::ffi::to_string(unsafe {
-            pq_sys::PQparameterStatus(self.into(), c_param.as_ptr())
-        })
+        crate::ffi::to_string(unsafe { pq_sys::PQparameterStatus(self.into(), c_param.as_ptr()) })
     }
 
     /**
@@ -140,6 +138,9 @@ impl Connection {
      * See [PQerrorMessage](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQERRORMESSAGE).
      */
     pub fn error_message(&self) -> Option<String> {
+        // TODO: make this returns a &str (c_char* -> CStr -> &str ) tied to lifetime of self
+        // in order to avoid new memory allocations. We can do this since it will be freed in
+        // PQfinish (when the connection is dropped).
         crate::ffi::to_option_string(unsafe { pq_sys::PQerrorMessage(self.into()) })
     }
 
@@ -204,8 +205,7 @@ impl Connection {
     pub fn ssl_attribute(&self, attribute: crate::ssl::Attribute) -> Option<String> {
         let c_attribute = crate::ffi::to_cstr(&attribute.to_string());
 
-        let raw =
-            unsafe { pq_sys::PQsslAttribute(self.into(), c_attribute.as_ptr()) };
+        let raw = unsafe { pq_sys::PQsslAttribute(self.into(), c_attribute.as_ptr()) };
 
         if raw.is_null() {
             None

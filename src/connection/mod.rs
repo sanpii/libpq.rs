@@ -1,8 +1,10 @@
+mod buffer;
 mod cancel;
 mod info;
 mod notify;
 mod status;
 
+pub use buffer::*;
 pub use cancel::*;
 pub use info::*;
 pub use notify::*;
@@ -38,6 +40,8 @@ impl Connection {
     /**
      * Prepares the encrypted form of a PostgreSQL password.
      *
+     * On success, this method returns [`_String`].
+     *
      * See [PQencryptPasswordConn](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQENCRYPTPASSWORDCONN).
      */
     pub fn encrypt_password(
@@ -45,7 +49,7 @@ impl Connection {
         passwd: &str,
         user: &str,
         algorithm: Option<&str>,
-    ) -> Result<String, String> {
+    ) -> Result<_String, String> {
         let c_passwd = crate::ffi::to_cstr(passwd);
         let c_user = crate::ffi::to_cstr(user);
 
@@ -72,10 +76,7 @@ impl Connection {
                     .error_message()
                     .unwrap_or_else(|| "Unknow error".to_string()))
             } else {
-                let encrypt = std::ffi::CStr::from_ptr(ptr).to_str().unwrap().to_string();
-                pq_sys::PQfreemem(ptr as *mut std::ffi::c_void);
-
-                Ok(encrypt)
+                Ok(_String::from_raw(ptr))
             }
         }
     }
@@ -502,7 +503,7 @@ mod test {
 
         let result = conn.exec("copy tmp to stdout");
         assert_eq!(result.status(), crate::Status::CopyOut);
-        assert_eq!(conn.copy_data(false).unwrap(), b"1\n");
+        assert_eq!(&*conn.copy_data(false).unwrap(), b"1\n");
     }
 
     #[test]
@@ -553,7 +554,7 @@ mod test {
 
         let result = conn.exec("copy tmp to stdout binary;");
         assert_eq!(result.status(), crate::Status::CopyOut);
-        assert_eq!(conn.copy_data(false).unwrap(), binary_data);
+        assert_eq!(&*conn.copy_data(false).unwrap(), binary_data);
     }
 
     #[test]
@@ -609,8 +610,10 @@ B	5	ReadyForQuery	 I
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            conn.encrypt_password("1234", "postgres", Some("md5")),
-            Ok("md524bb002702969490e41e26e1a454036c".to_string())
+            conn.encrypt_password("1234", "postgres", Some("md5"))
+                .unwrap()
+                .to_string_lossy(),
+            "md524bb002702969490e41e26e1a454036c"
         );
     }
 
@@ -619,8 +622,9 @@ B	5	ReadyForQuery	 I
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            conn.encrypt_password("1234", "postgres", Some("test")),
-            Err("unrecognized password encryption algorithm \"test\"\n".to_string()),
+            conn.encrypt_password("1234", "postgres", Some("test"))
+                .unwrap_err(),
+            "unrecognized password encryption algorithm \"test\"\n",
         );
     }
 }
