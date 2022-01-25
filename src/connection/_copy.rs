@@ -12,10 +12,10 @@ impl Connection {
     pub fn put_copy_data(&self, buffer: &[u8]) -> std::result::Result<(), String> {
         log::trace!("Sending copy data");
 
-        let c_buffer = unsafe { std::ffi::CString::from_vec_unchecked(buffer.to_vec()) };
-
         let success =
-            unsafe { pq_sys::PQputCopyData(self.into(), c_buffer.as_ptr(), buffer.len() as i32) };
+            unsafe {
+                pq_sys::PQputCopyData(self.into(), buffer.as_ptr() as *const i8, buffer.len() as i32)
+            };
 
         match success {
             -1 => Err(self
