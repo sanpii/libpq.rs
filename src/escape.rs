@@ -1,18 +1,15 @@
 use crate::connection::{PqBytes, PqString};
 
-pub(crate) fn literal<'a>(
-    conn: &'a crate::Connection,
-    str: &str,
-) -> std::result::Result<PqString, &'a str> {
+pub(crate) fn literal(conn: &crate::Connection, str: &str) -> crate::errors::Result<PqString> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
         let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
 
         if raw.is_null() {
-            return Err(conn.error_message().unwrap_or("Unknow error"));
+            conn.error()
+        } else {
+            Ok(PqString::from_raw(raw))
         }
-
-        Ok(PqString::from_raw(raw))
     }
 }
 
@@ -23,27 +20,21 @@ pub(crate) fn literal<'a>(
  *
  * See [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
  */
-pub fn identifier<'a>(
-    conn: &'a crate::Connection,
-    str: &str,
-) -> std::result::Result<PqString, &'a str> {
+pub fn identifier(conn: &crate::Connection, str: &str) -> crate::errors::Result<PqString> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
         let raw =
             pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
 
         if raw.is_null() {
-            return Err(conn.error_message().unwrap_or("Unknow error"));
+            conn.error()
+        } else {
+            Ok(PqString::from_raw(raw))
         }
-
-        Ok(PqString::from_raw(raw))
     }
 }
 
-pub(crate) fn string_conn<'a>(
-    conn: &'a crate::Connection,
-    from: &str,
-) -> std::result::Result<PqString, &'a str> {
+pub(crate) fn string_conn(conn: &crate::Connection, from: &str) -> crate::errors::Result<PqString> {
     let mut error = 0;
 
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
@@ -62,7 +53,7 @@ pub(crate) fn string_conn<'a>(
         );
 
         if error != 0 {
-            return Err(conn.error_message().unwrap_or("Unknow error"));
+            return conn.error();
         }
     };
 
@@ -70,7 +61,7 @@ pub(crate) fn string_conn<'a>(
 }
 
 #[deprecated(note = "Use libpq::Connection::escape_string instead")]
-pub fn string(from: &str) -> String {
+pub fn string(from: &str) -> crate::errors::Result<String> {
     let c_from = crate::ffi::to_cstr(from);
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
     let cstring = crate::ffi::new_cstring(2 * from.len() + 1);
@@ -83,10 +74,7 @@ pub fn string(from: &str) -> String {
     crate::ffi::from_raw(raw)
 }
 
-pub(crate) fn bytea_conn<'a>(
-    conn: &'a crate::Connection,
-    from: &[u8],
-) -> std::result::Result<PqBytes, &'a str> {
+pub(crate) fn bytea_conn(conn: &crate::Connection, from: &[u8]) -> crate::errors::Result<PqBytes> {
     unsafe {
         let mut to_len: pq_sys::size_t = 0;
 
@@ -97,7 +85,7 @@ pub(crate) fn bytea_conn<'a>(
             &mut to_len,
         );
         if to_ptr.is_null() {
-            Err(conn.error_message().unwrap_or("Unknow error"))
+            conn.error()
         } else {
             Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }
@@ -110,7 +98,7 @@ pub(crate) fn bytea_conn<'a>(
  * On success, this method returns [`PqBytes`].
  */
 #[deprecated(note = "Use libpq::Connection::escape_bytea instead")]
-pub fn bytea(from: &[u8]) -> std::result::Result<PqBytes, String> {
+pub fn bytea(from: &[u8]) -> crate::errors::Result<PqBytes> {
     unsafe {
         let mut to_len: pq_sys::size_t = 0;
         let to_ptr =
@@ -119,7 +107,7 @@ pub fn bytea(from: &[u8]) -> std::result::Result<PqBytes, String> {
             /* According to libpq docs (v14): `Currently, the only possible error is insufficient memory`
              * This was also confirmed by looking at the source code of PQescapeBytea.
              */
-            Err("out of memory\n".to_string())
+            Err(crate::errors::Error::Misc("out of memory\n".to_string()))
         } else {
             Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }
@@ -135,12 +123,12 @@ pub fn bytea(from: &[u8]) -> std::result::Result<PqBytes, String> {
  * See
  * [PQunescapeBytea](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQUNESCAPEBYTEA).
  */
-pub fn unescape_bytea(from: &[u8]) -> std::result::Result<PqBytes, ()> {
+pub fn unescape_bytea(from: &[u8]) -> crate::errors::Result<PqBytes> {
     unsafe {
         let mut len = 0;
         let tmp = pq_sys::PQunescapeBytea(from.as_ptr(), &mut len);
         if tmp.is_null() {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(PqBytes::from_raw(tmp, len as usize))
         }
@@ -186,7 +174,7 @@ mod test {
     #[test]
     fn string() {
         #![allow(deprecated)]
-        assert_eq!(crate::escape::string("'foo'"), "''foo''".to_string());
+        assert_eq!(crate::escape::string("'foo'"), Ok("''foo''".to_string()));
     }
 
     #[test]

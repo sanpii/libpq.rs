@@ -4,44 +4,41 @@ pub(crate) fn to_cstr(s: &str) -> std::ffi::CString {
     unsafe { std::ffi::CString::from_vec_unchecked(s.as_bytes().to_vec()) }
 }
 
-pub(crate) fn to_str(s: *const c_char) -> &'static str {
+pub(crate) fn to_str(s: *const c_char) -> crate::errors::Result<&'static str> {
     let buffer = unsafe { std::ffi::CStr::from_ptr(s) };
 
-    buffer.to_str().unwrap()
+    Ok(buffer.to_str()?)
 }
 
-pub(crate) fn to_string(s: *const c_char) -> String {
-    to_str(s).to_string()
+pub(crate) fn to_string(s: *const c_char) -> crate::errors::Result<String> {
+    to_str(s).map(|x| x.to_string())
 }
 
-pub(crate) fn to_option_str(s: *const c_char) -> Option<&'static str> {
+pub(crate) fn to_option_str(s: *const c_char) -> crate::errors::Result<Option<&'static str>> {
     if s.is_null() {
-        return None;
+        return Ok(None);
     }
 
-    let s = to_str(s);
+    let s = to_str(s)?;
 
     if s.is_empty() {
-        None
+        Ok(None)
     } else {
-        Some(s)
+        Ok(Some(s))
     }
 }
 
-pub(crate) fn to_option_string(s: *const c_char) -> Option<String> {
-    to_option_str(s).map(String::from)
+pub(crate) fn to_option_string(s: *const c_char) -> crate::errors::Result<Option<String>> {
+    Ok(to_option_str(s)?.map(String::from))
 }
 
-pub(crate) fn from_raw(raw: *mut c_char) -> String {
-    unsafe {
-        std::ffi::CString::from_raw(raw)
-            .to_str()
-            .unwrap()
-            .to_string()
-    }
+pub(crate) fn from_raw(raw: *mut c_char) -> crate::errors::Result<String> {
+    let s = unsafe { std::ffi::CString::from_raw(raw).to_str()?.to_string() };
+
+    Ok(s)
 }
 
-pub(crate) fn vec_from_nta(raw: *const *const c_char) -> Vec<String> {
+pub(crate) fn vec_from_nta(raw: *const *const c_char) -> crate::errors::Result<Vec<String>> {
     let mut vec = Vec::new();
 
     for x in 0.. {
@@ -49,13 +46,13 @@ pub(crate) fn vec_from_nta(raw: *const *const c_char) -> Vec<String> {
             if (*raw.offset(x)).is_null() {
                 break;
             } else {
-                let s = to_string(*raw.offset(x));
+                let s = to_string(*raw.offset(x))?;
                 vec.push(s);
             }
         }
     }
 
-    vec
+    Ok(vec)
 }
 
 pub(crate) fn new_cstring(size: usize) -> std::ffi::CString {

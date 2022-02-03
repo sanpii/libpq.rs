@@ -1,11 +1,12 @@
 #![warn(warnings)]
-#![allow(clippy::result_unit_err)]
+#![allow(clippy::missing_safety_doc)]
 
 #[macro_use]
 mod ffi;
 
 pub mod connection;
 pub mod encrypt;
+pub mod errors;
 pub mod escape;
 pub mod ping;
 pub mod poll;

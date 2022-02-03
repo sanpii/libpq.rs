@@ -93,6 +93,10 @@ impl From<&Status> for pq_sys::ExecStatusType {
 
 impl ToString for Status {
     fn to_string(&self) -> String {
-        crate::ffi::to_string(unsafe { pq_sys::PQresStatus(self.into()) })
+        let status = unsafe { pq_sys::PQresStatus(self.into()) };
+
+        crate::connection::PqString::from_raw(status)
+            .to_string_lossy()
+            .to_string()
     }
 }

@@ -49,7 +49,7 @@ impl Connection {
         passwd: &str,
         user: &str,
         algorithm: Option<&str>,
-    ) -> Result<PqString, &str> {
+    ) -> crate::errors::Result<PqString> {
         let c_passwd = crate::ffi::to_cstr(passwd);
         let c_user = crate::ffi::to_cstr(user);
 
@@ -72,7 +72,7 @@ impl Connection {
             };
 
             if ptr.is_null() {
-                Err(self.error_message().unwrap_or("Unknow error"))
+                self.error()
             } else {
                 Ok(PqString::from_raw(ptr))
             }
@@ -149,6 +149,13 @@ impl Connection {
             log::trace!("{}", msg);
         }
     }
+
+    pub(crate) fn error<T>(&self) -> crate::errors::Result<T> {
+        Err(self
+            .error_message()
+            .map(|x| crate::errors::Error::Misc(x.to_string()))
+            .unwrap_or(crate::errors::Error::Unknow))
+    }
 }
 
 #[doc(hidden)]
@@ -174,13 +181,13 @@ impl From<&Connection> for *const pq_sys::pg_conn {
 
 #[doc(hidden)]
 impl TryFrom<*mut pq_sys::pg_conn> for Connection {
-    type Error = String;
+    type Error = crate::errors::Error;
 
     fn try_from(conn: *mut pq_sys::pg_conn) -> std::result::Result<Self, Self::Error> {
         let s = Self { conn };
 
         if s.status() == crate::connection::Status::Bad {
-            Err(s.error_message().unwrap_or("Unknow error").into())
+            s.error()
         } else {
             Ok(s)
         }
@@ -403,7 +410,12 @@ mod test {
         conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid])
             .unwrap();
         let result = conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid]);
-        assert_eq!(result, Err("another command is already in progress\n"));
+        assert_eq!(
+            result,
+            Err(crate::errors::Error::Misc(
+                "another command is already in progress\n".to_string()
+            ))
+        );
     }
 
     #[test]
@@ -439,13 +451,13 @@ mod test {
 
         assert_eq!(
             conn.ssl_attribute_names(),
-            vec![
+            Ok(vec![
                 crate::ssl::Attribute::Library,
                 crate::ssl::Attribute::KeyBits,
                 crate::ssl::Attribute::Cipher,
                 crate::ssl::Attribute::Compression,
                 crate::ssl::Attribute::Protocol,
-            ]
+            ])
         );
     }
 
@@ -475,8 +487,8 @@ mod test {
         conn.exec("NOTIFY test, 'foo'");
 
         let notify = conn.notifies().unwrap();
-        assert_eq!(notify.relname(), "test".to_string());
-        assert_eq!(notify.extra(), "foo".to_string());
+        assert_eq!(notify.relname(), Ok("test".to_string()));
+        assert_eq!(notify.extra(), Ok("foo".to_string()));
     }
 
     #[test]
@@ -617,7 +629,9 @@ B	5	ReadyForQuery	 I
         assert_eq!(
             conn.encrypt_password("1234", "postgres", Some("test"))
                 .unwrap_err(),
-            "unrecognized password encryption algorithm \"test\"\n",
+            crate::errors::Error::Misc(
+                "unrecognized password encryption algorithm \"test\"\n".to_string()
+            ),
         );
     }
 }

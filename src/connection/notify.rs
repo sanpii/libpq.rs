@@ -7,7 +7,7 @@ impl Notify {
     /**
      * notification channel name
      */
-    pub fn relname(&self) -> String {
+    pub fn relname(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { (*self.notify).relname })
     }
 
@@ -21,7 +21,7 @@ impl Notify {
     /**
      * notification payload string
      */
-    pub fn extra(&self) -> String {
+    pub fn extra(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { (*self.notify).extra })
     }
 }

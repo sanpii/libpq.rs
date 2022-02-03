@@ -7,7 +7,7 @@ impl Connection {
      *
      * See [PQdb](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQDB).
      */
-    pub fn db(&self) -> String {
+    pub fn db(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { pq_sys::PQdb(self.into()) })
     }
 
@@ -16,7 +16,7 @@ impl Connection {
      *
      * See [PQuser](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQUSER).
      */
-    pub fn user(&self) -> String {
+    pub fn user(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { pq_sys::PQuser(self.into()) })
     }
 
@@ -25,7 +25,7 @@ impl Connection {
      *
      * See [PQpass](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQPASS).
      */
-    pub fn pass(&self) -> Option<String> {
+    pub fn pass(&self) -> crate::errors::Result<Option<String>> {
         crate::ffi::to_option_string(unsafe { pq_sys::PQpass(self.into()) })
     }
 
@@ -38,7 +38,7 @@ impl Connection {
      *
      * See [PQhost](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQHOST).
      */
-    pub fn host(&self) -> String {
+    pub fn host(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { pq_sys::PQhost(self.into()) })
     }
 
@@ -51,7 +51,7 @@ impl Connection {
      * See [PQhostaddr](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQHOSTADDR).
      */
     #[cfg(feature = "v12")]
-    pub fn hostaddr(&self) -> String {
+    pub fn hostaddr(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { pq_sys::PQhostaddr(self.into()) })
     }
 
@@ -60,7 +60,7 @@ impl Connection {
      *
      * See [PQport](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQPORT).
      */
-    pub fn port(&self) -> String {
+    pub fn port(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { pq_sys::PQport(self.into()) })
     }
 
@@ -72,7 +72,7 @@ impl Connection {
     #[deprecated(
         note = "the server no longer pays attention to the TTY setting, but the function remains for backward compatibility."
     )]
-    pub fn tty(&self) -> Option<String> {
+    pub fn tty(&self) -> crate::errors::Result<Option<String>> {
         crate::ffi::to_option_string(unsafe { pq_sys::PQtty(self.into()) })
     }
 
@@ -81,7 +81,7 @@ impl Connection {
      *
      * See [PQoptions](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQOPTIONS).
      */
-    pub fn options(&self) -> Option<String> {
+    pub fn options(&self) -> crate::errors::Result<Option<String>> {
         crate::ffi::to_option_string(unsafe { pq_sys::PQoptions(self.into()) })
     }
 
@@ -108,7 +108,7 @@ impl Connection {
      *
      * See [PQparameterStatus](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQPARAMETERSTATUS).
      */
-    pub fn parameter_status(&self, param: &str) -> String {
+    pub fn parameter_status(&self, param: &str) -> crate::errors::Result<String> {
         let c_param = crate::ffi::to_cstr(param);
 
         crate::ffi::to_string(unsafe { pq_sys::PQparameterStatus(self.into(), c_param.as_ptr()) })
@@ -148,6 +148,7 @@ impl Connection {
      */
     pub fn error_message(&self) -> Option<&str> {
         let error = unsafe { pq_sys::PQerrorMessage(self.into()) };
+
         if error.is_null() {
             None
         } else {
@@ -164,11 +165,11 @@ impl Connection {
      *
      * See [PQsocket](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSOCKET).
      */
-    pub fn socket(&self) -> std::result::Result<i32, ()> {
+    pub fn socket(&self) -> crate::errors::Result<i32> {
         let socket = unsafe { pq_sys::PQsocket(self.into()) };
 
         if socket < 0 {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(socket)
         }
@@ -217,13 +218,13 @@ impl Connection {
      *
      * See [PQsslAttribute](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSSLATTRIBUTE).
      */
-    pub fn ssl_attribute(&self, attribute: crate::ssl::Attribute) -> Option<String> {
+    pub fn ssl_attribute(&self, attribute: crate::ssl::Attribute) -> crate::errors::Result<Option<String>> {
         let c_attribute = crate::ffi::to_cstr(&attribute.to_string());
 
         let raw = unsafe { pq_sys::PQsslAttribute(self.into(), c_attribute.as_ptr()) };
 
         if raw.is_null() {
-            None
+            Ok(None)
         } else {
             crate::ffi::to_option_string(raw)
         }
@@ -234,13 +235,15 @@ impl Connection {
      *
      * See [PQsslAttributeNames](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSSLATTRIBUTENAMES).
      */
-    pub fn ssl_attribute_names(&self) -> Vec<crate::ssl::Attribute> {
+    pub fn ssl_attribute_names(&self) -> crate::errors::Result<Vec<crate::ssl::Attribute>> {
         let raw = unsafe { pq_sys::PQsslAttributeNames(self.into()) };
 
-        crate::ffi::vec_from_nta(raw)
+        let names = crate::ffi::vec_from_nta(raw)?
             .iter()
             .map(|x| x.into())
-            .collect()
+            .collect();
+
+        Ok(names)
     }
 
     /**

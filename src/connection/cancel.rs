@@ -9,7 +9,7 @@ impl Cancel {
      *
      * See [PQcancel](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQCANCEL).
      */
-    pub fn request(&self) -> std::result::Result<(), String> {
+    pub fn request(&self) -> crate::errors::Result {
         log::trace!("Canceling");
 
         let capacity = 256;
@@ -17,12 +17,12 @@ impl Cancel {
         let ptr_error = c_error.into_raw();
 
         let sucess = unsafe { pq_sys::PQcancel(self.into(), ptr_error, capacity as i32) };
-        let error = crate::ffi::from_raw(ptr_error);
+        let error = crate::ffi::from_raw(ptr_error)?;
 
         if sucess == 1 {
             Ok(())
         } else {
-            Err(error)
+            Err(crate::errors::Error::Misc(error))
         }
     }
 }
