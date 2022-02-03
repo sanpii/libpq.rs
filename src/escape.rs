@@ -1,17 +1,15 @@
 use crate::connection::{PqBytes, PqString};
 
-pub(crate) fn literal(
-    conn: &crate::Connection,
+pub(crate) fn literal<'a>(
+    conn: &'a crate::Connection,
     str: &str,
-) -> std::result::Result<PqString, String> {
+) -> std::result::Result<PqString, &'a str> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
         let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
 
         if raw.is_null() {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
+            return Err(conn.error_message().unwrap_or_else(|| "Unknow error"));
         }
 
         Ok(PqString::from_raw(raw))
@@ -25,26 +23,27 @@ pub(crate) fn literal(
  *
  * See [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
  */
-pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<PqString, String> {
+pub fn identifier<'a>(
+    conn: &'a crate::Connection,
+    str: &str,
+) -> std::result::Result<PqString, &'a str> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
         let raw =
             pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
 
         if raw.is_null() {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
+            return Err(conn.error_message().unwrap_or_else(|| "Unknow error"));
         }
 
         Ok(PqString::from_raw(raw))
     }
 }
 
-pub(crate) fn string_conn(
-    conn: &crate::Connection,
+pub(crate) fn string_conn<'a>(
+    conn: &'a crate::Connection,
     from: &str,
-) -> std::result::Result<PqString, String> {
+) -> std::result::Result<PqString, &'a str> {
     let mut error = 0;
 
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
@@ -63,9 +62,7 @@ pub(crate) fn string_conn(
         );
 
         if error != 0 {
-            return Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()));
+            return Err(conn.error_message().unwrap_or_else(|| "Unknow error"));
         }
     };
 
@@ -86,10 +83,10 @@ pub fn string(from: &str) -> String {
     crate::ffi::from_raw(raw)
 }
 
-pub(crate) fn bytea_conn(
-    conn: &crate::Connection,
+pub(crate) fn bytea_conn<'a>(
+    conn: &'a crate::Connection,
     from: &[u8],
-) -> std::result::Result<PqBytes, String> {
+) -> std::result::Result<PqBytes, &'a str> {
     unsafe {
         let mut to_len: pq_sys::size_t = 0;
 
@@ -100,9 +97,7 @@ pub(crate) fn bytea_conn(
             &mut to_len,
         );
         if to_ptr.is_null() {
-            Err(conn
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(conn.error_message().unwrap_or_else(|| "Unknow error"))
         } else {
             Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }

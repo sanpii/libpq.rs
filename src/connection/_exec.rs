@@ -162,7 +162,7 @@ impl Connection {
      * See
      * [PQescapeLiteral](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPELITERAL).
      */
-    pub fn escape_literal(&self, str: &str) -> std::result::Result<PqString, String> {
+    pub fn escape_literal(&self, str: &str) -> std::result::Result<PqString, &str> {
         crate::escape::literal(self, str)
     }
 
@@ -174,7 +174,7 @@ impl Connection {
      * See
      * [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
      */
-    pub fn escape_identifier(&self, str: &str) -> std::result::Result<PqString, String> {
+    pub fn escape_identifier(&self, str: &str) -> std::result::Result<PqString, &str> {
         crate::escape::identifier(self, str)
     }
 
@@ -186,7 +186,7 @@ impl Connection {
      * See
      * [PQescapeStringConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPESTRINGCONN).
      */
-    pub fn escape_string(&self, from: &str) -> std::result::Result<PqString, String> {
+    pub fn escape_string(&self, from: &str) -> std::result::Result<PqString, &str> {
         crate::escape::string_conn(self, from)
     }
 
@@ -198,7 +198,7 @@ impl Connection {
      * See
      * [PQescapeByteaConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEBYTEACONN).
      */
-    pub fn escape_bytea(&self, from: &[u8]) -> std::result::Result<PqBytes, String> {
+    pub fn escape_bytea(&self, from: &[u8]) -> std::result::Result<PqBytes, &str> {
         crate::escape::bytea_conn(self, from)
     }
 }

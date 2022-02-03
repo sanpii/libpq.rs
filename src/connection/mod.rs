@@ -49,7 +49,7 @@ impl Connection {
         passwd: &str,
         user: &str,
         algorithm: Option<&str>,
-    ) -> Result<PqString, String> {
+    ) -> Result<PqString, &str> {
         let c_passwd = crate::ffi::to_cstr(passwd);
         let c_user = crate::ffi::to_cstr(user);
 
@@ -72,9 +72,7 @@ impl Connection {
             };
 
             if ptr.is_null() {
-                Err(self
-                    .error_message()
-                    .unwrap_or_else(|| "Unknow error".to_string()))
+                Err(self.error_message().unwrap_or_else(|| "Unknow error"))
             } else {
                 Ok(PqString::from_raw(ptr))
             }
@@ -182,9 +180,7 @@ impl TryFrom<*mut pq_sys::pg_conn> for Connection {
         let s = Self { conn };
 
         if s.status() == crate::connection::Status::Bad {
-            Err(s
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(s.error_message().unwrap_or_else(|| "Unknow error").into())
         } else {
             Ok(s)
         }
@@ -407,10 +403,7 @@ mod test {
         conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid])
             .unwrap();
         let result = conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid]);
-        assert_eq!(
-            result,
-            Err("another command is already in progress\n".to_string())
-        );
+        assert_eq!(result, Err("another command is already in progress\n"));
     }
 
     #[test]
