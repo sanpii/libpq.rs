@@ -121,7 +121,6 @@ pub fn bytea(from: &[u8]) -> std::result::Result<PqBytes, String> {
              */
             Err("out of memory\n".to_string())
         } else {
-            /* TODO: ask @sanpii, old code removes the end \0, this is not conformant with docs */
             Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }
     }
@@ -143,7 +142,6 @@ pub fn unescape_bytea(from: &[u8]) -> std::result::Result<PqBytes, ()> {
         if tmp.is_null() {
             Err(())
         } else {
-            /* TODO: ask @sanpii, old code removes the end \0, this is not conformant with docs*/
             Ok(PqBytes::from_raw(tmp, len as usize))
         }
     }
