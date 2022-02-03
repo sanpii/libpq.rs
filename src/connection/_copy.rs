@@ -9,7 +9,7 @@ impl Connection {
      * See
      * [PQputCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYDATA).
      */
-    pub fn put_copy_data(&self, buffer: &[u8]) -> std::result::Result<(), String> {
+    pub fn put_copy_data(&self, buffer: &[u8]) -> std::result::Result<(), &str> {
         log::trace!("Sending copy data");
 
         let success = unsafe {
@@ -21,10 +21,8 @@ impl Connection {
         };
 
         match success {
-            -1 => Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string())),
-            0 => Err("Full buffers".to_string()),
+            -1 => Err(self.error_message().unwrap_or_else(|| "Unknow error")),
+            0 => Err("Full buffers"),
             1 => Ok(()),
             _ => unreachable!(),
         }
@@ -36,7 +34,7 @@ impl Connection {
      * See
      * [PQputCopyEnd](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYEND).
      */
-    pub fn put_copy_end(&self, errormsg: Option<&str>) -> std::result::Result<(), String> {
+    pub fn put_copy_end(&self, errormsg: Option<&str>) -> std::result::Result<(), &str> {
         log::trace!("End of copy");
 
         let cstr = errormsg.map(crate::ffi::to_cstr);
@@ -49,10 +47,8 @@ impl Connection {
         let success = unsafe { pq_sys::PQputCopyEnd(self.into(), ptr) };
 
         match success {
-            -1 => Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string())),
-            0 => Err("Full buffers".to_string()),
+            -1 => Err(self.error_message().unwrap_or_else(|| "Unknow error")),
+            0 => Err("Full buffers"),
             1 => Ok(()),
             _ => unreachable!(),
         }
@@ -66,17 +62,15 @@ impl Connection {
      * See
      * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA)
      */
-    pub fn copy_data(&self, r#async: bool) -> std::result::Result<PqBytes, String> {
+    pub fn copy_data(&self, r#async: bool) -> std::result::Result<PqBytes, &str> {
         let mut ptr = std::ptr::null_mut();
 
         let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
 
         match success {
-            -2 => Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string())),
-            -1 => Err("COPY is done".to_string()),
-            0 => Err("COPY still in progress".to_string()),
+            -2 => Err(self.error_message().unwrap_or_else(|| "Unknow error")),
+            -1 => Err("COPY is done"),
+            0 => Err("COPY still in progress"),
             nbytes => Ok(PqBytes::from_raw(ptr as *const u8, nbytes as usize)),
         }
     }
