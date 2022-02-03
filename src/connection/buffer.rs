@@ -1,5 +1,5 @@
 /**
- * _Bytes is used as smart pointer to `std::ffi::c_void` pointer that was allocated by libpq.
+ * PqBytes is used as smart pointer to `std::ffi::c_void` pointer that was allocated by libpq.
  *
  * It frees the memory using libpq.PQfreemem when it is dropped.
  *
@@ -26,7 +26,7 @@
  * // Read the data
  * conn.exec("COPY tmp TO STDOUT;");
  *
- * // _Bytes implements Deref<Target = [u8]]>, so it is coerced to &[u8] slice ...
+ * // PqBytes implements Deref<Target = [u8]]>, so it is coerced to &[u8] slice ...
  * let buffer = conn.copy_data(false).expect("Error while reading data");
  * assert_eq!(&*buffer, b"1\n");
  *
@@ -53,12 +53,12 @@
  * See [`String::from_utf8_lossy`], [`crate::Connection::copy_data`] and [`slice`].
  */
 #[derive(Debug)]
-pub struct _Bytes {
+pub struct PqBytes {
     ptr: *const u8,
     len: usize,
 }
 
-impl std::ops::Deref for _Bytes {
+impl std::ops::Deref for PqBytes {
     type Target = [u8];
 
     fn deref(&self) -> &[u8] {
@@ -72,7 +72,7 @@ impl std::ops::Deref for _Bytes {
     }
 }
 
-impl Drop for _Bytes {
+impl Drop for PqBytes {
     fn drop(&mut self) {
         // SAFETY: This is safe because:
         // * This is the recommended way to free memory allocated by libpq.
@@ -86,15 +86,15 @@ impl Drop for _Bytes {
     }
 }
 
-impl _Bytes {
-    pub(crate) fn from_raw(ptr: *const u8, len: usize) -> _Bytes {
+impl PqBytes {
+    pub(crate) fn from_raw(ptr: *const u8, len: usize) -> PqBytes {
         debug_assert!(!ptr.is_null(), "Buffer ptr must be not null");
         debug_assert!(len > 0, "Buffer length must be greater than 0");
         debug_assert!(
             len <= isize::MAX as usize,
             "Buffer length must be less than isize::MAX"
         );
-        _Bytes { ptr: ptr, len: len }
+        PqBytes { ptr: ptr, len: len }
     }
 }
 

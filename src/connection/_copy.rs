@@ -12,10 +12,13 @@ impl Connection {
     pub fn put_copy_data(&self, buffer: &[u8]) -> std::result::Result<(), String> {
         log::trace!("Sending copy data");
 
-        let success =
-            unsafe {
-                pq_sys::PQputCopyData(self.into(), buffer.as_ptr() as *const i8, buffer.len() as i32)
-            };
+        let success = unsafe {
+            pq_sys::PQputCopyData(
+                self.into(),
+                buffer.as_ptr() as *const i8,
+                buffer.len() as i32,
+            )
+        };
 
         match success {
             -1 => Err(self
@@ -58,12 +61,12 @@ impl Connection {
     /**
      * Receives data from the server during `libpq::Status::CopyOut` or `libpq::Status::CopyBoth` state.
      *
-     * On success, this method returns [`_Bytes`].
+     * On success, this method returns [`PqBytes`].
      *
      * See
      * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA)
      */
-    pub fn copy_data(&self, r#async: bool) -> std::result::Result<_Bytes, String> {
+    pub fn copy_data(&self, r#async: bool) -> std::result::Result<PqBytes, String> {
         let mut ptr = std::ptr::null_mut();
 
         let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
@@ -74,7 +77,7 @@ impl Connection {
                 .unwrap_or_else(|| "Unknow error".to_string())),
             -1 => Err("COPY is done".to_string()),
             0 => Err("COPY still in progress".to_string()),
-            nbytes => Ok(_Bytes::from_raw(ptr as *const u8, nbytes as usize)),
+            nbytes => Ok(PqBytes::from_raw(ptr as *const u8, nbytes as usize)),
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::connection::{_Bytes, _String};
+use crate::connection::{PqBytes, _String};
 
 pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Result<_String, String> {
     let c_str = crate::ffi::to_cstr(str);
@@ -86,7 +86,7 @@ pub fn string(from: &str) -> String {
 pub(crate) fn bytea_conn(
     conn: &crate::Connection,
     from: &[u8],
-) -> std::result::Result<_Bytes, String> {
+) -> std::result::Result<PqBytes, String> {
     unsafe {
         let mut to_len: pq_sys::size_t = 0;
 
@@ -101,7 +101,7 @@ pub(crate) fn bytea_conn(
                 .error_message()
                 .unwrap_or_else(|| "Unknow error".to_string()))
         } else {
-            Ok(_Bytes::from_raw(to_ptr, to_len as usize))
+            Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }
     }
 }
@@ -109,10 +109,10 @@ pub(crate) fn bytea_conn(
 /**
  * See [PQescapeBytea](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEBYTEA).
  *
- * On success, this method returns [`_Bytes`].
+ * On success, this method returns [`PqBytes`].
  */
 #[deprecated(note = "Use libpq::Connection::escape_bytea instead")]
-pub fn bytea(from: &[u8]) -> std::result::Result<_Bytes, String> {
+pub fn bytea(from: &[u8]) -> std::result::Result<PqBytes, String> {
     unsafe {
         let mut to_len: pq_sys::size_t = 0;
         let to_ptr =
@@ -124,7 +124,7 @@ pub fn bytea(from: &[u8]) -> std::result::Result<_Bytes, String> {
             Err("out of memory\n".to_string())
         } else {
             /* TODO: ask @sanpii, old code removes the end \0, this is not conformant with docs */
-            Ok(_Bytes::from_raw(to_ptr, to_len as usize))
+            Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }
     }
 }
@@ -133,12 +133,12 @@ pub fn bytea(from: &[u8]) -> std::result::Result<_Bytes, String> {
  * Converts a string representation of binary data into binary data — the reverse of
  * `libpq::Connection::escape_bytea`.
  *
- * On success, this method returns [`_Bytes`].
+ * On success, this method returns [`PqBytes`].
  *
  * See
  * [PQunescapeBytea](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQUNESCAPEBYTEA).
  */
-pub fn unescape_bytea(from: &[u8]) -> std::result::Result<_Bytes, ()> {
+pub fn unescape_bytea(from: &[u8]) -> std::result::Result<PqBytes, ()> {
     unsafe {
         let mut len = 0;
         let tmp = pq_sys::PQunescapeBytea(from.as_ptr(), &mut len);
@@ -146,7 +146,7 @@ pub fn unescape_bytea(from: &[u8]) -> std::result::Result<_Bytes, ()> {
             Err(())
         } else {
             /* TODO: ask @sanpii, old code removes the end \0, this is not conformant with docs*/
-            Ok(_Bytes::from_raw(tmp, len as usize))
+            Ok(PqBytes::from_raw(tmp, len as usize))
         }
     }
 }
