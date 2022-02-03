@@ -193,12 +193,12 @@ impl Connection {
     /**
      * Escapes binary data for use within an SQL command with the type bytea.
      *
-     * On success, this method returns [`_Bytes`].
+     * On success, this method returns [`PqBytes`].
      *
      * See
      * [PQescapeByteaConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEBYTEACONN).
      */
-    pub fn escape_bytea(&self, from: &[u8]) -> std::result::Result<_Bytes, String> {
+    pub fn escape_bytea(&self, from: &[u8]) -> std::result::Result<PqBytes, String> {
         crate::escape::bytea_conn(self, from)
     }
 }
