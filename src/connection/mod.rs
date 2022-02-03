@@ -40,7 +40,7 @@ impl Connection {
     /**
      * Prepares the encrypted form of a PostgreSQL password.
      *
-     * On success, this method returns [`_String`].
+     * On success, this method returns [`PqString`].
      *
      * See [PQencryptPasswordConn](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQENCRYPTPASSWORDCONN).
      */
@@ -49,7 +49,7 @@ impl Connection {
         passwd: &str,
         user: &str,
         algorithm: Option<&str>,
-    ) -> Result<_String, String> {
+    ) -> Result<PqString, String> {
         let c_passwd = crate::ffi::to_cstr(passwd);
         let c_user = crate::ffi::to_cstr(user);
 
@@ -76,7 +76,7 @@ impl Connection {
                     .error_message()
                     .unwrap_or_else(|| "Unknow error".to_string()))
             } else {
-                Ok(_String::from_raw(ptr))
+                Ok(PqString::from_raw(ptr))
             }
         }
     }
