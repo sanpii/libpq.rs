@@ -18,7 +18,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -70,7 +70,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -106,7 +106,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -152,7 +152,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -174,7 +174,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -194,7 +194,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -227,7 +227,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 

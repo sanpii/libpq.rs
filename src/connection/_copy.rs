@@ -21,7 +21,7 @@ impl Connection {
         };
 
         match success {
-            -1 => Err(self.error_message().unwrap_or_else(|| "Unknow error")),
+            -1 => Err(self.error_message().unwrap_or("Unknow error")),
             0 => Err("Full buffers"),
             1 => Ok(()),
             _ => unreachable!(),
@@ -47,7 +47,7 @@ impl Connection {
         let success = unsafe { pq_sys::PQputCopyEnd(self.into(), ptr) };
 
         match success {
-            -1 => Err(self.error_message().unwrap_or_else(|| "Unknow error")),
+            -1 => Err(self.error_message().unwrap_or("Unknow error")),
             0 => Err("Full buffers"),
             1 => Ok(()),
             _ => unreachable!(),
@@ -68,7 +68,7 @@ impl Connection {
         let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
 
         match success {
-            -2 => Err(self.error_message().unwrap_or_else(|| "Unknow error")),
+            -2 => Err(self.error_message().unwrap_or("Unknow error")),
             -1 => Err("COPY is done"),
             0 => Err("COPY still in progress"),
             nbytes => Ok(PqBytes::from_raw(ptr as *const u8, nbytes as usize)),

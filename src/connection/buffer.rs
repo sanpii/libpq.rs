@@ -94,7 +94,7 @@ impl PqBytes {
             len <= isize::MAX as usize,
             "Buffer length must be less than isize::MAX"
         );
-        PqBytes { ptr: ptr, len: len }
+        PqBytes { ptr, len }
     }
 }
 
@@ -185,7 +185,7 @@ impl Drop for PqString {
 impl PqString {
     pub(crate) fn from_raw(ptr: *const i8) -> PqString {
         debug_assert!(!ptr.is_null(), "ptr must be not null");
-        PqString { ptr: ptr }
+        PqString { ptr }
     }
 
     /**
