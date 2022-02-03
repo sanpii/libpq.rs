@@ -1,6 +1,9 @@
-use crate::connection::{PqBytes, _String};
+use crate::connection::{PqBytes, PqString};
 
-pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Result<_String, String> {
+pub(crate) fn literal(
+    conn: &crate::Connection,
+    str: &str,
+) -> std::result::Result<PqString, String> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
         let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
@@ -11,18 +14,18 @@ pub(crate) fn literal(conn: &crate::Connection, str: &str) -> std::result::Resul
                 .unwrap_or_else(|| "Unknow error".to_string()));
         }
 
-        Ok(_String::from_raw(raw))
+        Ok(PqString::from_raw(raw))
     }
 }
 
 /**
  * Escape a string for use as an SQL identifier, such as a table, column, or function name.
  *
- * On success, this method returns [`_String`].
+ * On success, this method returns [`PqString`].
  *
  * See [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
  */
-pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<_String, String> {
+pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<PqString, String> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
         let raw =
@@ -34,14 +37,14 @@ pub fn identifier(conn: &crate::Connection, str: &str) -> std::result::Result<_S
                 .unwrap_or_else(|| "Unknow error".to_string()));
         }
 
-        Ok(_String::from_raw(raw))
+        Ok(PqString::from_raw(raw))
     }
 }
 
 pub(crate) fn string_conn(
     conn: &crate::Connection,
     from: &str,
-) -> std::result::Result<_String, String> {
+) -> std::result::Result<PqString, String> {
     let mut error = 0;
 
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
@@ -66,7 +69,7 @@ pub(crate) fn string_conn(
         }
     };
 
-    Ok(_String::from_raw(raw))
+    Ok(PqString::from_raw(raw))
 }
 
 #[deprecated(note = "Use libpq::Connection::escape_string instead")]

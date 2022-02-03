@@ -158,35 +158,35 @@ impl Connection {
     /**
      * Escape a string for use within an SQL command.
      *
-     * On success, this method returns [`_String`].
+     * On success, this method returns [`PqString`].
      * See
      * [PQescapeLiteral](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPELITERAL).
      */
-    pub fn escape_literal(&self, str: &str) -> std::result::Result<_String, String> {
+    pub fn escape_literal(&self, str: &str) -> std::result::Result<PqString, String> {
         crate::escape::literal(self, str)
     }
 
     /**
      * Escapes a string for use as an SQL identifier, such as a table, column, or function name.
      *
-     * On success, this method returns [`_String`].
+     * On success, this method returns [`PqString`].
      *
      * See
      * [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
      */
-    pub fn escape_identifier(&self, str: &str) -> std::result::Result<_String, String> {
+    pub fn escape_identifier(&self, str: &str) -> std::result::Result<PqString, String> {
         crate::escape::identifier(self, str)
     }
 
     /**
      * Escape string literals, much like `libpq::Connection::literal`.
      *
-     * On success, this method returns [`_String`].
+     * On success, this method returns [`PqString`].
      *
      * See
      * [PQescapeStringConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPESTRINGCONN).
      */
-    pub fn escape_string(&self, from: &str) -> std::result::Result<_String, String> {
+    pub fn escape_string(&self, from: &str) -> std::result::Result<PqString, String> {
         crate::escape::string_conn(self, from)
     }
 

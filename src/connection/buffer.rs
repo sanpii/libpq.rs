@@ -99,7 +99,7 @@ impl PqBytes {
 }
 
 /**
-* _String is used as smart pointer to `std::os::raw::c_char` pointer that was allocated by libpq.
+* PqString is used as smart pointer to `std::os::raw::c_char` pointer that was allocated by libpq.
 *
 * It frees the memory using libpq.PQfreemem when it is dropped.
 *
@@ -109,13 +109,13 @@ impl PqBytes {
 * # Examples
 *
 * ```
-* # // Since there isn't a public method to create _String, let's
-* # // create a CString and transmute it to _String.
+* # // Since there isn't a public method to create PqString, let's
+* # // create a CString and transmute it to PqString.
 * # let cstring = std::ffi::CString::new("Something returned by postgres").unwrap();
-* # let s = unsafe {std::mem::transmute::<_, libpq::connection::_String>(cstring.as_ptr())};
+* # let s = unsafe {std::mem::transmute::<_, libpq::connection::PqString>(cstring.as_ptr())};
 * // let s = /* ... "Something returned by postgres" ... */
 *
-* // _String implements Deref<Target = CStr>, so it is coerced
+* // PqString implements Deref<Target = CStr>, so it is coerced
 * // to &CStr and it has all the same methods ...
 * assert_eq!(s.to_bytes(), b"Something returned by postgres");
 * assert_eq!(s.to_string_lossy(), "Something returned by postgres");
@@ -127,7 +127,7 @@ impl PqBytes {
 * // .. and use to_string() on it to create a owned Rust String.
 * assert_eq!(s.to_str().unwrap().to_string(), String::from("Something returned by postgres"));
 *
-* // Since _String implements AsRef<[u8]>, is can be used in any method that requires &[u8] ...
+* // Since PqString implements AsRef<[u8]>, is can be used in any method that requires &[u8] ...
 * fn work_on_bytes<T: AsRef<[u8]>>(input: &T) {
 *    assert_eq!(input.as_ref(), b"Something returned by postgres");
 * }
@@ -142,11 +142,11 @@ impl PqBytes {
 * See [`std::ffi::CStr`].
 */
 #[derive(Debug)]
-pub struct _String {
+pub struct PqString {
     ptr: *const i8,
 }
 
-impl std::ops::Deref for _String {
+impl std::ops::Deref for PqString {
     type Target = std::ffi::CStr;
 
     fn deref(&self) -> &std::ffi::CStr {
@@ -162,13 +162,13 @@ impl std::ops::Deref for _String {
     }
 }
 
-impl AsRef<[u8]> for _String {
+impl AsRef<[u8]> for PqString {
     fn as_ref(&self) -> &[u8] {
         self.to_bytes()
     }
 }
 
-impl Drop for _String {
+impl Drop for PqString {
     fn drop(&mut self) {
         // SAFETY: This is safe because:
         // * This is the recommended way to free memory allocated by libpq.
@@ -182,10 +182,10 @@ impl Drop for _String {
     }
 }
 
-impl _String {
-    pub(crate) fn from_raw(ptr: *const i8) -> _String {
+impl PqString {
+    pub(crate) fn from_raw(ptr: *const i8) -> PqString {
         debug_assert!(!ptr.is_null(), "ptr must be not null");
-        _String { ptr: ptr }
+        PqString { ptr: ptr }
     }
 
     /**
