@@ -9,7 +9,7 @@ pub(crate) fn literal<'a>(
         let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
 
         if raw.is_null() {
-            return Err(conn.error_message().unwrap_or_else(|| "Unknow error"));
+            return Err(conn.error_message().unwrap_or("Unknow error"));
         }
 
         Ok(PqString::from_raw(raw))
@@ -33,7 +33,7 @@ pub fn identifier<'a>(
             pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
 
         if raw.is_null() {
-            return Err(conn.error_message().unwrap_or_else(|| "Unknow error"));
+            return Err(conn.error_message().unwrap_or("Unknow error"));
         }
 
         Ok(PqString::from_raw(raw))
@@ -62,7 +62,7 @@ pub(crate) fn string_conn<'a>(
         );
 
         if error != 0 {
-            return Err(conn.error_message().unwrap_or_else(|| "Unknow error"));
+            return Err(conn.error_message().unwrap_or("Unknow error"));
         }
     };
 
@@ -97,7 +97,7 @@ pub(crate) fn bytea_conn<'a>(
             &mut to_len,
         );
         if to_ptr.is_null() {
-            Err(conn.error_message().unwrap_or_else(|| "Unknow error"))
+            Err(conn.error_message().unwrap_or("Unknow error"))
         } else {
             Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }

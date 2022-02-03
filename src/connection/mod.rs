@@ -72,7 +72,7 @@ impl Connection {
             };
 
             if ptr.is_null() {
-                Err(self.error_message().unwrap_or_else(|| "Unknow error"))
+                Err(self.error_message().unwrap_or("Unknow error"))
             } else {
                 Ok(PqString::from_raw(ptr))
             }
@@ -180,7 +180,7 @@ impl TryFrom<*mut pq_sys::pg_conn> for Connection {
         let s = Self { conn };
 
         if s.status() == crate::connection::Status::Bad {
-            Err(s.error_message().unwrap_or_else(|| "Unknow error").into())
+            Err(s.error_message().unwrap_or("Unknow error").into())
         } else {
             Ok(s)
         }
