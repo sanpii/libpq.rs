@@ -22,7 +22,7 @@ impl Cancel {
         if sucess == 1 {
             Ok(())
         } else {
-            Err(crate::errors::Error::Misc(error))
+            Err(crate::errors::Error::Backend(error))
         }
     }
 }

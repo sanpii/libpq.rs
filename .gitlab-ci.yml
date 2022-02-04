@@ -61,4 +61,4 @@ valgrind:
         PG: "14"
     script:
       - cargo test --no-run --features "v$PG"
-      - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)
+      - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')

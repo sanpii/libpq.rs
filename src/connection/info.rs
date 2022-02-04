@@ -38,7 +38,7 @@ impl Info {
                 } else {
                     let err = crate::ffi::to_string(errmsg)?;
                     pq_sys::PQfreemem(errmsg as *mut std::ffi::c_void);
-                    return Err(crate::errors::Error::Misc(err));
+                    return Err(crate::errors::Error::Backend(err));
                 }
             }
 
@@ -127,7 +127,7 @@ mod test {
         assert!(crate::connection::Info::from("host=localhost user=postgres").is_ok());
         assert_eq!(
             crate::connection::Info::from("'"),
-            Err(crate::errors::Error::Misc(
+            Err(crate::errors::Error::Backend(
                 "missing \"=\" after \"'\" in connection info string\n".to_string()
             ))
         );

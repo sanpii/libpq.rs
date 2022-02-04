@@ -22,7 +22,7 @@ impl Connection {
 
         match success {
             -1 => self.error(),
-            0 => Err(crate::errors::Error::Misc("Full buffers".to_string())),
+            0 => Err(crate::errors::Error::Backend("Full buffers".to_string())),
             1 => Ok(()),
             _ => unreachable!(),
         }
@@ -48,7 +48,7 @@ impl Connection {
 
         match success {
             -1 => self.error(),
-            0 => Err(crate::errors::Error::Misc("Full buffers".to_string())),
+            0 => Err(crate::errors::Error::Backend("Full buffers".to_string())),
             1 => Ok(()),
             _ => unreachable!(),
         }
@@ -69,8 +69,8 @@ impl Connection {
 
         match success {
             -2 => self.error(),
-            -1 => Err(crate::errors::Error::Misc("COPY is done".to_string())),
-            0 => Err(crate::errors::Error::Misc("COPY still in progress".to_string())),
+            -1 => Err(crate::errors::Error::Backend("COPY is done".to_string())),
+            0 => Err(crate::errors::Error::Backend("COPY still in progress".to_string())),
             nbytes => Ok(PqBytes::from_raw(ptr as *const u8, nbytes as usize)),
         }
     }

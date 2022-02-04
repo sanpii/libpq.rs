@@ -153,7 +153,7 @@ impl Connection {
     pub(crate) fn error<T>(&self) -> crate::errors::Result<T> {
         Err(self
             .error_message()
-            .map(|x| crate::errors::Error::Misc(x.to_string()))
+            .map(|x| crate::errors::Error::Backend(x.to_string()))
             .unwrap_or(crate::errors::Error::Unknow))
     }
 }
@@ -412,7 +412,7 @@ mod test {
         let result = conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid]);
         assert_eq!(
             result,
-            Err(crate::errors::Error::Misc(
+            Err(crate::errors::Error::Backend(
                 "another command is already in progress\n".to_string()
             ))
         );
@@ -629,7 +629,7 @@ B	5	ReadyForQuery	 I
         assert_eq!(
             conn.encrypt_password("1234", "postgres", Some("test"))
                 .unwrap_err(),
-            crate::errors::Error::Misc(
+            crate::errors::Error::Backend(
                 "unrecognized password encryption algorithm \"test\"\n".to_string()
             ),
         );

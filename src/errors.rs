@@ -9,7 +9,7 @@ pub enum Error {
     #[error("{0}")]
     NulError(#[from] std::ffi::NulError),
     #[error("{0}")]
-    Misc(String),
+    Backend(String),
     #[error("Unknow error")]
     Unknow,
     #[error("{0}")]

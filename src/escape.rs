@@ -107,7 +107,7 @@ pub fn bytea(from: &[u8]) -> crate::errors::Result<PqBytes> {
             /* According to libpq docs (v14): `Currently, the only possible error is insufficient memory`
              * This was also confirmed by looking at the source code of PQescapeBytea.
              */
-            Err(crate::errors::Error::Misc("out of memory\n".to_string()))
+            Err(crate::errors::Error::Backend("out of memory\n".to_string()))
         } else {
             Ok(PqBytes::from_raw(to_ptr, to_len as usize))
         }
