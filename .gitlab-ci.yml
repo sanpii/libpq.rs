@@ -32,7 +32,6 @@ lint:clippy:
     script:
         - rustup component add clippy
         - cargo clippy --all-features -- --deny warnings
-    allow_failure: true
 
 test:
     <<: *pg
