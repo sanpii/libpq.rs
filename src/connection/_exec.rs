@@ -28,8 +28,7 @@ impl Connection {
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> crate::Result {
-        let (values, formats, lengths) =
-            Self::transform_params(param_values, param_formats);
+        let (values, formats, lengths) = Self::transform_params(param_values, param_formats);
 
         Self::trace_query("Sending", command, param_types, param_values, param_formats);
 
@@ -107,8 +106,7 @@ impl Connection {
         let prefix = format!("Execute {} prepared query", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, "", &[], param_values, param_formats);
 
-        let (values, formats, lengths) =
-            Self::transform_params(param_values, param_formats);
+        let (values, formats, lengths) = Self::transform_params(param_values, param_formats);
 
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
@@ -143,8 +141,7 @@ impl Connection {
     pub fn describe_prepared(&self, name: Option<&str>) -> crate::Result {
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
-        unsafe { pq_sys::PQdescribePrepared(self.into(), c_name.as_ptr()) }
-            .into()
+        unsafe { pq_sys::PQdescribePrepared(self.into(), c_name.as_ptr()) }.into()
     }
 
     /**
@@ -155,47 +152,53 @@ impl Connection {
     pub fn describe_portal(&self, name: Option<&str>) -> crate::Result {
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
-        unsafe { pq_sys::PQdescribePortal(self.into(), c_name.as_ptr()) }
-            .into()
+        unsafe { pq_sys::PQdescribePortal(self.into(), c_name.as_ptr()) }.into()
     }
 
     /**
      * Escape a string for use within an SQL command.
      *
+     * On success, this method returns [`PqString`].
      * See
      * [PQescapeLiteral](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPELITERAL).
      */
-    pub fn escape_literal(&self, str: &str) -> std::result::Result<String, String> {
+    pub fn escape_literal(&self, str: &str) -> std::result::Result<PqString, &str> {
         crate::escape::literal(self, str)
     }
 
     /**
      * Escapes a string for use as an SQL identifier, such as a table, column, or function name.
      *
+     * On success, this method returns [`PqString`].
+     *
      * See
      * [PQescapeIdentifier](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEIDENTIFIER).
      */
-    pub fn escape_identifier(&self, str: &str) -> std::result::Result<String, String> {
+    pub fn escape_identifier(&self, str: &str) -> std::result::Result<PqString, &str> {
         crate::escape::identifier(self, str)
     }
 
     /**
      * Escape string literals, much like `libpq::Connection::literal`.
      *
+     * On success, this method returns [`PqString`].
+     *
      * See
      * [PQescapeStringConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPESTRINGCONN).
      */
-    pub fn escape_string(&self, from: &str) -> std::result::Result<String, String> {
+    pub fn escape_string(&self, from: &str) -> std::result::Result<PqString, &str> {
         crate::escape::string_conn(self, from)
     }
 
     /**
      * Escapes binary data for use within an SQL command with the type bytea.
      *
+     * On success, this method returns [`PqBytes`].
+     *
      * See
      * [PQescapeByteaConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPEBYTEACONN).
      */
-    pub fn escape_bytea(&self, from: &[u8]) -> std::result::Result<Vec<u8>, String> {
+    pub fn escape_bytea(&self, from: &[u8]) -> std::result::Result<PqBytes, &str> {
         crate::escape::bytea_conn(self, from)
     }
 }

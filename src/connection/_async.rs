@@ -8,7 +8,7 @@ impl Connection {
      * See
      * [PQsendQuery](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDQUERY).
      */
-    pub fn send_query(&self, command: &str) -> std::result::Result<(), String> {
+    pub fn send_query(&self, command: &str) -> std::result::Result<(), &str> {
         log::trace!("Sending query '{}'", command);
 
         let c_command = crate::ffi::to_cstr(command);
@@ -18,9 +18,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -37,9 +35,8 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> std::result::Result<(), String> {
-        let (values, formats, lengths) =
-            Self::transform_params(param_values, param_formats);
+    ) -> std::result::Result<(), &str> {
+        let (values, formats, lengths) = Self::transform_params(param_values, param_formats);
 
         Self::trace_query("Sending", command, param_types, param_values, param_formats);
 
@@ -73,9 +70,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -91,7 +86,7 @@ impl Connection {
         name: Option<&str>,
         query: &str,
         param_types: &[crate::Oid],
-    ) -> std::result::Result<(), String> {
+    ) -> std::result::Result<(), &str> {
         let prefix = format!("Sending prepare {}", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, query, param_types, &[], &[]);
 
@@ -111,9 +106,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -128,12 +121,11 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> std::result::Result<(), String> {
+    ) -> std::result::Result<(), &str> {
         let prefix = format!("Send {} prepared query", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, "", &[], param_values, param_formats);
 
-        let (values, formats, lengths) =
-            Self::transform_params(param_values, param_formats);
+        let (values, formats, lengths) = Self::transform_params(param_values, param_formats);
 
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
@@ -160,9 +152,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -171,7 +161,7 @@ impl Connection {
      *
      * See [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
-    pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), String> {
+    pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), &str> {
         log::trace!(
             "Sending describe prepared query {}",
             name.unwrap_or("anonymous")
@@ -179,16 +169,12 @@ impl Connection {
 
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
-        let success = unsafe {
-            pq_sys::PQsendDescribePrepared(self.into(), c_name.as_ptr())
-        };
+        let success = unsafe { pq_sys::PQsendDescribePrepared(self.into(), c_name.as_ptr()) };
 
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -198,21 +184,17 @@ impl Connection {
      * See
      * [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
-    pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), String> {
+    pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), &str> {
         log::trace!("Sending describe portal {}", name.unwrap_or("anonymous"));
 
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
-        let success = unsafe {
-            pq_sys::PQsendDescribePortal(self.into(), c_name.as_ptr())
-        };
+        let success = unsafe { pq_sys::PQsendDescribePortal(self.into(), c_name.as_ptr()) };
 
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
@@ -237,7 +219,7 @@ impl Connection {
      * See
      * [PQconsumeInput](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQCONSUMEINPUT).
      */
-    pub fn consume_input(&self) -> std::result::Result<(), String> {
+    pub fn consume_input(&self) -> std::result::Result<(), &str> {
         log::trace!("Consume input");
 
         let success = unsafe { pq_sys::PQconsumeInput(self.into()) };
@@ -245,9 +227,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self
-                .error_message()
-                .unwrap_or_else(|| "Unknow error".to_string()))
+            Err(self.error_message().unwrap_or("Unknow error"))
         }
     }
 
