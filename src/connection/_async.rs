@@ -8,7 +8,7 @@ impl Connection {
      * See
      * [PQsendQuery](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDQUERY).
      */
-    pub fn send_query(&self, command: &str) -> std::result::Result<(), &str> {
+    pub fn send_query(&self, command: &str) -> crate::errors::Result {
         log::trace!("Sending query '{}'", command);
 
         let c_command = crate::ffi::to_cstr(command);
@@ -18,7 +18,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -35,7 +35,7 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> std::result::Result<(), &str> {
+    ) -> crate::errors::Result {
         let (values, formats, lengths) = Self::transform_params(param_values, param_formats);
 
         Self::trace_query("Sending", command, param_types, param_values, param_formats);
@@ -70,7 +70,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -86,7 +86,7 @@ impl Connection {
         name: Option<&str>,
         query: &str,
         param_types: &[crate::Oid],
-    ) -> std::result::Result<(), &str> {
+    ) -> crate::errors::Result {
         let prefix = format!("Sending prepare {}", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, query, param_types, &[], &[]);
 
@@ -106,7 +106,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -121,7 +121,7 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> std::result::Result<(), &str> {
+    ) -> crate::errors::Result {
         let prefix = format!("Send {} prepared query", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, "", &[], param_values, param_formats);
 
@@ -152,7 +152,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -161,7 +161,7 @@ impl Connection {
      *
      * See [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
-    pub fn send_describe_prepared(&self, name: Option<&str>) -> std::result::Result<(), &str> {
+    pub fn send_describe_prepared(&self, name: Option<&str>) -> crate::errors::Result {
         log::trace!(
             "Sending describe prepared query {}",
             name.unwrap_or("anonymous")
@@ -174,7 +174,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -184,7 +184,7 @@ impl Connection {
      * See
      * [PQsendDescribePortal](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDDESCRIBEPORTAL).
      */
-    pub fn send_describe_portal(&self, name: Option<&str>) -> std::result::Result<(), &str> {
+    pub fn send_describe_portal(&self, name: Option<&str>) -> crate::errors::Result {
         log::trace!("Sending describe portal {}", name.unwrap_or("anonymous"));
 
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
@@ -194,7 +194,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -219,7 +219,7 @@ impl Connection {
      * See
      * [PQconsumeInput](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQCONSUMEINPUT).
      */
-    pub fn consume_input(&self) -> std::result::Result<(), &str> {
+    pub fn consume_input(&self) -> crate::errors::Result {
         log::trace!("Consume input");
 
         let success = unsafe { pq_sys::PQconsumeInput(self.into()) };
@@ -227,7 +227,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(self.error_message().unwrap_or("Unknow error"))
+            self.error()
         }
     }
 
@@ -246,7 +246,7 @@ impl Connection {
      * See
      * [PQsetnonblocking](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSETNONBLOCKING).
      */
-    pub fn set_non_blocking(&self, non_blocking: bool) -> std::result::Result<(), ()> {
+    pub fn set_non_blocking(&self, non_blocking: bool) -> crate::errors::Result {
         if non_blocking {
             log::trace!("Set non blocking");
         } else {
@@ -256,7 +256,7 @@ impl Connection {
         let status = unsafe { pq_sys::PQsetnonblocking(self.into(), non_blocking as i32) };
 
         if status < 0 {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(())
         }
@@ -277,7 +277,7 @@ impl Connection {
      *
      * See [PQflush](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQFLUSH).
      */
-    pub fn flush(&self) -> std::result::Result<(), ()> {
+    pub fn flush(&self) -> crate::errors::Result {
         log::trace!("Flush");
 
         let status = unsafe { pq_sys::PQflush(self.into()) };
@@ -285,7 +285,7 @@ impl Connection {
         if status == 0 {
             Ok(())
         } else {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         }
     }
 }

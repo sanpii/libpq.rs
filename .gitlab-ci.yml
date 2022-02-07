@@ -32,7 +32,6 @@ lint:clippy:
     script:
         - rustup component add clippy
         - cargo clippy --all-features -- --deny warnings
-    allow_failure: true
 
 test:
     <<: *pg
@@ -62,4 +61,4 @@ valgrind:
         PG: "14"
     script:
       - cargo test --no-run --features "v$PG"
-      - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)
+      - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')

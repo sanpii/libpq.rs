@@ -35,7 +35,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --features v14
+          args: --all-features -- --deny warnings
 
   tests:
     name: Tests
@@ -125,4 +125,4 @@ jobs:
       - name: build
         run: cargo test --no-run --features v14
       - name: valgrind
-        run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)
+        run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')

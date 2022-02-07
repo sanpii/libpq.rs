@@ -10,11 +10,13 @@ pub struct Attribute {
 }
 
 #[doc(hidden)]
-impl From<&&Attribute> for pq_sys::pgresAttDesc {
-    fn from(attribute: &&Attribute) -> pq_sys::pgresAttDesc {
-        let name = std::ffi::CString::new(attribute.name.clone()).unwrap();
+impl TryFrom<&&Attribute> for pq_sys::pgresAttDesc {
+    type Error = crate::errors::Error;
 
-        pq_sys::pgresAttDesc {
+    fn try_from(attribute: &&Attribute) -> Result<Self, Self::Error> {
+        let name = std::ffi::CString::new(attribute.name.clone())?;
+
+        Ok(pq_sys::pgresAttDesc {
             name: name.into_raw(),
             tableid: attribute.tableid,
             columnid: attribute.columnid,
@@ -22,6 +24,6 @@ impl From<&&Attribute> for pq_sys::pgresAttDesc {
             typid: attribute.typid,
             typlen: attribute.typlen,
             atttypmod: attribute.atttypmod,
-        }
+        })
     }
 }

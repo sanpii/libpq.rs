@@ -9,7 +9,7 @@ impl Connection {
      * See
      * [PQputCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYDATA).
      */
-    pub fn put_copy_data(&self, buffer: &[u8]) -> std::result::Result<(), &str> {
+    pub fn put_copy_data(&self, buffer: &[u8]) -> crate::errors::Result {
         log::trace!("Sending copy data");
 
         let success = unsafe {
@@ -21,8 +21,8 @@ impl Connection {
         };
 
         match success {
-            -1 => Err(self.error_message().unwrap_or("Unknow error")),
-            0 => Err("Full buffers"),
+            -1 => self.error(),
+            0 => Err(crate::errors::Error::Backend("Full buffers".to_string())),
             1 => Ok(()),
             _ => unreachable!(),
         }
@@ -34,7 +34,7 @@ impl Connection {
      * See
      * [PQputCopyEnd](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQPUTCOPYEND).
      */
-    pub fn put_copy_end(&self, errormsg: Option<&str>) -> std::result::Result<(), &str> {
+    pub fn put_copy_end(&self, errormsg: Option<&str>) -> crate::errors::Result {
         log::trace!("End of copy");
 
         let cstr = errormsg.map(crate::ffi::to_cstr);
@@ -47,8 +47,8 @@ impl Connection {
         let success = unsafe { pq_sys::PQputCopyEnd(self.into(), ptr) };
 
         match success {
-            -1 => Err(self.error_message().unwrap_or("Unknow error")),
-            0 => Err("Full buffers"),
+            -1 => self.error(),
+            0 => Err(crate::errors::Error::Backend("Full buffers".to_string())),
             1 => Ok(()),
             _ => unreachable!(),
         }
@@ -62,15 +62,15 @@ impl Connection {
      * See
      * [PQgetCopyData](https://www.postgresql.org/docs/current/libpq-copy.html#LIBPQ-PQGETCOPYDATA)
      */
-    pub fn copy_data(&self, r#async: bool) -> std::result::Result<PqBytes, &str> {
+    pub fn copy_data(&self, r#async: bool) -> crate::errors::Result<PqBytes> {
         let mut ptr = std::ptr::null_mut();
 
         let success = unsafe { pq_sys::PQgetCopyData(self.into(), &mut ptr, r#async as i32) };
 
         match success {
-            -2 => Err(self.error_message().unwrap_or("Unknow error")),
-            -1 => Err("COPY is done"),
-            0 => Err("COPY still in progress"),
+            -2 => self.error(),
+            -1 => Err(crate::errors::Error::Backend("COPY is done".to_string())),
+            0 => Err(crate::errors::Error::Backend("COPY still in progress".to_string())),
             nbytes => Ok(PqBytes::from_raw(ptr as *const u8, nbytes as usize)),
         }
     }

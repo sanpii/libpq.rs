@@ -36,7 +36,7 @@ impl Result {
      *
      * See [PQresultErrorMessage](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORMESSAGE).
      */
-    pub fn error_message(&self) -> Option<String> {
+    pub fn error_message(&self) -> crate::errors::Result<Option<String>> {
         crate::ffi::to_option_string(unsafe { pq_sys::PQresultErrorMessage(self.into()) })
     }
 
@@ -45,12 +45,15 @@ impl Result {
      *
      * See [PQresultErrorField](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORFIELD).
      */
-    pub fn error_field(&self, field: crate::result::ErrorField) -> Option<&'static str> {
+    pub fn error_field(
+        &self,
+        field: crate::result::ErrorField,
+    ) -> crate::errors::Result<Option<&'static str>> {
         unsafe {
             let ptr = pq_sys::PQresultErrorField(self.into(), field.into());
 
             if ptr.is_null() {
-                return None;
+                return Ok(None);
             }
 
             crate::ffi::to_option_str(ptr)
@@ -80,13 +83,13 @@ impl Result {
      *
      * See [PQfname](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFNAME).
      */
-    pub fn field_name(&self, number: usize) -> Option<String> {
+    pub fn field_name(&self, number: usize) -> crate::errors::Result<Option<String>> {
         let raw = unsafe { pq_sys::PQfname(self.into(), number as i32) };
 
         if raw.is_null() {
-            None
+            Ok(None)
         } else {
-            Some(crate::ffi::to_string(raw))
+            Some(crate::ffi::to_string(raw)).transpose()
         }
     }
 
@@ -293,7 +296,7 @@ impl Result {
      *
      * See [PQcmdStatus](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCMDSTATUS).
      */
-    pub fn cmd_status(&self) -> Option<String> {
+    pub fn cmd_status(&self) -> crate::errors::Result<Option<String>> {
         crate::ffi::to_option_string(unsafe { pq_sys::PQcmdStatus(self.into()) })
     }
 
@@ -302,10 +305,10 @@ impl Result {
      *
      * See [PQcmdTuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCMDTUPLES).
      */
-    pub fn cmd_tuples(&self) -> usize {
-        let ntuples = crate::ffi::to_string(unsafe { pq_sys::PQcmdTuples(self.into()) });
+    pub fn cmd_tuples(&self) -> crate::errors::Result<usize> {
+        let ntuples = crate::ffi::to_string(unsafe { pq_sys::PQcmdTuples(self.into()) })?;
 
-        ntuples.parse().unwrap_or_default()
+        Ok(ntuples.parse()?)
     }
 
     /**
@@ -329,7 +332,7 @@ impl Result {
     #[deprecated(
         note = "This function is deprecated in favor of `libpq::Result::oid_value` and is not thread-safe."
     )]
-    pub fn oid_status(&self) -> Option<String> {
+    pub fn oid_status(&self) -> crate::errors::Result<Option<String>> {
         crate::ffi::to_option_string(unsafe { pq_sys::PQoidStatus(self.into()) })
     }
 
@@ -339,11 +342,11 @@ impl Result {
      * See
      * [PQcopyResult](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQCOPYRESULT).
      */
-    pub fn copy(&self, flags: i32) -> std::result::Result<Self, ()> {
+    pub fn copy(&self, flags: i32) -> crate::errors::Result<Self> {
         let raw = unsafe { pq_sys::PQcopyResult(self.into(), flags) };
 
         if raw.is_null() {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(raw.into())
         }
@@ -355,18 +358,19 @@ impl Result {
      * See
      * [PQsetResultAttrs](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQSETRESULTATTRS).
      */
-    pub fn set_attrs(
-        &mut self,
-        attributes: &[&crate::result::Attribute],
-    ) -> std::result::Result<(), ()> {
-        let mut attr = attributes.iter().map(|x| x.into()).collect::<Vec<_>>();
+    pub fn set_attrs(&mut self, attributes: &[&crate::result::Attribute]) -> crate::errors::Result {
+        let mut attr = Vec::new();
+
+        for attribute in attributes {
+            attr.push(attribute.try_into()?);
+        }
 
         let success = unsafe {
             pq_sys::PQsetResultAttrs(self.into(), attributes.len() as i32, attr.as_mut_ptr())
         };
 
         if success == 0 {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(())
         }
@@ -382,9 +386,9 @@ impl Result {
         tuple: usize,
         field: usize,
         value: Option<&str>,
-    ) -> std::result::Result<(), ()> {
+    ) -> crate::errors::Result {
         let (v, len) = if let Some(v) = value {
-            let cstring = std::ffi::CString::new(v).unwrap();
+            let cstring = std::ffi::CString::new(v)?;
             (cstring.into_raw(), v.len() as i32)
         } else {
             (std::ptr::null_mut(), -1)
@@ -394,7 +398,7 @@ impl Result {
             unsafe { pq_sys::PQsetvalue(self.into(), tuple as i32, field as i32, v, len as i32) };
 
         if success == 0 {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(())
         }
@@ -410,14 +414,11 @@ impl Result {
      *
      * This function return a `void*` pointer.
      */
-    pub unsafe fn alloc(
-        &mut self,
-        nbytes: usize,
-    ) -> std::result::Result<*mut core::ffi::c_void, ()> {
+    pub unsafe fn alloc(&mut self, nbytes: usize) -> crate::errors::Result<*mut core::ffi::c_void> {
         let space = pq_sys::PQresultAlloc(self.into(), nbytes as pq_sys::size_t);
 
         if space.is_null() {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         } else {
             Ok(space)
         }

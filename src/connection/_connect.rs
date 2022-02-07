@@ -10,7 +10,7 @@ impl Connection {
      * See
      * [PQconnectdb](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTDB).
      */
-    pub fn new(dsn: &str) -> std::result::Result<Self, String> {
+    pub fn new(dsn: &str) -> crate::errors::Result<Self> {
         log::trace!("Connecting to '{}'", dsn);
 
         let c_dsn = crate::ffi::to_cstr(dsn);
@@ -26,7 +26,7 @@ impl Connection {
     pub fn with_params(
         params: &std::collections::HashMap<&str, &str>,
         expand_dbname: bool,
-    ) -> std::result::Result<Self, String> {
+    ) -> crate::errors::Result<Self> {
         log::trace!("Connecting with params {:?}", params);
 
         let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
@@ -43,7 +43,7 @@ impl Connection {
      *
      * See [PQconnectStart](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTSTART).
      */
-    pub fn start(conninfo: &str) -> std::result::Result<Self, String> {
+    pub fn start(conninfo: &str) -> crate::errors::Result<Self> {
         log::trace!("Starting connection to '{}'", conninfo);
 
         let c_conninfo = crate::ffi::to_cstr(conninfo);
@@ -59,7 +59,7 @@ impl Connection {
     pub fn start_params(
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
-    ) -> std::result::Result<Self, String> {
+    ) -> crate::errors::Result<Self> {
         log::trace!("Starting connection with params {:?}", params);
 
         let (_c_keywords, ptr_keywords) = crate::ffi::vec_to_nta(&params.keys().collect::<Vec<_>>());
@@ -82,7 +82,7 @@ impl Connection {
         options: Option<&str>,
         tty: Option<&str>,
         db_name: Option<&str>,
-    ) -> std::result::Result<Self, String> {
+    ) -> crate::errors::Result<Self> {
         Self::login(host, port, options, tty, db_name, None, None)
     }
 
@@ -100,7 +100,7 @@ impl Connection {
         db_name: Option<&str>,
         login: Option<&str>,
         pwd: Option<&str>,
-    ) -> std::result::Result<Self, String> {
+    ) -> crate::errors::Result<Self> {
         let c_host = crate::ffi::to_cstr(host.unwrap_or_default());
         let c_port = crate::ffi::to_cstr(port.unwrap_or_default());
         let c_options = crate::ffi::to_cstr(options.unwrap_or_default());
@@ -203,7 +203,7 @@ impl Connection {
      * See
      * [PQconninfo](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNINFO).
      */
-    pub fn info(&self) -> HashMap<String, crate::connection::Info> {
+    pub fn info(&self) -> crate::errors::Result<HashMap<String, crate::connection::Info>> {
         let mut infos = HashMap::new();
 
         unsafe {
@@ -217,7 +217,7 @@ impl Connection {
                     break;
                 }
 
-                let info: crate::connection::Info = current.into();
+                let info: crate::connection::Info = current.try_into()?;
                 infos.insert(info.keyword.clone(), info);
                 i += 1;
             }
@@ -225,6 +225,6 @@ impl Connection {
             pq_sys::PQconninfoFree(raw);
         }
 
-        infos
+        Ok(infos)
     }
 }

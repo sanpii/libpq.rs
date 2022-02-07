@@ -8,7 +8,7 @@ impl Connection {
      * See
      * [PQsetSingleRowMode](https://www.postgresql.org/docs/current/libpq-single-row-mode.html#LIBPQ-PQSETSINGLEROWMODE).
      */
-    pub fn set_single_row_mode(&self) -> std::result::Result<(), ()> {
+    pub fn set_single_row_mode(&self) -> crate::errors::Result {
         log::trace!("Set single row mode");
 
         let success = unsafe { pq_sys::PQsetSingleRowMode(self.into()) };
@@ -16,7 +16,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(())
+            Err(crate::errors::Error::Unknow)
         }
     }
 }
