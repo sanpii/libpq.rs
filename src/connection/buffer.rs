@@ -143,7 +143,7 @@ impl PqBytes {
 */
 #[derive(Debug)]
 pub struct PqString {
-    ptr: *const i8,
+    ptr: *const libc::c_char,
 }
 
 impl std::ops::Deref for PqString {
@@ -183,7 +183,7 @@ impl Drop for PqString {
 }
 
 impl PqString {
-    pub(crate) fn from_raw(ptr: *const i8) -> PqString {
+    pub(crate) fn from_raw(ptr: *const libc::c_char) -> PqString {
         debug_assert!(!ptr.is_null(), "ptr must be not null");
         PqString { ptr }
     }
