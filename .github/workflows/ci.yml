@@ -125,7 +125,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install postgreSQL (Linux)
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libpq-dev postgresql valgrind
@@ -145,7 +144,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install postgreSQL (Linux)
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libpq-dev postgresql valgrind
@@ -160,3 +158,21 @@ jobs:
         run: cargo test --no-run --features v14
       - name: valgrind
         run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+
+  arm:
+    name: Compilation on ARM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: arm-unknown-linux-gnueabihf
+
+      - name: install
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl git build-essential
+          sudo apt-get install -y libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-gnueabihf clang
+
+      - name: build
+        run: cargo build --all-features --target arm-unknown-linux-gnueabihf
