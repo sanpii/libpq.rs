@@ -1,7 +1,7 @@
 // @see https://github.com/postgres/postgres/blob/REL_12_2/src/include/mb/pg_wchar.h#L238
 #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 #[repr(i32)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Encoding {
     SQL_ASCII = 0,
     EUC_JP,

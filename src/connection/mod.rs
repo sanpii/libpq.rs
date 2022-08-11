@@ -117,6 +117,8 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
     ) {
+        use std::fmt::Write;
+
         if log::log_enabled!(log::Level::Trace) {
             let mut msg = prefix.to_string();
 
@@ -139,11 +141,11 @@ impl Connection {
             }
 
             if !command.is_empty() {
-                msg.push_str(&format!(" query '{}'", command));
+                write!(msg, " query '{command}'").ok();
             }
 
             if !p.is_empty() {
-                msg.push_str(&format!(" with params [{}]", p.join(", ")));
+                write!(msg, " with params [{}]", p.join(", ")).ok();
             }
 
             log::trace!("{}", msg);

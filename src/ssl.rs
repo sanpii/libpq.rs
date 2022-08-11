@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Attribute {
     /** Name of the SSL implementation in use. (Currently, only "OpenSSL" is implemented) */
     Library,

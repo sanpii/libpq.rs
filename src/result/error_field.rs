@@ -1,5 +1,5 @@
 // @see https://github.com/postgres/postgres/blob/REL_12_2/src/include/postgres_ext.h#L55
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(i32)]
 pub enum ErrorField {
     /** The severity. */
