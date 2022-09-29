@@ -11,7 +11,7 @@ struct Opt {
     version: u8,
 }
 
-fn main() -> Result<()> {
+fn main() -> Result {
     let opt = Opt::parse();
 
     download("src/backend/utils/errcodes.txt", opt.version)?;
@@ -24,7 +24,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn download(file: &str, version: u8) -> Result<()> {
+fn download(file: &str, version: u8) -> Result {
     let url = format!("https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob_plain;f={};hb=refs/heads/REL_{}_STABLE", file, version);
     let path = std::path::Path::new(file);
     let file_name = path.file_name().unwrap().to_str().unwrap();
