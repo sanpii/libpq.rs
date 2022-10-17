@@ -9,6 +9,8 @@ pub mod encrypt;
 pub mod errors;
 pub mod escape;
 pub mod ping;
+#[cfg(feature = "v14")]
+pub mod pipeline;
 pub mod poll;
 #[cfg(unix)]
 pub mod print;
