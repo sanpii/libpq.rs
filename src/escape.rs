@@ -3,7 +3,7 @@ use crate::connection::{PqBytes, PqString};
 pub(crate) fn literal(conn: &crate::Connection, str: &str) -> crate::errors::Result<PqString> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
-        let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
+        let raw = pq_sys::PQescapeLiteral(conn.into(), c_str.as_ptr(), str.len());
 
         if raw.is_null() {
             conn.error()
@@ -23,8 +23,7 @@ pub(crate) fn literal(conn: &crate::Connection, str: &str) -> crate::errors::Res
 pub fn identifier(conn: &crate::Connection, str: &str) -> crate::errors::Result<PqString> {
     let c_str = crate::ffi::to_cstr(str);
     unsafe {
-        let raw =
-            pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len() as pq_sys::size_t);
+        let raw = pq_sys::PQescapeIdentifier(conn.into(), c_str.as_ptr(), str.len());
 
         if raw.is_null() {
             conn.error()
@@ -44,13 +43,7 @@ pub(crate) fn string_conn(conn: &crate::Connection, from: &str) -> crate::errors
     let c_from = crate::ffi::to_cstr(from);
 
     unsafe {
-        pq_sys::PQescapeStringConn(
-            conn.into(),
-            raw,
-            c_from.as_ptr(),
-            from.len() as pq_sys::size_t,
-            &mut error,
-        );
+        pq_sys::PQescapeStringConn(conn.into(), raw, c_from.as_ptr(), from.len(), &mut error);
 
         if error != 0 {
             return conn.error();
@@ -68,7 +61,7 @@ pub fn string(from: &str) -> crate::errors::Result<String> {
     let raw = cstring.into_raw();
 
     unsafe {
-        pq_sys::PQescapeString(raw, c_from.as_ptr(), from.len() as pq_sys::size_t);
+        pq_sys::PQescapeString(raw, c_from.as_ptr(), from.len());
     };
 
     crate::ffi::from_raw(raw)
@@ -76,18 +69,13 @@ pub fn string(from: &str) -> crate::errors::Result<String> {
 
 pub(crate) fn bytea_conn(conn: &crate::Connection, from: &[u8]) -> crate::errors::Result<PqBytes> {
     unsafe {
-        let mut to_len: pq_sys::size_t = 0;
+        let mut to_len = 0;
 
-        let to_ptr = pq_sys::PQescapeByteaConn(
-            conn.into(),
-            from.as_ptr(),
-            from.len() as pq_sys::size_t,
-            &mut to_len,
-        );
+        let to_ptr = pq_sys::PQescapeByteaConn(conn.into(), from.as_ptr(), from.len(), &mut to_len);
         if to_ptr.is_null() {
             conn.error()
         } else {
-            Ok(PqBytes::from_raw(to_ptr, to_len as usize))
+            Ok(PqBytes::from_raw(to_ptr, to_len))
         }
     }
 }
@@ -100,16 +88,15 @@ pub(crate) fn bytea_conn(conn: &crate::Connection, from: &[u8]) -> crate::errors
 #[deprecated(note = "Use libpq::Connection::escape_bytea instead")]
 pub fn bytea(from: &[u8]) -> crate::errors::Result<PqBytes> {
     unsafe {
-        let mut to_len: pq_sys::size_t = 0;
-        let to_ptr =
-            pq_sys::PQescapeBytea(from.as_ptr(), from.len() as pq_sys::size_t, &mut to_len);
+        let mut to_len = 0;
+        let to_ptr = pq_sys::PQescapeBytea(from.as_ptr(), from.len(), &mut to_len);
         if to_ptr.is_null() {
             /* According to libpq docs (v14): `Currently, the only possible error is insufficient memory`
              * This was also confirmed by looking at the source code of PQescapeBytea.
              */
             Err(crate::errors::Error::Backend("out of memory\n".to_string()))
         } else {
-            Ok(PqBytes::from_raw(to_ptr, to_len as usize))
+            Ok(PqBytes::from_raw(to_ptr, to_len))
         }
     }
 }
@@ -130,7 +117,7 @@ pub fn unescape_bytea(from: &[u8]) -> crate::errors::Result<PqBytes> {
         if tmp.is_null() {
             Err(crate::errors::Error::Unknow)
         } else {
-            Ok(PqBytes::from_raw(tmp, len as usize))
+            Ok(PqBytes::from_raw(tmp, len))
         }
     }
 }

@@ -415,7 +415,7 @@ impl Result {
      * This function return a `void*` pointer.
      */
     pub unsafe fn alloc(&mut self, nbytes: usize) -> crate::errors::Result<*mut core::ffi::c_void> {
-        let space = pq_sys::PQresultAlloc(self.into(), nbytes as pq_sys::size_t);
+        let space = pq_sys::PQresultAlloc(self.into(), nbytes);
 
         if space.is_null() {
             Err(crate::errors::Error::Unknow)
@@ -431,7 +431,7 @@ impl Result {
      */
     #[cfg(feature = "v12")]
     pub fn memory_size(&self) -> u64 {
-        unsafe { pq_sys::PQresultMemorySize(self.into()) }
+        unsafe { pq_sys::PQresultMemorySize(self.into()) as u64 }
     }
 
     /**
