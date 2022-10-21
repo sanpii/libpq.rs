@@ -34,12 +34,12 @@ pub const {name}: State = State {{
             message = self
                 .message
                 .as_ref()
-                .map(|x| format!("Some(\"{}\")", x))
+                .map(|x| format!("Some(\"{x}\")"))
                 .unwrap_or_else(|| "None".to_string()),
             doc = self
                 .message
                 .as_ref()
-                .map(|x| format!("/// {}", x))
+                .map(|x| format!("/// {x}"))
                 .unwrap_or_default(),
         )
     }
@@ -101,7 +101,7 @@ fn make_type(errors: &BTreeMap<String, Error>, file: &mut BufWriter<File>) -> st
     let mut from_code = Vec::new();
 
     for (id, error) in errors {
-        from_code.push(format!("            \"{}\" => {},", id, error.name));
+        from_code.push(format!("            \"{id}\" => {},", error.name));
     }
 
     write!(
@@ -126,7 +126,7 @@ fn make_consts(
     file: &mut BufWriter<File>,
 ) -> std::io::Result<()> {
     for (_, error) in errors {
-        write!(file, "{}", error)?;
+        write!(file, "{error}")?;
     }
 
     Ok(())
