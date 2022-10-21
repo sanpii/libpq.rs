@@ -30,10 +30,6 @@ version = "0.7"
 [dev-dependencies]
 env_logger = "0.9"
 
-[build-dependencies.codegen]
-version = "0.1"
-path = "codegen"
-
 [features]
 default = []
 v11 = []
