@@ -395,7 +395,7 @@ impl Result {
         };
 
         let success =
-            unsafe { pq_sys::PQsetvalue(self.into(), tuple as i32, field as i32, v, len as i32) };
+            unsafe { pq_sys::PQsetvalue(self.into(), tuple as i32, field as i32, v, len) };
 
         if success == 0 {
             Err(crate::errors::Error::Unknow)

@@ -24,7 +24,7 @@ pub enum Attribute {
 
 impl ToString for Attribute {
     fn to_string(&self) -> String {
-        format!("{:?}", self).to_lowercase()
+        format!("{self:?}").to_lowercase()
     }
 }
 

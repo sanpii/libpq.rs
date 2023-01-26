@@ -59,7 +59,7 @@ impl LinkingOptions {
                 "PQ_LIB_STATIC_{}",
                 target.to_ascii_uppercase().replace('-', "_")
             );
-            println!("cargo:rerun-if-env-changed={}", pg_config_for_target);
+            println!("cargo:rerun-if-env-changed={pg_config_for_target}");
             if env::var_os(&pg_config_for_target).is_some() {
                 return LinkingOptions::from_name_and_type("pq", LinkType::Static);
             }
@@ -73,7 +73,7 @@ impl LinkingOptions {
 impl Display for LinkingOptions {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ref t) = self.linking_type {
-            write!(f, "{}=", t)?;
+            write!(f, "{t}=")?;
         }
         write!(f, "{}", self.lib_name)
     }
@@ -87,12 +87,12 @@ fn main() {
     println!("cargo:rerun-if-env-changed=TARGET");
 
     if let Ok(lib_dir) = env::var("PQ_LIB_DIR") {
-        println!("cargo:rustc-link-search=native={}", lib_dir);
+        println!("cargo:rustc-link-search=native={lib_dir}");
     } else if configured() {
         return; // pkg_config and vcpkg does everything for us, including output for cargo
     } else if let Some(path) = pg_config_output("--libdir") {
         let path = replace_homebrew_path_on_mac(path);
-        println!("cargo:rustc-link-search=native={}", path);
+        println!("cargo:rustc-link-search=native={path}");
     }
     println!("cargo:rustc-link-lib={}", LinkingOptions::from_env());
 }
@@ -142,12 +142,12 @@ fn pg_config_path() -> PathBuf {
             "PG_CONFIG_{}",
             target.to_ascii_uppercase().replace('-', "_")
         );
-        println!("cargo:rerun-if-env-changed={}", pg_config_for_target);
+        println!("cargo:rerun-if-env-changed={pg_config_for_target}");
         if let Some(pg_config_path) = env::var_os(pg_config_for_target) {
             let path = PathBuf::from(&pg_config_path);
 
             if !path.exists() {
-                panic!("pg_config doesn't exist in the configured path: {:?}", path);
+                panic!("pg_config doesn't exist in the configured path: {path:?}");
             }
 
             return path;

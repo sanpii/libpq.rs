@@ -127,7 +127,7 @@ impl Connection {
             for (x, value) in param_values.iter().enumerate() {
                 let v = if let Some(s) = value {
                     match param_formats.get(x) {
-                        Some(crate::Format::Binary) => format!("{:?}", s),
+                        Some(crate::Format::Binary) => format!("{s:?}"),
                         _ => String::from_utf8(s.to_vec()).unwrap_or_else(|_| "�".to_string()),
                     }
                 } else {
@@ -137,7 +137,7 @@ impl Connection {
                 let t = crate::Type::try_from(*param_types.get(x).unwrap_or(&default_type.oid))
                     .unwrap_or(default_type);
 
-                p.push(format!("'{}'::{}", v, t.name));
+                p.push(format!("'{v}'::{}", t.name));
             }
 
             if !command.is_empty() {
