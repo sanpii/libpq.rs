@@ -75,9 +75,11 @@ jobs:
       - name: Install postgreSQL (MacOS)
         if: matrix.os == 'macos-latest'
         run: |
-          /usr/local/opt/postgres/bin/pg_ctl -D /usr/local/var/postgres start
+          PG_SERVICE=$(brew services list | grep -oe "postgresql\S*")
+          brew services start $PG_SERVICE
           sleep 3
-          /usr/local/opt/postgres/bin/createuser --superuser postgres
+          BINDIR=$(pg_config --bindir)
+          $BINDIR/createuser --superuser postgres
           psql --username postgres --command "ALTER USER postgres PASSWORD 'root';"
 
       - name: Install postgres (Windows)
