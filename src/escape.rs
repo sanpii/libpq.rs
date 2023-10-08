@@ -33,7 +33,7 @@ pub fn identifier(conn: &crate::Connection, str: &str) -> crate::errors::Result<
     }
 }
 
-pub(crate) fn string_conn(conn: &crate::Connection, from: &str) -> crate::errors::Result<PqString> {
+pub(crate) fn string_conn(conn: &crate::Connection, from: &str) -> crate::errors::Result<String> {
     let mut error = 0;
 
     // @see https://github.com/postgres/postgres/blob/REL_12_2/src/interfaces/libpq/fe-exec.c#L3329
@@ -50,7 +50,7 @@ pub(crate) fn string_conn(conn: &crate::Connection, from: &str) -> crate::errors
         }
     };
 
-    Ok(PqString::from_raw(raw))
+    crate::ffi::to_string(raw)
 }
 
 #[deprecated(note = "Use libpq::Connection::escape_string instead")]
@@ -151,9 +151,7 @@ mod test {
         let conn = crate::test::new_conn();
 
         assert_eq!(
-            crate::escape::string_conn(&conn, "'foo'")
-                .unwrap()
-                .to_string_lossy(),
+            crate::escape::string_conn(&conn, "'foo'").unwrap(),
             "''foo''"
         );
     }

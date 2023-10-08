@@ -181,12 +181,12 @@ impl Connection {
     /**
      * Escape string literals, much like `libpq::Connection::literal`.
      *
-     * On success, this method returns [`PqString`].
+     * On success, this method returns [`String`].
      *
      * See
      * [PQescapeStringConn](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQESCAPESTRINGCONN).
      */
-    pub fn escape_string(&self, from: &str) -> crate::errors::Result<PqString> {
+    pub fn escape_string(&self, from: &str) -> crate::errors::Result<String> {
         crate::escape::string_conn(self, from)
     }
 
