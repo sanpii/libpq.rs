@@ -50,7 +50,7 @@ pub(crate) fn string_conn(conn: &crate::Connection, from: &str) -> crate::errors
         }
     };
 
-    crate::ffi::to_string(raw)
+    crate::ffi::from_raw(raw)
 }
 
 #[deprecated(note = "Use libpq::Connection::escape_string instead")]
