@@ -9,7 +9,6 @@ Rust safe binding for [libpq](https://www.postgresql.org/docs/current/libpq.html
 
 Add it to your dependencies:
 
-```toml
-[dependencies]
-libpq = "3.0"
+```
+cargo add libpq
 ```
