@@ -636,4 +636,12 @@ B	5	ReadyForQuery	 I
             ),
         );
     }
+
+    #[test]
+    #[cfg(feature = "v16")]
+    fn used_gssapi() {
+        let conn = crate::test::new_conn();
+
+        assert_eq!(conn.used_gssapi(), false);
+    }
 }

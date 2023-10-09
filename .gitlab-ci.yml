@@ -27,7 +27,7 @@ lint:clippy:
     <<: *pg
     variables:
         MODE: debug
-        PG: "14"
+        PG: "16"
     stage: lint
     script:
         - rustup component add clippy
@@ -38,7 +38,7 @@ test:
     parallel:
         matrix:
             - MODE: ['debug', 'release']
-              PG: ['9.5', '9.6', '10', '11', '12', '13', '14']
+              PG: ['9.5', '9.6', '10', '11', '12', '13', '14', '15', '16']
     script: |
         feature=''
 
@@ -81,4 +81,4 @@ arm:
         - apt-get update
         - apt-get install -y curl git build-essential
         - apt-get install -y libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-gnueabihf clang
-    script: cargo build --all-features --target arm-unknown-linux-gnueabihf
+    script: cargo build --features v15 --target arm-unknown-linux-gnueabihf
