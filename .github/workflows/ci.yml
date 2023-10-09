@@ -118,3 +118,27 @@ jobs:
         run: cargo test --no-run --features v14
       - name: valgrind
         run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+
+  jemallocator:
+    name: Allocation check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install postgreSQL (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev postgresql valgrind
+          sudo service postgresql start && sleep 3
+          sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
+
+      - name: Adds jemallocator
+        run: |
+          cargo add tikv-jemallocator
+          echo '#[global_allocator] static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;' > src/lib.rs
+      - name: build
+        run: cargo test --no-run --features v14
+      - name: valgrind
+        run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')

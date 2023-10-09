@@ -57,8 +57,17 @@ test:
 valgrind:
     <<: *pg
     variables:
-        MODE: debug
         PG: "14"
     script:
       - cargo test --no-run --features "v$PG"
       - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+
+jemallocator:
+    <<: *pg
+    variables:
+        PG: "14"
+    script:
+        - cargo add tikv-jemallocator
+        - echo '#[global_allocator] static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;' > src/lib.rs
+        - cargo test --no-run --features "v$PG"
+        - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
