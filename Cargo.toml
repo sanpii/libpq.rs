@@ -20,4 +20,4 @@ thiserror = "1.0"
 
 [dev-dependencies]
 dotenv = "0.15"
-env_logger = "0.8"
+env_logger = "0.10"
