@@ -56,7 +56,7 @@ mod test {
     pub fn new_conn() -> crate::Connection {
         INIT.call_once(|| {
             dotenv::dotenv().ok();
-            flexi_logger::Logger::with_env().start().ok();
+            flexi_logger::Logger::try_with_env().unwrap().start().ok();
         });
 
         crate::Connection::new(&dsn()).unwrap()

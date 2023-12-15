@@ -14,7 +14,7 @@ categories = ["database"]
 
 [dependencies]
 bitflags = "2.0"
-flexi_logger = "0.17"
+flexi_logger = "0.27"
 log = "0.4"
 thiserror = "1.0"
 

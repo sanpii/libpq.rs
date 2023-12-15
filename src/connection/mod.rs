@@ -370,8 +370,9 @@ mod test {
         let dsn = std::env::var("PQ_DSN").unwrap_or_else(|_| "host=localhost".to_string());
         let conn = crate::Connection::new(&dsn).unwrap();
 
-        flexi_logger::Logger::with_str("trace")
-            .log_to_file()
+        flexi_logger::Logger::try_with_str("trace")
+            .unwrap()
+            .log_to_file(flexi_logger::FileSpec::default())
             .print_message()
             .create_symlink("trace.txt")
             .format_for_files(|w, _, record| {
