@@ -19,6 +19,7 @@ impl State {
 }
 
 bitflags::bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq)]
     pub(crate) struct AsyncStatus: u16 {
         const IDLE = 0;
         const PREPARE = 1 << 0;
