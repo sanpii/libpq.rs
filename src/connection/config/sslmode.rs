@@ -19,7 +19,7 @@ impl std::str::FromStr for SslMode {
             "require" => Self::Require,
             "verify-ca" => Self::VerifyCa,
             "verify-full" => Self::VerifyFull,
-            _ => return Err(crate::Error::Parse(format!("Invalid sslmode: {}", s))),
+            _ => return Err(crate::Error::Parse(format!("Invalid sslmode: {s}"))),
         };
 
         Ok(sslmode)

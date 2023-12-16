@@ -9,7 +9,7 @@ impl Socket {
     pub fn new(host: Option<&str>, hostaddr: Option<&str>, port: Option<&str>) -> Result<Self, crate::Error> {
         let port = port.unwrap_or("5432")
             .parse()
-            .map_err(|_| crate::Error::Connect(format!("Invalid port: {:?}", port)))?;
+            .map_err(|_| crate::Error::Connect(format!("Invalid port: {port:?}")))?;
 
         let stream = Self::try_connect(host, hostaddr, port)?;
 
@@ -36,14 +36,14 @@ impl Socket {
             .map_err(|_| crate::Error::RwLock)?;
 
         if let Some(ty) = message.ty() {
-            log::trace!("To backend> Msg {}", ty);
+            log::trace!("To backend> Msg {ty}");
         }
 
         let payload = message.to_bytes();
         stream.write_all(&payload)?;
 
         match message {
-            crate::Message::Query(query) => log::trace!("To backend> {:?}", query),
+            crate::Message::Query(query) => log::trace!("To backend> {query:?}"),
             _ => (),
         }
 
@@ -57,7 +57,7 @@ impl Socket {
             use std::convert::TryInto;
 
             let ty = buf[0] as char;
-            log::trace!("From backend> {}", ty);
+            log::trace!("From backend> {ty}");
             let len = i32::from_be_bytes(buf[1..].try_into().unwrap()) - 4;
             log::trace!("From backend (#4)> {}", len + 4);
 

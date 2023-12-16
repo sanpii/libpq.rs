@@ -11,7 +11,7 @@ impl Connection {
      * [PQconnectdb](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTDB).
      */
     pub fn new(dsn: &str) -> std::result::Result<Self, crate::Error> {
-        log::debug!("Connecting to '{}'", dsn);
+        log::debug!("Connecting to '{dsn}'");
 
         let connection = Self::start_with_config(&dsn.parse()?)?;
         connection.parse_input()?;
@@ -28,7 +28,7 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> std::result::Result<Self, crate::Error> {
-        log::debug!("Connecting with params {:?}", params);
+        log::debug!("Connecting with params {params:?}");
 
         let connection = Self::start_with_config(&params.try_into()?)?;
         connection.parse_input()?;
@@ -42,7 +42,7 @@ impl Connection {
      * See [PQconnectStart](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTSTART).
      */
     pub fn start(conninfo: &str) -> std::result::Result<Self, crate::Error> {
-        log::debug!("Starting connection to '{}'", conninfo);
+        log::debug!("Starting connection to '{conninfo}'");
 
         Self::start_with_config(&conninfo.parse()?)
     }
@@ -56,7 +56,7 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> std::result::Result<Self, crate::Error> {
-        log::debug!("Starting connection with params {:?}", params);
+        log::debug!("Starting connection with params {params:?}");
 
         Self::start_with_config(&params.try_into()?)
     }
@@ -162,7 +162,7 @@ impl Connection {
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
     ) -> crate::ping::Status {
-        log::debug!("Ping with params {:?}", params);
+        log::debug!("Ping with params {params:?}");
 
         match Self::with_params(params, expand_dbname) {
             Ok(_) => crate::ping::Status::Ok,
@@ -181,7 +181,7 @@ impl Connection {
      * See [PQping](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQPING).
      */
     pub fn ping(dsn: &str) -> crate::ping::Status {
-        log::debug!("Ping '{}'", dsn);
+        log::debug!("Ping '{dsn}'");
 
         match Self::new(dsn) {
             Ok(_) => crate::ping::Status::Ok,

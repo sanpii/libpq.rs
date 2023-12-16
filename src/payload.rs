@@ -64,7 +64,7 @@ pub(crate) trait ToPayload {
 
 impl ToPayload for char {
     fn to_payload(&self) -> Vec<u8> {
-        log::trace!("To backend (#1)> {:?}", self);
+        log::trace!("To backend (#1)> {self:?}");
 
         vec![*self as u8]
     }
@@ -72,7 +72,7 @@ impl ToPayload for char {
 
 impl ToPayload for i16 {
     fn to_payload(&self) -> Vec<u8> {
-        log::trace!("To backend (#2)> {}", self);
+        log::trace!("To backend (#2)> {self}");
 
         self.to_be_bytes().to_vec()
     }
@@ -80,7 +80,7 @@ impl ToPayload for i16 {
 
 impl ToPayload for i32 {
     fn to_payload(&self) -> Vec<u8> {
-        log::trace!("To backend (#4)> {}", self);
+        log::trace!("To backend (#4)> {self}");
 
         self.to_be_bytes().to_vec()
     }
@@ -88,7 +88,7 @@ impl ToPayload for i32 {
 
 impl ToPayload for &str {
     fn to_payload(&self) -> Vec<u8> {
-        log::trace!("To backend> {:?}", self);
+        log::trace!("To backend> {self:?}");
 
         self.as_bytes().to_vec()
     }
@@ -96,7 +96,7 @@ impl ToPayload for &str {
 
 impl ToPayload for &String {
     fn to_payload(&self) -> Vec<u8> {
-        log::trace!("To backend> {:?}", self);
+        log::trace!("To backend> {self:?}");
 
         self.as_bytes().to_vec()
     }
@@ -104,7 +104,7 @@ impl ToPayload for &String {
 
 impl ToPayload for String {
     fn to_payload(&self) -> Vec<u8> {
-        log::trace!("To backend> {:?}", self);
+        log::trace!("To backend> {self:?}");
 
         self.as_bytes().to_vec()
     }
@@ -140,7 +140,7 @@ impl FromPayload for u8 {
     fn from_payload(payload: &mut Payload) -> Self {
         let x = payload.eat(1)[0];
 
-        log::trace!("From backend (#1)> {}", x);
+        log::trace!("From backend (#1)> {x}");
 
         x
     }
@@ -150,7 +150,7 @@ impl FromPayload for i8 {
     fn from_payload(payload: &mut Payload) -> Self {
         let x = payload.eat(1)[0] as i8;
 
-        log::trace!("From backend (#1)> {}", x);
+        log::trace!("From backend (#1)> {x}");
 
         x
     }
@@ -160,7 +160,7 @@ impl FromPayload for char {
     fn from_payload(payload: &mut Payload) -> Self {
         let x = payload.eat(1)[0] as char;
 
-        log::trace!("From backend> {}", x);
+        log::trace!("From backend> {x}");
 
         x
     }
@@ -172,7 +172,7 @@ impl FromPayload for i16 {
 
         let x = Self::from_be_bytes(payload.eat(2).try_into().unwrap());
 
-        log::trace!("From backend (#2)> {}", x);
+        log::trace!("From backend (#2)> {x}");
 
         x
     }
@@ -184,7 +184,7 @@ impl FromPayload for i32 {
 
         let x = Self::from_be_bytes(payload.eat(4).try_into().unwrap());
 
-        log::trace!("From backend (#4)> {}", x);
+        log::trace!("From backend (#4)> {x}");
 
         x
     }
@@ -196,7 +196,7 @@ impl FromPayload for u32 {
 
         let x = Self::from_be_bytes(payload.eat(4).try_into().unwrap());
 
-        log::trace!("From backend (#4)> {}", x);
+        log::trace!("From backend (#4)> {x}");
 
         x
     }
@@ -209,7 +209,7 @@ impl FromPayload for String {
             None => return String::new(),
         };
         let x = String::from_utf8(payload.eat(n).to_vec()).unwrap();
-        log::trace!("From backend> {:?}", x);
+        log::trace!("From backend> {x:?}");
 
         payload.eat(1);
 

@@ -9,7 +9,7 @@ impl Connection {
      * [PQsendQuery](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDQUERY).
      */
     pub fn send_query(&self, command: &str) -> std::result::Result<(), crate::Error> {
-        log::debug!("Sending query '{}'", command);
+        log::debug!("Sending query '{command}'");
 
         self.send_query_start()?;
 
@@ -49,10 +49,10 @@ impl Connection {
                     *param_types.get(x).unwrap_or(&default_type.oid)
                 ).unwrap_or(default_type);
 
-                p.push(format!("'{}'::{}", v, t.name));
+                p.push(format!("'{v}'::{}", t.name));
             }
 
-            log::debug!("Sending query '{}' with params [{}]", command, p.join(", "));
+            log::debug!("Sending query '{command}' with params [{}]", p.join(", "));
         }
 
         self.send_query_start()?;
@@ -79,9 +79,8 @@ impl Connection {
         param_types: &[crate::Oid],
     ) -> std::result::Result<(), crate::Error> {
         log::debug!(
-            "Sending prepare {} query '{}' with param types [{}]",
+            "Sending prepare {} query '{query}' with param types [{}]",
             name.unwrap_or("anonymous"),
-            query,
             param_types
                 .iter()
                 .map(|oid| {
@@ -125,7 +124,7 @@ impl Connection {
                 .iter()
                 .map(|x| if let Some(s) = x {
                     match String::from_utf8(s.to_vec()) {
-                        Ok(str) => format!("'{}'", str),
+                        Ok(str) => format!("'{str}'"),
                         Err(_) => "?".to_string(),
                     }
                 } else {

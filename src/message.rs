@@ -273,7 +273,7 @@ impl From<&mut crate::Payload> for DataRow {
 
             if fieldlen >= 0 {
                 let s = payload.eat(fieldlen as usize).to_vec();
-                log::trace!("From backend ({})> {}", fieldlen, s.iter().fold(String::new(), |mut acc, x| {
+                log::trace!("From backend ({fieldlen})> {}", s.iter().fold(String::new(), |mut acc, x| {
                     acc.push(*x as char);
                     acc
                 }));

@@ -8,9 +8,9 @@ fn main() {
     let versions = env!("CARGO_PKG_VERSION").split('.').collect::<Vec<_>>();
     let major = versions[0];
     let minor = versions[1].parse::<i32>().unwrap();
-    let pg_version_num = format!("{}{:04}", major, minor);
+    let pg_version_num = format!("{major}{minor:04}");
 
-    write!(&mut f, "const PG_VERSION_NUM: i32 = {};", pg_version_num)
+    write!(&mut f, "const PG_VERSION_NUM: i32 = {pg_version_num};")
         .unwrap();
 
     println!("cargo:rerun-if-env-changed=PG_VERSION_NUM");

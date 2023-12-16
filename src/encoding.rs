@@ -55,7 +55,7 @@ impl From<i32> for Encoding {
 
 impl ToString for Encoding {
     fn to_string(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 }
 
