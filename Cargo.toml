@@ -12,6 +12,7 @@ description = "Safe binding for libpq"
 keywords = ["database", "postgres", "postgresql", "sql"]
 categories = ["database"]
 readme = "README.md"
+rust-version = "1.77"
 
 [dependencies]
 libc = "0.2"

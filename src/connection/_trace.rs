@@ -10,7 +10,7 @@ impl Connection {
 
         log::trace!("Enable trace");
 
-        let c_mode = crate::ffi::to_cstr("w");
+        let c_mode = c"w";
 
         unsafe {
             let stream = libc::fdopen(file.into_raw_fd(), c_mode.as_ptr());
