@@ -20,12 +20,12 @@ pub enum Status {
     /** A nonfatal error (a notice or warning) occurred. */
     NonFatalError,
     /**
-     * The `libpq::Result` contains a single result tuple from the current command. This status
+     * The `libpq::PQResult` contains a single result tuple from the current command. This status
      * occurs only when single-row mode has been selected for the query
      */
-    SingleTuble,
+    SingleTuple,
     /** Successful completion of a command returning data (such as a `SELECT` or `SHOW`). */
-    TupplesOk,
+    TuplesOk,
 
     /** Pipeline synchronization point. */
     #[cfg(feature = "v14")]
@@ -48,8 +48,8 @@ impl From<pq_sys::ExecStatusType> for Status {
             pq_sys::ExecStatusType::PGRES_EMPTY_QUERY => Self::EmptyQuery,
             pq_sys::ExecStatusType::PGRES_FATAL_ERROR => Self::FatalError,
             pq_sys::ExecStatusType::PGRES_NONFATAL_ERROR => Self::NonFatalError,
-            pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE => Self::SingleTuble,
-            pq_sys::ExecStatusType::PGRES_TUPLES_OK => Self::TupplesOk,
+            pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE => Self::SingleTuple,
+            pq_sys::ExecStatusType::PGRES_TUPLES_OK => Self::TuplesOk,
             #[cfg(feature = "v14")]
             pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC => Self::PipelineSync,
             #[cfg(feature = "v14")]
@@ -79,8 +79,8 @@ impl From<&Status> for pq_sys::ExecStatusType {
             Status::EmptyQuery => pq_sys::ExecStatusType::PGRES_EMPTY_QUERY,
             Status::FatalError => pq_sys::ExecStatusType::PGRES_FATAL_ERROR,
             Status::NonFatalError => pq_sys::ExecStatusType::PGRES_NONFATAL_ERROR,
-            Status::SingleTuble => pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE,
-            Status::TupplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
+            Status::SingleTuple => pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE,
+            Status::TuplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
             #[cfg(feature = "v14")]
             Status::PipelineSync => pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC,
             #[cfg(feature = "v14")]
