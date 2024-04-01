@@ -33,7 +33,7 @@ pub use encoding::*;
 pub use format::*;
 pub use lo::LargeObject;
 pub use oid::*;
-pub use result::Result;
+pub use result::PQResult;
 pub use state::State;
 pub use status::*;
 pub use types::Type;
