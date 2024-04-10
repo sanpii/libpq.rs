@@ -36,6 +36,7 @@ impl Connection {
      * Controls the tracing behavior of client/server communication.
      */
     #[cfg(feature = "v14")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
     pub fn trace_set_flags(&self, flags: crate::trace::Flags) {
         unsafe {
             pq_sys::PQsetTraceFlags(self.into(), flags.bits() as i32);

@@ -51,6 +51,7 @@ impl Connection {
      * See [PQhostaddr](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQHOSTADDR).
      */
     #[cfg(feature = "v12")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v12")))]
     pub fn hostaddr(&self) -> crate::errors::Result<String> {
         crate::ffi::to_string(unsafe { pq_sys::PQhostaddr(self.into()) })
     }

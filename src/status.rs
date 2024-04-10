@@ -29,10 +29,12 @@ pub enum Status {
 
     /** Pipeline synchronization point. */
     #[cfg(feature = "v14")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
     PipelineSync,
 
     /** Command didn't run because of an abort earlier in a pipeline. */
     #[cfg(feature = "v14")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
     PipelineAborted,
 }
 
@@ -51,8 +53,10 @@ impl From<pq_sys::ExecStatusType> for Status {
             pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE => Self::SingleTuble,
             pq_sys::ExecStatusType::PGRES_TUPLES_OK => Self::TupplesOk,
             #[cfg(feature = "v14")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC => Self::PipelineSync,
             #[cfg(feature = "v14")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             pq_sys::ExecStatusType::PGRES_PIPELINE_ABORTED => Self::PipelineAborted,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
@@ -82,8 +86,10 @@ impl From<&Status> for pq_sys::ExecStatusType {
             Status::SingleTuble => pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE,
             Status::TupplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
             #[cfg(feature = "v14")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             Status::PipelineSync => pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC,
             #[cfg(feature = "v14")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             Status::PipelineAborted => pq_sys::ExecStatusType::PGRES_PIPELINE_ABORTED,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
