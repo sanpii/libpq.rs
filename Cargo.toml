@@ -40,3 +40,32 @@ v13 = ["v12"]
 v14 = ["v13"]
 v15 = ["v14"]
 v16 = ["v15"]
+
+[[example]]
+name = "testlibpq"
+doc-scrape-examples = true
+
+[[example]]
+name = "testlibpq2"
+doc-scrape-examples = true
+
+[[example]]
+name = "testlibpq3"
+doc-scrape-examples = true
+
+[[example]]
+name = "testlibpq4"
+doc-scrape-examples = true
+
+[[example]]
+name = "testlo"
+doc-scrape-examples = true
+
+[[example]]
+name = "testlo64"
+doc-scrape-examples = true
+
+[package.metadata.docs.rs]
+all-features = true
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
+rustdoc-args = ["--cfg", "docsrs"]
