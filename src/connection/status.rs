@@ -22,9 +22,11 @@ pub enum Status {
     Consume,
     /** Negotiating GSSAPI. */
     #[cfg(feature = "v11")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
     GssStartup,
     /** Check if we have a proper target connection */
     #[cfg(feature = "v11")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
     CheckTarget,
 }
 
@@ -43,8 +45,10 @@ impl From<pq_sys::ConnStatusType> for Status {
             pq_sys::ConnStatusType::CONNECTION_CHECK_WRITABLE => Self::CheckWritable,
             pq_sys::ConnStatusType::CONNECTION_CONSUME => Self::Consume,
             #[cfg(feature = "v11")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
             pq_sys::ConnStatusType::CONNECTION_GSS_STARTUP => Self::GssStartup,
             #[cfg(feature = "v11")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
             pq_sys::ConnStatusType::CONNECTION_CHECK_TARGET => Self::CheckTarget,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
