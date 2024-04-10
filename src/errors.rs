@@ -8,6 +8,8 @@ pub enum Error {
     NulError(#[from] std::ffi::NulError),
     #[error("{0}")]
     Backend(String),
+    #[error("Large object error")]
+    LargeObject,
     #[error("Unknow error")]
     Unknow,
     #[error("{0}")]

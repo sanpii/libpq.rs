@@ -8,6 +8,7 @@ pub mod connection;
 pub mod encrypt;
 pub mod errors;
 pub mod escape;
+pub mod lo;
 pub mod ping;
 #[cfg(feature = "v14")]
 pub mod pipeline;
@@ -31,6 +32,7 @@ mod verbosity;
 pub use connection::Connection;
 pub use encoding::*;
 pub use format::*;
+pub use lo::LargeObject;
 pub use oid::*;
 pub use result::Result;
 pub use state::State;
