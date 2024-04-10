@@ -31,6 +31,10 @@ version = "0.8"
 [dev-dependencies]
 env_logger = "0.11"
 
+[dev-dependencies.mio]
+version = "0.8"
+features = ["os-ext", "os-poll"]
+
 [features]
 default = []
 v11 = []
