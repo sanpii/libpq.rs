@@ -184,8 +184,14 @@ impl<'c> LargeObject<'c> {
      * See [lo_lseek64](https://www.postgresql.org/docs/current/lo-interfaces.html#LO-SEEK)
      */
     pub fn lseek64(&self, offset: i64, whence: Seek) -> crate::errors::Result {
-        let success =
-            unsafe { pq_sys::lo_lseek64(self.conn.into(), self.fd, offset, whence.into()) };
+        let success = unsafe {
+            pq_sys::lo_lseek64(
+                self.conn.into(),
+                self.fd,
+                offset as pq_sys::pg_int64,
+                whence.into(),
+            )
+        };
 
         if success < 0 {
             Err(crate::errors::Error::LargeObject)
@@ -220,7 +226,7 @@ impl<'c> LargeObject<'c> {
         if success < 0 {
             Err(crate::errors::Error::LargeObject)
         } else {
-            Ok(success)
+            Ok(success as i64)
         }
     }
 
@@ -245,7 +251,8 @@ impl<'c> LargeObject<'c> {
      * See [lo_truncate64](https://www.postgresql.org/docs/current/lo-interfaces.html#LO-TRUNCATE)
      */
     pub fn truncate64(&self, len: i64) -> crate::errors::Result {
-        let success = unsafe { pq_sys::lo_truncate64(self.conn.into(), self.fd, len) };
+        let success =
+            unsafe { pq_sys::lo_truncate64(self.conn.into(), self.fd, len as pq_sys::pg_int64) };
 
         if success < 0 {
             Err(crate::errors::Error::LargeObject)
