@@ -157,7 +157,7 @@ jobs:
       - name: Adds jemallocator
         run: |
           cargo add tikv-jemallocator
-          sed -i '3 s/^/#[global_allocator] static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;\n/' src/lib.rs
+          sed -i '2 s/^/#[global_allocator] static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;\n/' src/lib.rs
       - name: build
         run: cargo test --no-run --all-features
       - name: valgrind

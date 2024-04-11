@@ -1,5 +1,4 @@
 #![warn(warnings)]
-#![allow(clippy::missing_safety_doc)]
 
 #[macro_use]
 mod ffi;
