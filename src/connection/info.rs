@@ -10,13 +10,24 @@ pub struct Info {
 }
 
 impl Info {
+    #[deprecated(since = "4.1.0", note = "Use Info::defaults() instead")]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /**
      * Returns the default connection options.
      *
      * See [PQconndefaults](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNDEFAULTS)
      */
-    pub fn new() -> Self {
-        Self::default()
+    pub fn defaults() -> crate::errors::Result<Vec<Self>> {
+        unsafe {
+            let raw = pq_sys::PQconndefaults();
+            let info = Self::vec_from_nta(raw);
+            pq_sys::PQconninfoFree(raw);
+
+            info
+        }
     }
 
     /**
@@ -135,6 +146,6 @@ mod test {
 
     #[test]
     fn defaults() {
-        let _ = crate::connection::Info::default();
+        let _ = crate::connection::Info::defaults();
     }
 }
