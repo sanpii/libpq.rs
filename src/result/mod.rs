@@ -5,11 +5,11 @@ pub use attribute::*;
 pub use error_field::*;
 
 #[derive(Clone)]
-pub struct Result {
+pub struct PQResult {
     result: *mut pq_sys::PGresult,
 }
 
-impl Result {
+impl PQResult {
     /**
      * Constructs an empty `Result` object with the given status.
      *
@@ -472,45 +472,45 @@ impl Result {
     }
 }
 
-unsafe impl Send for Result {}
+unsafe impl Send for PQResult {}
 
-unsafe impl Sync for Result {}
+unsafe impl Sync for PQResult {}
 
-impl Drop for Result {
+impl Drop for PQResult {
     fn drop(&mut self) {
         unsafe { pq_sys::PQclear(self.into()) };
     }
 }
 
 #[doc(hidden)]
-impl From<*mut pq_sys::PGresult> for Result {
+impl From<*mut pq_sys::PGresult> for PQResult {
     fn from(result: *mut pq_sys::PGresult) -> Self {
-        Result { result }
+        PQResult { result }
     }
 }
 
 #[doc(hidden)]
-impl From<&Result> for *mut pq_sys::PGresult {
-    fn from(result: &Result) -> *mut pq_sys::PGresult {
+impl From<&PQResult> for *mut pq_sys::PGresult {
+    fn from(result: &PQResult) -> *mut pq_sys::PGresult {
         result.result
     }
 }
 
 #[doc(hidden)]
-impl From<&mut Result> for *mut pq_sys::PGresult {
-    fn from(result: &mut Result) -> *mut pq_sys::PGresult {
+impl From<&mut PQResult> for *mut pq_sys::PGresult {
+    fn from(result: &mut PQResult) -> *mut pq_sys::PGresult {
         result.result
     }
 }
 
 #[doc(hidden)]
-impl From<&Result> for *const pq_sys::PGresult {
-    fn from(result: &Result) -> *const pq_sys::PGresult {
+impl From<&PQResult> for *const pq_sys::PGresult {
+    fn from(result: &PQResult) -> *const pq_sys::PGresult {
         result.result
     }
 }
 
-impl std::fmt::Debug for Result {
+impl std::fmt::Debug for PQResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Result")
             .field("inner", &self.result)

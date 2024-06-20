@@ -203,7 +203,7 @@ impl Connection {
      *
      * See [PQgetResult](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQGETRESULT).
      */
-    pub fn result(&self) -> Option<crate::Result> {
+    pub fn result(&self) -> Option<crate::PQResult> {
         let raw = unsafe { pq_sys::PQgetResult(self.into()) };
 
         if raw.is_null() {

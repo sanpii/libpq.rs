@@ -7,7 +7,7 @@ impl Connection {
      *
      * See [PQexec](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQEXEC).
      */
-    pub fn exec(&self, query: &str) -> crate::Result {
+    pub fn exec(&self, query: &str) -> crate::PQResult {
         log::trace!("Execute query '{}'", query);
 
         let c_query = crate::ffi::to_cstr(query);
@@ -27,7 +27,7 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> crate::Result {
+    ) -> crate::PQResult {
         let (values, formats, lengths) = Self::transform_params(param_values, param_formats);
 
         Self::trace_query("Sending", command, param_types, param_values, param_formats);
@@ -71,7 +71,7 @@ impl Connection {
         name: Option<&str>,
         query: &str,
         param_types: &[crate::Oid],
-    ) -> crate::Result {
+    ) -> crate::PQResult {
         let prefix = format!("Prepare {}", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, query, param_types, &[], &[]);
 
@@ -102,7 +102,7 @@ impl Connection {
         param_values: &[Option<Vec<u8>>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
-    ) -> crate::Result {
+    ) -> crate::PQResult {
         let prefix = format!("Execute {} prepared query", name.unwrap_or("anonymous"));
         Self::trace_query(&prefix, "", &[], param_values, param_formats);
 
@@ -138,7 +138,7 @@ impl Connection {
      *
      * See [PQdescribePrepared](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQDESCRIBEPREPARED).
      */
-    pub fn describe_prepared(&self, name: Option<&str>) -> crate::Result {
+    pub fn describe_prepared(&self, name: Option<&str>) -> crate::PQResult {
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
         unsafe { pq_sys::PQdescribePrepared(self.into(), c_name.as_ptr()) }.into()
@@ -149,7 +149,7 @@ impl Connection {
      *
      * See [PQdescribePortal](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQDESCRIBEPORTAL).
      */
-    pub fn describe_portal(&self, name: Option<&str>) -> crate::Result {
+    pub fn describe_portal(&self, name: Option<&str>) -> crate::PQResult {
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
 
         unsafe { pq_sys::PQdescribePortal(self.into(), c_name.as_ptr()) }.into()
