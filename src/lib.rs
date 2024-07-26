@@ -33,6 +33,8 @@ pub use encoding::*;
 pub use format::*;
 pub use lo::LargeObject;
 pub use oid::*;
+#[deprecated(since = "4.1.0", note = "Uses PQResult instead")]
+pub use result::PQResult as Result;
 pub use result::PQResult;
 pub use state::State;
 pub use status::*;
