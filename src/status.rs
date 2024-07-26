@@ -26,6 +26,8 @@ pub enum Status {
     SingleTuple,
     /** Successful completion of a command returning data (such as a `SELECT` or `SHOW`). */
     TuplesOk,
+    #[deprecated(since = "4.1.0", note = "Uses TuplesOk variant instead")]
+    TupplesOk,
 
     /** Pipeline synchronization point. */
     #[cfg(feature = "v14")]
@@ -85,6 +87,8 @@ impl From<&Status> for pq_sys::ExecStatusType {
             Status::NonFatalError => pq_sys::ExecStatusType::PGRES_NONFATAL_ERROR,
             Status::SingleTuple => pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE,
             Status::TuplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
+            #[allow(deprecated)]
+            Status::TupplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
             #[cfg(feature = "v14")]
             #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             Status::PipelineSync => pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC,
