@@ -237,7 +237,7 @@ mod test {
         assert!(crate::Connection::is_thread_safe());
 
         let thread = std::thread::spawn(move || {
-            assert_eq!(conn.exec("SELECT 1").status(), crate::Status::TupplesOk)
+            assert_eq!(conn.exec("SELECT 1").status(), crate::Status::TuplesOk)
         });
 
         thread.join().ok();
@@ -262,7 +262,7 @@ mod test {
     fn exec() {
         let conn = crate::test::new_conn();
         let results = conn.exec("SELECT 1 as one, 2 as two from generate_series(1,2)");
-        assert_eq!(results.status(), crate::Status::TupplesOk);
+        assert_eq!(results.status(), crate::Status::TuplesOk);
         assert_eq!(results.ntuples(), 2);
         assert_eq!(results.nfields(), 2);
 
@@ -288,7 +288,7 @@ mod test {
             &[],
             crate::Format::Text,
         );
-        assert_eq!(results.status(), crate::Status::TupplesOk);
+        assert_eq!(results.status(), crate::Status::TuplesOk);
 
         assert_eq!(results.value(0, 0), Some(&b"1"[..]));
     }
