@@ -1,3 +1,5 @@
+use std::os::raw;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Info {
     pub keyword: String,
@@ -40,7 +42,7 @@ impl Info {
         let c_dsn = crate::ffi::to_cstr(dsn);
 
         unsafe {
-            let mut errmsg: *mut libc::c_char = std::ptr::null_mut();
+            let mut errmsg: *mut raw::c_char = std::ptr::null_mut();
             let raw = pq_sys::PQconninfoParse(c_dsn.as_ptr(), &mut errmsg);
 
             if raw.is_null() {

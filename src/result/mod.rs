@@ -4,6 +4,8 @@ mod error_field;
 pub use attribute::*;
 pub use error_field::*;
 
+use std::os::raw;
+
 #[derive(Clone)]
 pub struct PQResult {
     result: *mut pq_sys::PGresult,
@@ -278,10 +280,10 @@ impl PQResult {
             html3: option.html3 as pq_sys::pqbool,
             expanded: option.expanded as pq_sys::pqbool,
             pager: option.pager as pq_sys::pqbool,
-            fieldSep: c_field_sep.as_ptr() as *mut libc::c_char,
-            tableOpt: c_table_opt.as_ptr() as *mut libc::c_char,
-            caption: c_caption.as_ptr() as *mut libc::c_char,
-            fieldName: ptr_field_name.as_ptr() as *mut *mut libc::c_char,
+            fieldSep: c_field_sep.as_ptr() as *mut raw::c_char,
+            tableOpt: c_table_opt.as_ptr() as *mut raw::c_char,
+            caption: c_caption.as_ptr() as *mut raw::c_char,
+            fieldName: ptr_field_name.as_ptr() as *mut *mut raw::c_char,
         };
 
         unsafe {

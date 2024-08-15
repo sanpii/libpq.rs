@@ -10,7 +10,7 @@ impl Connection {
     pub unsafe fn set_notice_processor(
         &self,
         proc: NoticeProcessor,
-        arg: *mut libc::c_void,
+        arg: *mut raw::c_void,
     ) -> NoticeProcessor {
         pq_sys::PQsetNoticeProcessor(self.into(), proc, arg)
     }
@@ -23,7 +23,7 @@ impl Connection {
     pub unsafe fn set_notice_receiver(
         &self,
         proc: NoticeReceiver,
-        arg: *mut libc::c_void,
+        arg: *mut raw::c_void,
     ) -> NoticeReceiver {
         pq_sys::PQsetNoticeReceiver(self.into(), proc, arg)
     }
