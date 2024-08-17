@@ -15,7 +15,7 @@ impl Connection {
         let success = unsafe {
             pq_sys::PQputCopyData(
                 self.into(),
-                buffer.as_ptr() as *const libc::c_char,
+                buffer.as_ptr() as *const raw::c_char,
                 buffer.len() as i32,
             )
         };
