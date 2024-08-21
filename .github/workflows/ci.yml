@@ -140,7 +140,7 @@ jobs:
       - name: valgrind
         run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
 
-  jemallocator:
+  mimalloc:
     name: Allocation check
     runs-on: ubuntu-latest
     steps:
@@ -154,10 +154,10 @@ jobs:
           sudo service postgresql start && sleep 3
           sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
 
-      - name: Adds jemallocator
+      - name: Adds mimalloc
         run: |
-          cargo add tikv-jemallocator
-          sed -i '2 s/^/#[global_allocator] static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;\n/' src/lib.rs
+          cargo add mimalloc
+          sed -i '2 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
       - name: build
         run: cargo test --no-run --all-features
       - name: valgrind

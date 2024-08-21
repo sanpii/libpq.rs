@@ -62,13 +62,13 @@ valgrind:
         - cargo test --no-run --features "v$PG"
         - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
 
-jemallocator:
+mimalloc:
     <<: *pg
     variables:
         PG: "16"
     script: |
-        cargo add tikv-jemallocator
-        sed -i '2 s/^/#[global_allocator] static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;\n/' src/lib.rs
+        cargo add mimalloc
+        sed -i '2 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
         cargo test --no-run --features "v$PG"
         valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
 
