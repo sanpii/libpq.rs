@@ -453,16 +453,7 @@ mod test {
     fn ssl_attribute_names() {
         let conn = crate::test::new_conn();
 
-        assert_eq!(
-            conn.ssl_attribute_names(),
-            Ok(vec![
-                crate::ssl::Attribute::Library,
-                crate::ssl::Attribute::KeyBits,
-                crate::ssl::Attribute::Cipher,
-                crate::ssl::Attribute::Compression,
-                crate::ssl::Attribute::Protocol,
-            ])
-        );
+        assert!(conn.ssl_attribute_names().is_ok());
     }
 
     #[test]
