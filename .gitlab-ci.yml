@@ -61,5 +61,26 @@ valgrind:
         MODE: debug
         PG: "13"
     script:
-      - cargo test --no-run --features "v$PG"
-      - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f)
+        - cargo test --no-run --features "v$PG"
+        - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+
+mimalloc:
+    <<: *pg
+    variables:
+        PG: "16"
+    script: |
+        cargo add mimalloc
+        sed -i '2 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
+        cargo test --no-run --features "v$PG"
+        valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+
+arm:
+    variables:
+        PKG_CONFIG_PATH: "/usr/lib/arm-linux-gnueabihf/pkgconfig"
+        PKG_CONFIG_ALLOW_CROSS: "true"
+    before_script:
+        - rustup target add arm-unknown-linux-gnueabihf
+        - apt-get update
+        - apt-get install -y curl git build-essential
+        - apt-get install -y libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-gnueabihf clang
+    script: cargo build --features v15 --target arm-unknown-linux-gnueabihf
