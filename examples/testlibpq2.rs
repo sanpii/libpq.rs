@@ -28,6 +28,7 @@
  * <https://github.com/postgres/postgres/blob/REL_16_0/src/test/examples/testlibpq2.c>
  */
 
+#[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     /*
      * If the user supplies a parameter on the command line, use it as the
@@ -90,3 +91,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[cfg(not(unix))]
+fn main() {}
