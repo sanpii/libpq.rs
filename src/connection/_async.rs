@@ -32,7 +32,7 @@ impl Connection {
         &self,
         command: &str,
         param_types: &[crate::Oid],
-        param_values: &[Option<Vec<u8>>],
+        param_values: &[Option<&[u8]>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> crate::errors::Result {
@@ -118,7 +118,7 @@ impl Connection {
     pub fn send_query_prepared(
         &self,
         name: Option<&str>,
-        param_values: &[Option<Vec<u8>>],
+        param_values: &[Option<&[u8]>],
         param_formats: &[crate::Format],
         result_format: crate::Format,
     ) -> crate::errors::Result {

@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
      */
 
     /* Here is our out-of-line parameter value */
-    let param_values = vec![Some(b"joe's place\0".to_vec())];
+    let param_values: [Option<&[u8]>; 1] = [Some(b"joe's place\0")];
 
     let res = conn.exec_params(
         "SELECT * FROM test1 WHERE t = $1",
@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let binary_int_val = htonl(2);
 
     /* Set up parameter arrays for PQexecParams */
-    let param_values = vec![Some(binary_int_val)];
+    let param_values = vec![Some(&binary_int_val[..])];
     let param_formats = vec![libpq::Format::Binary];
 
     let res = conn.exec_params(
@@ -165,6 +165,6 @@ fn ntohl(netlong: &[u8]) -> Result<i32, std::array::TryFromSliceError> {
     netlong[..4].try_into().map(i32::from_be_bytes)
 }
 
-fn htonl(hostlong: i32) -> Vec<u8> {
-    hostlong.to_be_bytes().to_vec()
+fn htonl(hostlong: i32) -> [u8; 4] {
+    hostlong.to_be_bytes()
 }
