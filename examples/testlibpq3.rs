@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         libpq::Format::Binary, /* ask for binary results */
     );
 
-    if res.status() != libpq::Status::TupplesOk {
+    if res.status() != libpq::Status::TuplesOk {
         panic!("SELECT failed: {:?}", conn.error_message());
     }
 
@@ -102,7 +102,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         libpq::Format::Binary, /* ask for binary results */
     );
 
-    if res.status() != libpq::Status::TupplesOk {
+    if res.status() != libpq::Status::TuplesOk {
         panic!("SELECT failed: {:?}", conn.error_message());
     }
 

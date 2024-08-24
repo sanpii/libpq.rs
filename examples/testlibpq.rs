@@ -18,7 +18,7 @@ fn main() -> libpq::errors::Result {
 
     /* Set always-secure search path, so malicious users can't take control. */
     let res = conn.exec("SELECT pg_catalog.set_config('search_path', '', false)");
-    if res.status() != libpq::Status::TupplesOk {
+    if res.status() != libpq::Status::TuplesOk {
         panic!("SET failed: {:?}", conn.error_message());
     }
 
@@ -44,7 +44,7 @@ fn main() -> libpq::errors::Result {
     }
 
     let res = conn.exec("FETCH ALL in myportal");
-    if res.status() != libpq::Status::TupplesOk {
+    if res.status() != libpq::Status::TuplesOk {
         panic!("FETCH ALL failed: {:?}", conn.error_message());
     }
 

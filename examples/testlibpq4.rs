@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let res1 = conn1.exec("FETCH ALL in myportal");
-    if res1.status() != libpq::Status::TupplesOk {
+    if res1.status() != libpq::Status::TuplesOk {
         panic!("FETCH ALL command didn't return tuples properly");
     }
 
@@ -86,7 +86,7 @@ fn check_prepare_conn(conn: &libpq::Connection, _db_name: &str) {
 
     /* Set always-secure search path, so malicious users can't take control. */
     let res = conn.exec("SELECT pg_catalog.set_config('search_path', '', false)");
-    if res.status() != libpq::Status::TupplesOk {
+    if res.status() != libpq::Status::TuplesOk {
         panic!("SET failed: {:?}", conn.error_message());
     }
 }
