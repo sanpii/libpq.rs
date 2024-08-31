@@ -41,7 +41,12 @@ pub(crate) enum Message {
 }
 
 impl Message {
-    pub(crate) fn bind(name: Option<&str>, param_formats: &[crate::Format], param_values: &[Option<Vec<u8>>], result_format: crate::Format) -> Self {
+    pub(crate) fn bind(
+        name: Option<&str>,
+        param_formats: &[crate::Format],
+        param_values: &[Option<Vec<u8>>],
+        result_format: crate::Format,
+    ) -> Self {
         Self::Bind(BindOptions {
             name: name.map(|x| x.to_string()),
             param_formats: param_formats.to_vec(),
@@ -116,10 +121,7 @@ impl From<&mut crate::Payload> for CopyOutOptions {
             storage.push(format);
         }
 
-        Self {
-            format,
-            storage,
-        }
+        Self { format, storage }
     }
 }
 
@@ -273,10 +275,13 @@ impl From<&mut crate::Payload> for DataRow {
 
             if fieldlen >= 0 {
                 let s = payload.eat(fieldlen as usize).to_vec();
-                log::trace!("From backend ({fieldlen})> {}", s.iter().fold(String::new(), |mut acc, x| {
-                    acc.push(*x as char);
-                    acc
-                }));
+                log::trace!(
+                    "From backend ({fieldlen})> {}",
+                    s.iter().fold(String::new(), |mut acc, x| {
+                        acc.push(*x as char);
+                        acc
+                    })
+                );
                 data.push(Some(s));
             } else {
                 data.push(None)
@@ -404,7 +409,12 @@ impl Message {
 
     fn payload(&self) -> crate::Payload {
         match self {
-            Self::Bind(BindOptions { name, param_values, param_formats, result_format }) => {
+            Self::Bind(BindOptions {
+                name,
+                param_values,
+                param_formats,
+                result_format,
+            }) => {
                 let mut payload = crate::Payload::new();
 
                 // Unnamed portal
@@ -425,11 +435,12 @@ impl Message {
                     if let Some(param) = param {
                         // libpq required \0 for text format to use strlen but
                         // don’t send its.
-                        let paramlen = if matches!(param_formats.get(n), Some(crate::Format::Binary)) {
-                            param.len()
-                        } else {
-                            param.len() - 1
-                        };
+                        let paramlen =
+                            if matches!(param_formats.get(n), Some(crate::Format::Binary)) {
+                                param.len()
+                            } else {
+                                param.len() - 1
+                            };
                         payload.extend(paramlen as i32);
                         payload.extend(param[..paramlen].to_vec());
                     } else {
@@ -442,7 +453,11 @@ impl Message {
 
                 payload
             }
-            Self::CancelRequest(CancelOptions { cancelcode, pid, secret }) => {
+            Self::CancelRequest(CancelOptions {
+                cancelcode,
+                pid,
+                secret,
+            }) => {
                 let mut payload = crate::Payload::new();
                 payload.extend(*cancelcode);
                 payload.extend(*pid);
@@ -484,7 +499,11 @@ impl Message {
 
                 payload
             }
-            Self::Parse(ParseOptions { name, query, param_types }) => {
+            Self::Parse(ParseOptions {
+                name,
+                query,
+                param_types,
+            }) => {
                 let mut payload = crate::Payload::new();
 
                 payload.extend(name);
@@ -511,14 +530,16 @@ impl Message {
             Self::Startup(config) => {
                 let hm: std::collections::HashMap<_, _> = config.into();
 
-                let mut payload = hm.iter().fold(crate::Payload::from(&[0, 3, 0, 0]), |mut acc, (k, v)| {
-                    acc.extend(*k);
-                    acc.extend('\0');
-                    acc.extend(v);
-                    acc.extend('\0');
+                let mut payload =
+                    hm.iter()
+                        .fold(crate::Payload::from(&[0, 3, 0, 0]), |mut acc, (k, v)| {
+                            acc.extend(*k);
+                            acc.extend('\0');
+                            acc.extend(v);
+                            acc.extend('\0');
 
-                    acc
-                });
+                            acc
+                        });
 
                 payload.extend('\0');
                 payload

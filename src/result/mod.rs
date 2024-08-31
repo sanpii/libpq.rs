@@ -11,7 +11,7 @@ macro_rules! attr {
         } else {
             None
         }
-    }
+    };
 }
 
 #[derive(Clone, Debug, Default)]
@@ -36,7 +36,7 @@ impl Result {
         Self {
             status: Some(status),
 
-            .. Default::default()
+            ..Default::default()
         }
     }
 
@@ -67,7 +67,8 @@ impl Result {
      * See [PQresultErrorMessage](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORMESSAGE).
      */
     pub fn error_message(&self) -> Option<String> {
-        self.error_field(crate::result::ErrorField::MessagePrimary).map(|x| x.to_string())
+        self.error_field(crate::result::ErrorField::MessagePrimary)
+            .map(|x| x.to_string())
     }
 
     /**
@@ -143,7 +144,9 @@ impl Result {
      * See [PQftablecol](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTABLECOL).
      */
     pub fn field_tablecol(&self, column: usize) -> usize {
-        attr!(self[column].columnid).map(|x| x as usize).unwrap_or_default()
+        attr!(self[column].columnid)
+            .map(|x| x as usize)
+            .unwrap_or_default()
     }
 
     /**
@@ -152,7 +155,9 @@ impl Result {
      * See [PQfformat](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFFORMAT).
      */
     pub fn field_format(&self, column: usize) -> crate::Format {
-        attr!(self[column].format).map(|x| x.into()).unwrap_or(crate::Format::Text)
+        attr!(self[column].format)
+            .map(|x| x.into())
+            .unwrap_or(crate::Format::Text)
     }
 
     /**
@@ -302,7 +307,8 @@ impl Result {
      */
     pub fn oid_value(&self) -> Option<crate::Oid> {
         if let Some(cmd_status) = self.cmd_status() {
-            cmd_status.strip_prefix("INSERT ")
+            cmd_status
+                .strip_prefix("INSERT ")
                 .map(|x| x.matches(char::is_numeric).collect::<String>())
                 .map(|x| x.parse().unwrap_or(0))
         } else {
@@ -387,7 +393,7 @@ impl From<crate::Error> for Result {
         Self {
             error_message: Some(crate::message::Notice::new(error_response)),
 
-            .. Default::default()
+            ..Default::default()
         }
     }
 }

@@ -92,18 +92,37 @@ impl std::convert::TryFrom<&HashMap<String, String>> for Config {
     fn try_from(params: &HashMap<String, String>) -> Result<Self, Self::Error> {
         let config = Self {
             application_name: params.get("application_name").cloned(),
-            channel_binding: params.get("channel_binding").map(|x| x.parse()).transpose()?,
+            channel_binding: params
+                .get("channel_binding")
+                .map(|x| x.parse())
+                .transpose()?,
             client_encoding: params.get("client_encoding").cloned(),
-            connect_timeout: params.get("connect_timeout").map(|x| x.parse()).transpose().map_err(|e| crate::Error::Parse(format!("Invalid connect_timeout: {e}")))?,
+            connect_timeout: params
+                .get("connect_timeout")
+                .map(|x| x.parse())
+                .transpose()
+                .map_err(|e| crate::Error::Parse(format!("Invalid connect_timeout: {e}")))?,
             dbname: params.get("dbname").cloned(),
             fallback_application_name: params.get("fallback_application_name").cloned(),
             gssencmode: params.get("gssencmode").map(|x| x.parse()).transpose()?,
             gsslib: params.get("gsslib").cloned(),
             hostaddr: params.get("hostaddr").cloned(),
             host: params.get("host").cloned(),
-            keepalives_count: params.get("keepalives_count").map(|x| x.parse()).transpose().map_err(|e| crate::Error::Parse(format!("Invalid keepalives_count: {e}")))?,
-            keepalives_idle: params.get("keepalives_idle").map(|x| x.parse()).transpose().map_err(|e| crate::Error::Parse(format!("Invalid keepalives_idle: {e}")))?,
-            keepalives_interval: params.get("keepalives_interval").map(|x| x.parse()).transpose().map_err(|e| crate::Error::Parse(format!("Invalid keepalives_interval: {e}")))?,
+            keepalives_count: params
+                .get("keepalives_count")
+                .map(|x| x.parse())
+                .transpose()
+                .map_err(|e| crate::Error::Parse(format!("Invalid keepalives_count: {e}")))?,
+            keepalives_idle: params
+                .get("keepalives_idle")
+                .map(|x| x.parse())
+                .transpose()
+                .map_err(|e| crate::Error::Parse(format!("Invalid keepalives_idle: {e}")))?,
+            keepalives_interval: params
+                .get("keepalives_interval")
+                .map(|x| x.parse())
+                .transpose()
+                .map_err(|e| crate::Error::Parse(format!("Invalid keepalives_interval: {e}")))?,
             keepalives: params.get("keepalives").map(|x| x == "1"),
             krbsrvname: params.get("krbsrvname").cloned(),
             options: params.get("options").cloned(),
@@ -122,8 +141,15 @@ impl std::convert::TryFrom<&HashMap<String, String>> for Config {
             sslmode: params.get("sslmode").map(|x| x.parse()).transpose()?,
             sslpassword: params.get("sslpassword").cloned(),
             sslrootcert: params.get("sslrootcert").cloned(),
-            target_session_attrs: params.get("target_session_attrs").map(|x| x.parse()).transpose()?,
-            tcp_user_timeout: params.get("tcp_user_timeout").map(|x| x.parse()).transpose().map_err(|e| crate::Error::Parse(format!("Invalid tcp_user_timeout: {e}")))?,
+            target_session_attrs: params
+                .get("target_session_attrs")
+                .map(|x| x.parse())
+                .transpose()?,
+            tcp_user_timeout: params
+                .get("tcp_user_timeout")
+                .map(|x| x.parse())
+                .transpose()
+                .map_err(|e| crate::Error::Parse(format!("Invalid tcp_user_timeout: {e}")))?,
             user: params.get("user").cloned(),
         };
 
@@ -258,9 +284,7 @@ mod test {
 
         for (dsn, expected) in tests {
             let config: Result<crate::connection::Config, _> = dsn.parse();
-            let actual = config
-                .map(|x| x.to_string())
-                .map_err(|e| e.to_string());
+            let actual = config.map(|x| x.to_string()).map_err(|e| e.to_string());
             let expected = expected
                 .map(|x| x.to_string())
                 .map_err(|e: crate::Error| e.to_string());

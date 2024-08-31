@@ -44,7 +44,8 @@ impl Payload {
     }
 
     pub fn extend<T: ToPayload>(&mut self, data: T) {
-        self.buf.extend_from_slice(ToPayload::to_payload(&data).as_slice());
+        self.buf
+            .extend_from_slice(ToPayload::to_payload(&data).as_slice());
     }
 
     pub fn as_slice(&self) -> &[u8] {

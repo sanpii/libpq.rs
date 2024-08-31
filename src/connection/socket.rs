@@ -6,21 +6,30 @@ pub(crate) struct Socket {
 }
 
 impl Socket {
-    pub fn new(host: Option<&str>, hostaddr: Option<&str>, port: Option<&str>) -> Result<Self, crate::Error> {
-        let port = port.unwrap_or("5432")
+    pub fn new(
+        host: Option<&str>,
+        hostaddr: Option<&str>,
+        port: Option<&str>,
+    ) -> Result<Self, crate::Error> {
+        let port = port
+            .unwrap_or("5432")
             .parse()
             .map_err(|_| crate::Error::Connect(format!("Invalid port: {port:?}")))?;
 
         let stream = Self::try_connect(host, hostaddr, port)?;
 
         let socket = Self {
-            stream: std::sync::RwLock::new(stream)
+            stream: std::sync::RwLock::new(stream),
         };
 
         Ok(socket)
     }
 
-    fn try_connect(host: Option<&str>, hostaddr: Option<&str>, port: u16) -> Result<std::net::TcpStream, crate::Error> {
+    fn try_connect(
+        host: Option<&str>,
+        hostaddr: Option<&str>,
+        port: u16,
+    ) -> Result<std::net::TcpStream, crate::Error> {
         let host = host.unwrap_or("/tmp");
 
         let addr = (hostaddr.unwrap_or(host), port);
@@ -32,8 +41,7 @@ impl Socket {
     }
 
     pub fn send(&self, message: crate::Message) -> Result<(), crate::Error> {
-        let mut stream = self.stream.write()
-            .map_err(|_| crate::Error::RwLock)?;
+        let mut stream = self.stream.write().map_err(|_| crate::Error::RwLock)?;
 
         if let Some(ty) = message.ty() {
             log::trace!("To backend> Msg {ty}");
@@ -89,7 +97,7 @@ impl Socket {
         Ok(Some(buf))
     }
 
-    pub(crate) fn peer_addr(&self) -> Result<std::net::SocketAddr, crate::Error>{
+    pub(crate) fn peer_addr(&self) -> Result<std::net::SocketAddr, crate::Error> {
         let peer_addr = self.stream.read()?.peer_addr().unwrap();
 
         Ok(peer_addr)

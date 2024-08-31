@@ -1,5 +1,5 @@
-mod uri;
 mod dsn;
+mod uri;
 
 use std::collections::HashMap;
 

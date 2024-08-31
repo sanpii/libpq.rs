@@ -43,9 +43,8 @@ impl<'a> Parser<'a> {
         match self.it.next() {
             Some((_, c)) if c == target => Ok(()),
             Some((i, c)) => {
-                let m = format!(
-                    "unexpected character at byte {i}: expected `{target}` but got `{c}`"
-                );
+                let m =
+                    format!("unexpected character at byte {i}: expected `{target}` but got `{c}`");
                 Err(crate::Error::Config(m))
             }
             None => Err(crate::Error::Config("unexpected EOF".to_string())),

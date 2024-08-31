@@ -1,6 +1,6 @@
 mod cancel;
-mod info;
 mod config;
+mod info;
 mod notify;
 mod socket;
 mod state;
@@ -43,7 +43,9 @@ impl Connection {
             && async_status != AsyncStatus::COPY_IN
             && async_status != AsyncStatus::COPY_OUT
         {
-            return Err(crate::Error::InvalidState("another command is already in progress".to_string()));
+            return Err(crate::Error::InvalidState(
+                "another command is already in progress".to_string(),
+            ));
         }
 
         self.consume_input()?;
@@ -65,8 +67,12 @@ impl Connection {
     }
 
     pub(crate) fn std_strings(&self) -> std::result::Result<bool, crate::Error> {
-        let std_strings = self.state.read()?.parameters
-            .get("standard_conforming_strings") == Some(&"on".to_string());
+        let std_strings = self
+            .state
+            .read()?
+            .parameters
+            .get("standard_conforming_strings")
+            == Some(&"on".to_string());
 
         Ok(std_strings)
     }
@@ -375,9 +381,7 @@ mod test {
             .log_to_file(flexi_logger::FileSpec::default())
             .print_message()
             .create_symlink("trace.txt")
-            .format_for_files(|w, _, record| {
-                write!(w, "{}", record.args())
-            })
+            .format_for_files(|w, _, record| write!(w, "{}", record.args()))
             .start()
             .unwrap();
 

@@ -1,17 +1,19 @@
-pub(crate) fn literal(_: &crate::Connection, str: &str) -> std::result::Result<String, crate::Error> {
+pub(crate) fn literal(
+    _: &crate::Connection,
+    str: &str,
+) -> std::result::Result<String, crate::Error> {
     escape(str, false)
 }
 
-pub(crate) fn identifier(_: &crate::Connection, str: &str) -> std::result::Result<String, crate::Error> {
+pub(crate) fn identifier(
+    _: &crate::Connection,
+    str: &str,
+) -> std::result::Result<String, crate::Error> {
     escape(str, true)
 }
 
 fn escape(str: &str, as_ident: bool) -> std::result::Result<String, crate::Error> {
-    let quote_char = if as_ident {
-        '"'
-    } else {
-        '\''
-    };
+    let quote_char = if as_ident { '"' } else { '\'' };
 
     let mut s = String::new();
 
@@ -23,7 +25,6 @@ fn escape(str: &str, as_ident: bool) -> std::result::Result<String, crate::Error
         s.push(c);
     }
     s.push(quote_char);
-
 
     Ok(s)
 }
@@ -98,7 +99,7 @@ pub(crate) fn bytea_conn(
  * [PQunescapeBytea](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQUNESCAPEBYTEA).
  */
 pub fn unescape_bytea(from: &[u8]) -> std::result::Result<Vec<u8>, crate::Error> {
-   todo!()
+    todo!()
 }
 
 #[cfg(test)]
