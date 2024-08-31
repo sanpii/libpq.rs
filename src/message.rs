@@ -356,7 +356,7 @@ impl Message {
         let len = self.len(&payload);
         bytes.extend_from_slice(&len.to_be_bytes());
 
-        bytes.extend_from_slice(&payload.as_slice());
+        bytes.extend_from_slice(payload.as_slice());
 
         bytes
     }

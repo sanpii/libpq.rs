@@ -42,9 +42,8 @@ impl Socket {
         let payload = message.to_bytes();
         stream.write_all(&payload)?;
 
-        match message {
-            crate::Message::Query(query) => log::trace!("To backend> {query:?}"),
-            _ => (),
+        if let crate::Message::Query(query) = message {
+            log::trace!("To backend> {query:?}");
         }
 
         log::trace!("To backend> Msg complete, length {}", payload.len());

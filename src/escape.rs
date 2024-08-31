@@ -67,25 +67,23 @@ pub(crate) fn bytea_conn(
 
             v.push(HEXTBL[((b >> 4) & 0xF) as usize]);
             v.push(HEXTBL[(b & 0xF) as usize]);
-        } else {
-            if *b < 0x20 || *b > 0x7e {
-                if !std_strings {
-                    v.push(b'\\');
-                }
+        } else if *b < 0x20 || *b > 0x7e {
+            if !std_strings {
                 v.push(b'\\');
-                v.push((b >> 6) + b'0');
-                v.push(((b >> 3) & 07) + b'0');
-                v.push((b & 07) + b'0');
-            } else if *b == b'\'' {
-                v.extend_from_slice(b"\\x00");
-            } else if *b == b'\\' {
-                if !std_strings {
-                    v.extend_from_slice(b"\\\\");
-                }
-                v.extend_from_slice(b"\\\\");
-            } else {
-                v.push(*b);
             }
+            v.push(b'\\');
+            v.push((b >> 6) + b'0');
+            v.push(((b >> 3) & 0x7) + b'0');
+            v.push((b & 0x7) + b'0');
+        } else if *b == b'\'' {
+            v.extend_from_slice(b"\\x00");
+        } else if *b == b'\\' {
+            if !std_strings {
+                v.extend_from_slice(b"\\\\");
+            }
+            v.extend_from_slice(b"\\\\");
+        } else {
+            v.push(*b);
         }
     }
 

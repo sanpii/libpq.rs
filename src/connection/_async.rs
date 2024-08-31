@@ -350,7 +350,7 @@ impl Connection {
 
 // #![feature(option_get_or_insert_default)]
 fn get_or_insert_default(result: &mut Option<crate::Result>) -> &mut crate::Result {
-    if let None = *result {
+    if result.is_none() {
         *result = Some(crate::Result::default());
     }
 

@@ -53,9 +53,9 @@ impl From<i32> for Encoding {
     }
 }
 
-impl ToString for Encoding {
-    fn to_string(&self) -> String {
-        format!("{self:?}")
+impl std::fmt::Display for Encoding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 

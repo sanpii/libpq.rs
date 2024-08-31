@@ -26,7 +26,7 @@ impl Connection {
     pub fn set_client_encoding(&self, encoding: crate::Encoding) {
         log::debug!("Setting client encoding to '{encoding:?}'");
 
-        self.exec(&format!("set client_encoding to '{}'", encoding.to_string()));
+        self.exec(&format!("set client_encoding to '{encoding}'"));
     }
 
     /**
