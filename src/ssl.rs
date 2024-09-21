@@ -22,9 +22,10 @@ pub enum Attribute {
     Compression,
 }
 
-impl ToString for Attribute {
-    fn to_string(&self) -> String {
-        format!("{self:?}").to_lowercase()
+impl std::fmt::Display for Attribute {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = format!("{self:?}").to_lowercase();
+        f.write_str(&s)
     }
 }
 
