@@ -12,6 +12,8 @@ pub enum Error {
     LargeObject,
     #[error("Invalid SSL attribute: '{0}'")]
     InvalidSslAttribute(String),
+    #[error("Timeout")]
+    Timeout,
     #[error("Unknow error")]
     Unknow,
     #[error("{0}")]
