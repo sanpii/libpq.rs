@@ -81,6 +81,21 @@ impl Connection {
         }
     }
 
+    /**
+     * Changes a PostgreSQL password.
+     *
+     * See
+     * [PQchangePassword](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQCHANGEPASSWORD).
+     */
+    #[cfg(feature = "v17")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
+    pub fn change_password(&self, user: &str, passwd: &str) -> crate::Result {
+        let c_passwd = crate::ffi::to_cstr(passwd);
+        let c_user = crate::ffi::to_cstr(user);
+
+        unsafe { pq_sys::PQchangePassword(self.into(), c_passwd.as_ptr(), c_user.as_ptr()) }.into()
+    }
+
     fn transform_params(
         param_values: &[Option<&[u8]>],
         param_formats: &[crate::Format],
@@ -622,5 +637,14 @@ B	5	ReadyForQuery	 I
         let conn = crate::test::new_conn();
 
         assert!(!conn.used_gssapi());
+    }
+
+    #[test]
+    #[cfg(feature = "v17")]
+    fn change_password() {
+        let conn = crate::test::new_conn();
+
+        let results = conn.change_password("postgres", "1234");
+        assert_eq!(results.status(), crate::Status::CommandOk);
     }
 }
