@@ -643,6 +643,13 @@ pub const SQL_JSON_SCALAR_REQUIRED: State = State {
     kind: Kind::Error,
     message: Some("sql json scalar required"),
 };
+/// sql json item cannot be cast to target type
+pub const SQL_JSON_ITEM_CANNOT_BE_CAST_TO_TARGET_TYPE: State = State {
+    code: "2203G",
+    name: "SQL_JSON_ITEM_CANNOT_BE_CAST_TO_TARGET_TYPE",
+    kind: Kind::Error,
+    message: Some("sql json item cannot be cast to target type"),
+};
 /// floating point exception
 pub const FLOATING_POINT_EXCEPTION: State = State {
     code: "22P01",
@@ -824,6 +831,13 @@ pub const IDLE_IN_TRANSACTION_SESSION_TIMEOUT: State = State {
     name: "IDLE_IN_TRANSACTION_SESSION_TIMEOUT",
     kind: Kind::Error,
     message: Some("idle in transaction session timeout"),
+};
+/// transaction timeout
+pub const TRANSACTION_TIMEOUT: State = State {
+    code: "25P04",
+    name: "TRANSACTION_TIMEOUT",
+    kind: Kind::Error,
+    message: Some("transaction timeout"),
 };
 
 pub const UNDEFINED_PSTATEMENT: State = State {
@@ -1547,6 +1561,7 @@ pub const DUPLICATE_FILE: State = State {
     message: Some("duplicate file"),
 };
 /// snapshot too old
+#[deprecated = "Remove in postgresql 17"]
 pub const SNAPSHOT_TOO_OLD: State = State {
     code: "72000",
     name: "SNAPSHOT_TOO_OLD",
@@ -1909,6 +1924,7 @@ impl State {
             "2203D" => TOO_MANY_JSON_ARRAY_ELEMENTS,
             "2203E" => TOO_MANY_JSON_OBJECT_MEMBERS,
             "2203F" => SQL_JSON_SCALAR_REQUIRED,
+            "2203G" => SQL_JSON_ITEM_CANNOT_BE_CAST_TO_TARGET_TYPE,
             "22P01" => FLOATING_POINT_EXCEPTION,
             "22P02" => INVALID_TEXT_REPRESENTATION,
             "22P03" => INVALID_BINARY_REPRESENTATION,
@@ -1935,6 +1951,7 @@ impl State {
             "25P01" => NO_ACTIVE_SQL_TRANSACTION,
             "25P02" => IN_FAILED_SQL_TRANSACTION,
             "25P03" => IDLE_IN_TRANSACTION_SESSION_TIMEOUT,
+            "25P04" => TRANSACTION_TIMEOUT,
             "26000" => UNDEFINED_PSTATEMENT,
             "27000" => TRIGGERED_DATA_CHANGE_VIOLATION,
             "28000" => INVALID_AUTHORIZATION_SPECIFICATION,
@@ -2038,6 +2055,7 @@ impl State {
             "58030" => IO_ERROR,
             "58P01" => UNDEFINED_FILE,
             "58P02" => DUPLICATE_FILE,
+            #[allow(deprecated)]
             "72000" => SNAPSHOT_TOO_OLD,
             "F0000" => CONFIG_FILE_ERROR,
             "F0001" => LOCK_FILE_EXISTS,

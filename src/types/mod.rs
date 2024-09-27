@@ -1,20 +1,21 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
     Array(crate::Oid),
+    BitString,
     Boolean,
     Composite,
     DateTime,
     Enum,
     Geometric,
+    Internal,
     Network,
     Numeric,
     Pseudo,
     Range(crate::Oid),
     String,
     Timestamp,
-    UserDefined,
-    BitString,
     Unknow,
+    UserDefined,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
