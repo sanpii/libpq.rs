@@ -653,4 +653,18 @@ B	5	ReadyForQuery	 I
         let results = conn.change_password("postgres", "1234");
         assert_eq!(results.status(), crate::Status::CommandOk);
     }
+
+    #[test]
+    #[cfg(feature = "v17")]
+    fn close_portal() {
+        let conn = crate::test::new_conn();
+
+        let results = conn.exec("begin");
+        assert_eq!(results.status(), crate::Status::CommandOk);
+        let results = conn.exec("declare curs1 cursor for select 1");
+        assert_eq!(results.status(), crate::Status::CommandOk);
+
+        let results = conn.close_portal(Some("curs1"));
+        assert_eq!(results.status(), crate::Status::CommandOk);
+    }
 }
