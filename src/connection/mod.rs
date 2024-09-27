@@ -150,7 +150,7 @@ impl Connection {
                 write!(msg, " with params [{}]", p.join(", ")).ok();
             }
 
-            log::trace!("{}", msg);
+            log::trace!("{msg}");
         }
     }
 

@@ -18,7 +18,7 @@ impl Connection {
      * See [PQsetClientEncoding](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETCLIENTENCODING).
      */
     pub fn set_client_encoding(&self, encoding: crate::Encoding) {
-        log::trace!("Setting client encoding to '{:?}'", encoding);
+        log::trace!("Setting client encoding to '{encoding:?}'");
 
         let c_encoding = crate::ffi::to_cstr(&encoding.to_string());
 
@@ -34,7 +34,7 @@ impl Connection {
      * See [PQsetErrorVerbosity](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETERRORVERBOSITY).
      */
     pub fn set_error_verbosity(&self, verbosity: crate::Verbosity) -> crate::Verbosity {
-        log::trace!("Setting client encoding to '{:?}'", verbosity);
+        log::trace!("Setting client encoding to '{verbosity:?}'");
 
         unsafe { pq_sys::PQsetErrorVerbosity(self.into(), verbosity.into()) }.into()
     }

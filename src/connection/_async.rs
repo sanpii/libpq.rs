@@ -9,7 +9,7 @@ impl Connection {
      * [PQsendQuery](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDQUERY).
      */
     pub fn send_query(&self, command: &str) -> crate::errors::Result {
-        log::trace!("Sending query '{}'", command);
+        log::trace!("Sending query '{command}'");
 
         let c_command = crate::ffi::to_cstr(command);
 

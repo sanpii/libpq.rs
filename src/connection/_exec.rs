@@ -8,7 +8,7 @@ impl Connection {
      * See [PQexec](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQEXEC).
      */
     pub fn exec(&self, query: &str) -> crate::PQResult {
-        log::trace!("Execute query '{}'", query);
+        log::trace!("Execute query '{query}'");
 
         let c_query = crate::ffi::to_cstr(query);
         unsafe { pq_sys::PQexec(self.into(), c_query.as_ptr()) }.into()
