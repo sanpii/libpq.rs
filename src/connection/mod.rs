@@ -683,4 +683,26 @@ B	5	ReadyForQuery	 I
 
         assert!(conn.send_close_portal(Some("curs2")).is_ok());
     }
+
+    #[test]
+    #[cfg(feature = "v17")]
+    fn set_chunked_rows_mode() -> crate::errors::Result {
+        let conn = crate::test::new_conn();
+
+        conn.send_query("select generate_series(1, 5)")?;
+        conn.set_chunked_rows_mode(3)?;
+
+        let results = conn.result().unwrap();
+        assert_eq!(results.ntuples(), 3);
+
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(feature = "v17")]
+    fn socket_poll() -> crate::errors::Result {
+        let conn = crate::test::new_conn();
+
+        crate::Connection::socket_poll(conn.socket()?, true, false, -1)
+    }
 }
