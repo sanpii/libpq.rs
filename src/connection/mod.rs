@@ -342,6 +342,12 @@ mod test {
         let results =
             conn.exec_prepared(Some("test1"), &[Some(b"fooo\0")], &[], crate::Format::Text);
         assert_eq!(results.value(0, 0), Some(&b"fooo"[..]));
+
+        #[cfg(feature = "v17")]
+        {
+            let results = conn.close_prepared(Some("test1"));
+            assert_eq!(results.status(), crate::Status::CommandOk);
+        }
     }
 
     #[test]

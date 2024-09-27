@@ -201,4 +201,20 @@ impl Connection {
     pub fn escape_bytea(&self, from: &[u8]) -> crate::errors::Result<PqBytes> {
         crate::escape::bytea_conn(self, from)
     }
+
+    /**
+     * Submits a request to close the specified prepared statement, and waits for completion.
+     *
+     * See
+     * [PQclosePrepared](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCLOSEPREPARED).
+     */
+    #[cfg(feature = "v17")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
+    pub fn close_prepared(&self, name: Option<&str>) -> crate::Result {
+        log::trace!("Close prepared {:?}", name.unwrap_or_default());
+
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
+        unsafe { pq_sys::PQclosePrepared(self.into(), c_name.as_ptr()) }.into()
+    }
 }
