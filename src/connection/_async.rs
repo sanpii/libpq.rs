@@ -309,4 +309,26 @@ impl Connection {
             Err(crate::errors::Error::Unknow)
         }
     }
+
+    /**
+     * Submits a request to close specified portal, without waiting for completion.
+     *
+     * See
+     * [PQsendClosePortal](https://www.postgresql.org/docs/currencurrentt/libpq-async.html#LIBPQ-PQSENDCLOSEPORTAL).
+     */
+    #[cfg(feature = "v17")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
+    pub fn send_close_portal(&self, name: Option<&str>) -> crate::errors::Result {
+        log::trace!("Send close portal {:?}", name.unwrap_or_default());
+
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
+        let status = unsafe { pq_sys::PQsendClosePortal(self.into(), c_name.as_ptr()) };
+
+        if status == 1 {
+            Ok(())
+        } else {
+            Err(crate::errors::Error::Unknow)
+        }
+    }
 }

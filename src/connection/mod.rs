@@ -670,4 +670,17 @@ B	5	ReadyForQuery	 I
         let results = conn.close_portal(Some("curs1"));
         assert_eq!(results.status(), crate::Status::CommandOk);
     }
+
+    #[test]
+    #[cfg(feature = "v17")]
+    fn send_close_portal() {
+        let conn = crate::test::new_conn();
+
+        let results = conn.exec("begin");
+        assert_eq!(results.status(), crate::Status::CommandOk);
+        let results = conn.exec("declare curs2 cursor for select 1");
+        assert_eq!(results.status(), crate::Status::CommandOk);
+
+        assert!(conn.send_close_portal(Some("curs2")).is_ok());
+    }
 }
