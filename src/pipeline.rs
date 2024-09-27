@@ -111,6 +111,24 @@ pub fn flush_request(conn: &crate::Connection) -> crate::errors::Result {
     }
 }
 
+/**
+ * Marks a synchronization point in a pipeline by sending a sync message without flushing the send buffer.
+ *
+ * See
+ * [PQsendPipelineSync](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQSENDPIPELINESYNC).
+ */
+#[cfg(feature = "v17")]
+#[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
+pub fn send_sync(conn: &crate::Connection) -> crate::errors::Result {
+    let success = unsafe { pq_sys::PQsendPipelineSync(conn.into()) };
+
+    if success == 1 {
+        Ok(())
+    } else {
+        conn.error()
+    }
+}
+
 #[cfg(test)]
 mod test {
     #[test]
@@ -154,5 +172,14 @@ mod test {
         let conn = crate::test::new_conn();
 
         assert!(crate::pipeline::flush_request(&conn).is_ok());
+    }
+
+    #[test]
+    #[cfg(feature = "v17")]
+    fn send_sync() {
+        let conn = crate::test::new_conn();
+
+        crate::pipeline::enter(&conn).unwrap();
+        assert_eq!(crate::pipeline::send_sync(&conn), Ok(()));
     }
 }
