@@ -288,4 +288,25 @@ impl Connection {
             Err(crate::errors::Error::Unknow)
         }
     }
+
+    /**
+     * Submits a request to close the specified prepared statement, without waiting for completion.
+     *
+     * See
+     * [PQsendClosePrepared](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDCLOSEPREPARED).
+     */
+    #[cfg(feature = "v17")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
+    pub fn send_close_prepared(&self, name: Option<&str>) -> crate::errors::Result {
+        log::trace!("Send close prepared {:?}", name.unwrap_or_default());
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
+        let status = unsafe { pq_sys::PQsendClosePrepared(self.into(), c_name.as_ptr()) };
+
+        if status == 0 {
+            Ok(())
+        } else {
+            Err(crate::errors::Error::Unknow)
+        }
+    }
 }

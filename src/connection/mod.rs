@@ -413,6 +413,9 @@ mod test {
 
         conn.send_describe_prepared(None).unwrap();
         assert_eq!(conn.result().unwrap().nfields(), 1);
+
+        #[cfg(feature = "v17")]
+        conn.send_close_prepared(None).unwrap();
     }
 
     #[test]
