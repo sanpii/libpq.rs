@@ -15,6 +15,37 @@ pub type NoticeReceiver = pq_sys::PQnoticeReceiver;
 
 use std::os::raw;
 
+/**
+ * Poll a connection's underlying socket descriptor retrieved with PQsocket.
+ *
+ * See
+ * [PQsocketPoll](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQSOCKETPOLL).
+ */
+#[cfg(feature = "v17")]
+pub fn socket_poll(
+    sock: i32,
+    for_read: bool,
+    for_write: bool,
+    end_time: Option<std::ffi::c_long>,
+) -> crate::errors::Result {
+    log::trace!("Socket poll {sock}");
+
+    let status = unsafe {
+        pq_sys::PQsocketPoll(
+            sock,
+            for_read as i32,
+            for_write as i32,
+            end_time.unwrap_or(-1),
+        )
+    };
+
+    match status.cmp(&0) {
+        std::cmp::Ordering::Less => Err(crate::errors::Error::Unknow),
+        std::cmp::Ordering::Equal => Err(crate::errors::Error::Timeout),
+        std::cmp::Ordering::Greater => Ok(()),
+    }
+}
+
 #[derive(Clone)]
 pub struct Connection {
     conn: *mut pq_sys::PGconn,
@@ -94,6 +125,19 @@ impl Connection {
         let c_user = crate::ffi::to_cstr(user);
 
         unsafe { pq_sys::PQchangePassword(self.into(), c_passwd.as_ptr(), c_user.as_ptr()) }.into()
+    }
+
+    /**
+     * Alias for `connection::socket_poll`.
+     */
+    #[cfg(feature = "v17")]
+    pub fn socket_poll(
+        &self,
+        for_read: bool,
+        for_write: bool,
+        end_time: Option<std::ffi::c_long>,
+    ) -> crate::errors::Result {
+        socket_poll(self.socket()?, for_read, for_write, end_time)
     }
 
     fn transform_params(
@@ -702,7 +746,8 @@ B	5	ReadyForQuery	 I
     #[cfg(feature = "v17")]
     fn socket_poll() -> crate::errors::Result {
         let conn = crate::test::new_conn();
+        let current_time = crate::current_time_usec();
 
-        crate::Connection::socket_poll(conn.socket()?, true, false, -1)
+        conn.socket_poll(false, true, Some(current_time + 1_000_000))
     }
 }
