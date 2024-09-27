@@ -217,4 +217,20 @@ impl Connection {
 
         unsafe { pq_sys::PQclosePrepared(self.into(), c_name.as_ptr()) }.into()
     }
+
+    /**
+     * Submits a request to close the specified portal, and waits for completion.
+     *
+     * See
+     * [PQclosePortal](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCLOSEPORTAL).
+     */
+    #[cfg(feature = "v17")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
+    pub fn close_portal(&self, name: Option<&str>) -> crate::Result {
+        log::trace!("Close portal {:?}", name.unwrap_or_default());
+
+        let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
+
+        unsafe { pq_sys::PQclosePortal(self.into(), c_name.as_ptr()) }.into()
+    }
 }
