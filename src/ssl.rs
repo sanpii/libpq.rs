@@ -20,6 +20,12 @@ pub enum Attribute {
      * "off".
      */
     Compression,
+    /**
+     * Application protocol selected by the TLS Application-Layer Protocol Negotiation (ALPN)
+     * extension. The only protocol supported by libpq is postgresql, so this is mainly useful for
+     * checking whether the server supported ALPN or not. Empty string if ALPN was not used.
+     */
+    Alpn,
 }
 
 impl std::fmt::Display for Attribute {
@@ -38,6 +44,7 @@ impl From<&String> for Attribute {
             "key_bits" => Self::KeyBits,
             "cipher" => Self::Cipher,
             "compression" => Self::Compression,
+            "alpn" => Self::Alpn,
             _ => unimplemented!(),
         }
     }
