@@ -239,12 +239,10 @@ impl Connection {
     pub fn ssl_attribute_names(&self) -> crate::errors::Result<Vec<crate::ssl::Attribute>> {
         let raw = unsafe { pq_sys::PQsslAttributeNames(self.into()) };
 
-        let names = crate::ffi::vec_from_nta(raw)?
+        crate::ffi::vec_from_nta(raw)?
             .iter()
-            .map(|x| x.into())
-            .collect();
-
-        Ok(names)
+            .map(TryFrom::try_from)
+            .collect()
     }
 
     /**

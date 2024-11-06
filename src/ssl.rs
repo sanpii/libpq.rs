@@ -36,16 +36,20 @@ impl std::fmt::Display for Attribute {
 }
 
 #[doc(hidden)]
-impl From<&String> for Attribute {
-    fn from(s: &String) -> Self {
-        match s.as_str() {
+impl TryFrom<&String> for Attribute {
+    type Error = crate::errors::Error;
+
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        let attribute = match value.as_str() {
             "library" => Self::Library,
             "protocol" => Self::Protocol,
             "key_bits" => Self::KeyBits,
             "cipher" => Self::Cipher,
             "compression" => Self::Compression,
             "alpn" => Self::Alpn,
-            _ => unimplemented!(),
-        }
+            _ => return Err(crate::errors::Error::InvalidSslAttribute(value.clone())),
+        };
+
+        Ok(attribute)
     }
 }
