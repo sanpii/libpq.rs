@@ -24,7 +24,7 @@ impl Connection {
             -1 => self.error(),
             0 => Err(crate::errors::Error::Backend("Full buffers".to_string())),
             1 => Ok(()),
-            _ => unreachable!(),
+            _ => Err(crate::errors::Error::Unknow),
         }
     }
 
@@ -50,7 +50,7 @@ impl Connection {
             -1 => self.error(),
             0 => Err(crate::errors::Error::Backend("Full buffers".to_string())),
             1 => Ok(()),
-            _ => unreachable!(),
+            _ => Err(crate::errors::Error::Unknow),
         }
     }
 
