@@ -55,10 +55,8 @@ impl From<pq_sys::ExecStatusType> for Status {
             pq_sys::ExecStatusType::PGRES_SINGLE_TUPLE => Self::SingleTuple,
             pq_sys::ExecStatusType::PGRES_TUPLES_OK => Self::TuplesOk,
             #[cfg(feature = "v14")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC => Self::PipelineSync,
             #[cfg(feature = "v14")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             pq_sys::ExecStatusType::PGRES_PIPELINE_ABORTED => Self::PipelineAborted,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
@@ -90,10 +88,8 @@ impl From<&Status> for pq_sys::ExecStatusType {
             #[allow(deprecated)]
             Status::TupplesOk => pq_sys::ExecStatusType::PGRES_TUPLES_OK,
             #[cfg(feature = "v14")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             Status::PipelineSync => pq_sys::ExecStatusType::PGRES_PIPELINE_SYNC,
             #[cfg(feature = "v14")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
             Status::PipelineAborted => pq_sys::ExecStatusType::PGRES_PIPELINE_ABORTED,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),

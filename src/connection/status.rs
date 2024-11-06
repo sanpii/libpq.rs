@@ -45,10 +45,8 @@ impl From<pq_sys::ConnStatusType> for Status {
             pq_sys::ConnStatusType::CONNECTION_CHECK_WRITABLE => Self::CheckWritable,
             pq_sys::ConnStatusType::CONNECTION_CONSUME => Self::Consume,
             #[cfg(feature = "v11")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
             pq_sys::ConnStatusType::CONNECTION_GSS_STARTUP => Self::GssStartup,
             #[cfg(feature = "v11")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
             pq_sys::ConnStatusType::CONNECTION_CHECK_TARGET => Self::CheckTarget,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
