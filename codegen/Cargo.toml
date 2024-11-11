@@ -8,7 +8,7 @@ edition = "2021"
 attohttpc = "0.28"
 marksman_escape = "0.1"
 regex = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 
 [dependencies.clap]
 version = "4.0"
