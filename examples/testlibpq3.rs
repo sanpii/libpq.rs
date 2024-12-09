@@ -152,8 +152,8 @@ fn show_binary_results(res: &libpq::Result) -> Result<(), Box<dyn std::error::Er
             String::from_utf8(tptr.to_vec())?
         );
         print!(" b = ({blen} bytes) ");
-        for j in 0..blen {
-            print!("\\{:03o}", bptr[j]);
+        for item in bptr.iter().take(blen) {
+            print!("\\{item:03o}");
         }
         println!("\n");
     }

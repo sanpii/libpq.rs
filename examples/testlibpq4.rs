@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if args.len() < 4 {
         panic!(
             "usage: {} table_name db_name1 db_name2\n      compares two tables in two databases",
-            args.nth(0).unwrap()
+            args.next().unwrap()
         );
     }
 
@@ -67,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap_or_default();
             print!("{s:15}");
         }
-        println!("");
+        println!();
     }
 
     /* close the portal */

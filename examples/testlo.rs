@@ -1,4 +1,4 @@
-/*
+/*!
  * Test using large objects with libpq
  *
  * <https://github.com/postgres/postgres/blob/REL_16_0/src/test/examples/testlo.c>
@@ -10,7 +10,7 @@ fn main() -> libpq::errors::Result {
     if args.len() < 4 {
         panic!(
             "usage: {} database_name in_filename out_filename",
-            args.nth(0).unwrap()
+            args.next().unwrap()
         );
     }
 
@@ -67,11 +67,11 @@ fn pickout(
         buf.insert(nbytes, '\0');
         eprint!(">>> {buf}");
         nread += nbytes;
-        if nbytes <= 0 {
+        if nbytes == 0 {
             break; /* no more data? */
         }
     }
-    eprintln!("");
+    eprintln!();
 
     Ok(())
 }
@@ -93,7 +93,7 @@ fn overwrite(
         let nbytes = lobj.write(&buf[nwritten..len - nwritten])?;
         nwritten += nbytes;
     }
-    eprintln!("");
+    eprintln!();
 
     Ok(())
 }

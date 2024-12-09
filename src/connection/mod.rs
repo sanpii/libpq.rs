@@ -277,7 +277,7 @@ mod test {
         let conn = crate::test::new_conn();
         let results = conn.exec("SELECT null");
 
-        assert_eq!(results.value(0, 0), None);
+        assert!(results.value(0, 0).is_none());
     }
 
     #[test]
@@ -345,12 +345,8 @@ mod test {
         conn.send_query("SELECT 1 as one, 2 as two from generate_series(1,2)")
             .unwrap();
 
-        loop {
-            if let Some(result) = conn.result() {
-                assert_eq!(result.value(0, 0), Some(&b"1"[..]));
-            } else {
-                break;
-            }
+        while let Some(result) = conn.result() {
+            assert_eq!(result.value(0, 0), Some(&b"1"[..]));
         }
     }
 
@@ -459,9 +455,9 @@ mod test {
     #[test]
     fn blocking() {
         let conn = crate::test::new_conn();
-        assert_eq!(conn.is_non_blocking(), false);
+        assert!(!conn.is_non_blocking());
         conn.set_non_blocking(true).unwrap();
-        assert_eq!(conn.is_non_blocking(), true);
+        assert!(conn.is_non_blocking());
     }
 
     #[test]
@@ -635,6 +631,6 @@ B	5	ReadyForQuery	 I
     fn used_gssapi() {
         let conn = crate::test::new_conn();
 
-        assert_eq!(conn.used_gssapi(), false);
+        assert!(!conn.used_gssapi());
     }
 }

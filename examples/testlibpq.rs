@@ -64,7 +64,7 @@ fn main() -> libpq::errors::Result {
                 .unwrap_or_default();
             print!("{s:15}");
         }
-        println!("");
+        println!();
     }
 
     /* close the portal ... we don't bother to check for errors ... */

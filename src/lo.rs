@@ -128,7 +128,7 @@ pub fn open(
     Ok(lo)
 }
 
-impl<'c> LargeObject<'c> {
+impl LargeObject<'_> {
     /**
      * Writing Data to a Large Object.
      *
@@ -262,7 +262,7 @@ impl<'c> LargeObject<'c> {
     }
 }
 
-impl<'c> Drop for LargeObject<'c> {
+impl Drop for LargeObject<'_> {
     fn drop(&mut self) {
         unsafe { pq_sys::lo_close(self.conn.into(), self.fd) };
     }
