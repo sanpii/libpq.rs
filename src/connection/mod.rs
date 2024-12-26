@@ -312,13 +312,7 @@ mod test {
     #[should_panic]
     fn exec_text() {
         let conn = crate::test::new_conn();
-        let _ = conn.exec_params(
-            "SELECT $1",
-            &[],
-            &[Some(b"foo")],
-            &[],
-            crate::Format::Text,
-        );
+        let _ = conn.exec_params("SELECT $1", &[], &[Some(b"foo")], &[], crate::Format::Text);
     }
 
     #[test]
@@ -330,12 +324,8 @@ mod test {
         let results = conn.describe_prepared(Some("test1"));
         assert_eq!(results.nfields(), 1);
 
-        let results = conn.exec_prepared(
-            Some("test1"),
-            &[Some(b"fooo\0")],
-            &[],
-            crate::Format::Text,
-        );
+        let results =
+            conn.exec_prepared(Some("test1"), &[Some(b"fooo\0")], &[], crate::Format::Text);
         assert_eq!(results.value(0, 0), Some(&b"fooo"[..]));
     }
 
