@@ -61,12 +61,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
      */
 
     /* Here is our out-of-line parameter value */
-    let param_values = vec![Some(b"joe's place\0".to_vec())];
+    let param_values = [Some("joe's place\0".as_bytes())];
 
     let res = conn.exec_params(
         "SELECT * FROM test1 WHERE t = $1",
         &[], /* let the backend deduce param type */
-        &param_values,
+        param_values.as_slice(),
         &[],                   /* default to all text params */
         libpq::Format::Binary, /* ask for binary results */
     );
@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let binary_int_val = htonl(2);
 
     /* Set up parameter arrays for PQexecParams */
-    let param_values = vec![Some(binary_int_val)];
+    let param_values = [Some(binary_int_val.as_slice())];
     let param_formats = vec![libpq::Format::Binary];
 
     let res = conn.exec_params(
