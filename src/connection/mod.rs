@@ -140,6 +140,14 @@ impl Connection {
         socket_poll(self.socket()?, for_read, for_write, end_time)
     }
 
+    /**
+     * Alias for `pipeline::flush_request`.
+     */
+    #[cfg(feature = "v14")]
+    pub fn send_flush_request(&self) -> crate::errors::Result {
+        crate::pipeline::flush_request(self)
+    }
+
     fn transform_params(
         param_values: &[Option<&[u8]>],
         param_formats: &[crate::Format],
