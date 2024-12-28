@@ -136,6 +136,14 @@ impl Connection {
         socket_poll(self.socket()?, for_read, for_write, end_time)
     }
 
+    /**
+     * Alias for `pipeline::flush_request`.
+     */
+    #[cfg(feature = "v14")]
+    pub fn send_flush_request(&self) -> crate::errors::Result {
+        crate::pipeline::flush_request(self)
+    }
+
     fn transform_params(
         param_values: &[Option<&[u8]>],
         param_formats: &[crate::Format],
@@ -730,7 +738,7 @@ B	5	ReadyForQuery	 I
         let conn = crate::test::new_conn();
 
         conn.send_query("select generate_series(1, 5)")?;
-        crate::pipeline::flush_request(&conn)?;
+        conn.send_flush_request()?;
 
         conn.set_chunked_rows_mode(3)?;
 
