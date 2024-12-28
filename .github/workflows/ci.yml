@@ -111,7 +111,7 @@ jobs:
       - name: Adds mimalloc
         run: |
           cargo add mimalloc
-          sed -i '2 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
+          sed -i '3 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
       - name: build
         run: cargo test --no-run --all-features
       - name: valgrind

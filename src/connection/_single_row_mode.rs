@@ -27,7 +27,6 @@ impl Connection {
      * [PQsetChunkedRowsMode](https://www.postgresql.org/docs/current/libpq-single-row-mode.html#LIBPQ-PQSETCHUNKEDROWSMODE).
      */
     #[cfg(feature = "v17")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
     pub fn set_chunked_rows_mode(&self, chunk_size: i32) -> crate::errors::Result {
         log::trace!("Set chunked rows mode with size of {chunk_size}");
 
