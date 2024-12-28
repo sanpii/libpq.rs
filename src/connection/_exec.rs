@@ -209,7 +209,6 @@ impl Connection {
      * [PQclosePrepared](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCLOSEPREPARED).
      */
     #[cfg(feature = "v17")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
     pub fn close_prepared(&self, name: Option<&str>) -> crate::Result {
         log::trace!("Close prepared {:?}", name.unwrap_or_default());
 
@@ -225,7 +224,6 @@ impl Connection {
      * [PQclosePortal](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCLOSEPORTAL).
      */
     #[cfg(feature = "v17")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
     pub fn close_portal(&self, name: Option<&str>) -> crate::Result {
         log::trace!("Close portal {:?}", name.unwrap_or_default());
 

@@ -11,7 +11,6 @@ pub enum Verbosity {
     Verbose,
     /** only error severity and SQLSTATE code */
     #[cfg(feature = "v11")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
     Sqlstate,
 }
 

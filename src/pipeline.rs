@@ -1,5 +1,4 @@
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
 pub enum Status {
     /** The libpq connection is *not* in pipeline mode. */
     Off,
@@ -30,7 +29,6 @@ impl From<pq_sys::PGpipelineStatus> for Status {
  * See
  * [PQenterPipelineMode](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQENTERPIPELINEMODE)
  */
-#[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
 pub fn enter(conn: &crate::Connection) -> crate::errors::Result {
     log::debug!("Enter pipeline mode");
 
@@ -50,7 +48,6 @@ pub fn enter(conn: &crate::Connection) -> crate::errors::Result {
  * See
  * [PQexitPipelineMode](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQEXITPIPELINEMODE)
  */
-#[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
 pub fn exit(conn: &crate::Connection) -> crate::errors::Result {
     log::debug!("Exit pipeline mode");
 
@@ -69,7 +66,6 @@ pub fn exit(conn: &crate::Connection) -> crate::errors::Result {
  * See
  * [PQpipelineStatus](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQPIPELINESTATUS)
  */
-#[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
 pub fn status(conn: &crate::Connection) -> Status {
     let status = unsafe { pq_sys::PQpipelineStatus(conn.into()) };
 
@@ -83,7 +79,6 @@ pub fn status(conn: &crate::Connection) -> Status {
  * See
  * [PQpipelineSync](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQPIPELINESYNC)
  */
-#[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
 pub fn sync(conn: &crate::Connection) -> crate::errors::Result {
     let success = unsafe { pq_sys::PQpipelineSync(conn.into()) };
 
@@ -100,7 +95,6 @@ pub fn sync(conn: &crate::Connection) -> crate::errors::Result {
  * See
  * [PQsendFlushRequest](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQSENDFLUSHREQUEST)
  */
-#[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
 pub fn flush_request(conn: &crate::Connection) -> crate::errors::Result {
     let success = unsafe { pq_sys::PQsendFlushRequest(conn.into()) };
 
@@ -118,7 +112,6 @@ pub fn flush_request(conn: &crate::Connection) -> crate::errors::Result {
  * [PQsendPipelineSync](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQSENDPIPELINESYNC).
  */
 #[cfg(feature = "v17")]
-#[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
 pub fn send_sync(conn: &crate::Connection) -> crate::errors::Result {
     let success = unsafe { pq_sys::PQsendPipelineSync(conn.into()) };
 

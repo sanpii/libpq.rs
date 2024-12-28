@@ -22,11 +22,9 @@ pub enum Status {
     Consume,
     /** Negotiating GSSAPI. */
     #[cfg(feature = "v11")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
     GssStartup,
     /** Check if we have a proper target connection */
     #[cfg(feature = "v11")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v11")))]
     CheckTarget,
 }
 

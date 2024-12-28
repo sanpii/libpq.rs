@@ -68,7 +68,7 @@ mimalloc:
         PG: "16"
     script: |
         cargo add mimalloc
-        sed -i '2 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
+        sed -i '3 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs
         cargo test --no-run --features "v$PG"
         valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
 

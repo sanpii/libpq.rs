@@ -296,7 +296,6 @@ impl Connection {
      * [PQsendClosePrepared](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQSENDCLOSEPREPARED).
      */
     #[cfg(feature = "v17")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
     pub fn send_close_prepared(&self, name: Option<&str>) -> crate::errors::Result {
         log::trace!("Send close prepared {:?}", name.unwrap_or_default());
         let c_name = crate::ffi::to_cstr(name.unwrap_or_default());
@@ -317,7 +316,6 @@ impl Connection {
      * [PQsendClosePortal](https://www.postgresql.org/docs/currencurrentt/libpq-async.html#LIBPQ-PQSENDCLOSEPORTAL).
      */
     #[cfg(feature = "v17")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
     pub fn send_close_portal(&self, name: Option<&str>) -> crate::errors::Result {
         log::trace!("Send close portal {:?}", name.unwrap_or_default());
 

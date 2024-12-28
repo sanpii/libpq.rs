@@ -119,7 +119,6 @@ impl Connection {
      * [PQchangePassword](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQCHANGEPASSWORD).
      */
     #[cfg(feature = "v17")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v17")))]
     pub fn change_password(&self, user: &str, passwd: &str) -> crate::Result {
         let c_passwd = crate::ffi::to_cstr(passwd);
         let c_user = crate::ffi::to_cstr(user);

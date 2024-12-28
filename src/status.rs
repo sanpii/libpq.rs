@@ -31,12 +31,10 @@ pub enum Status {
 
     /** Pipeline synchronization point. */
     #[cfg(feature = "v14")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
     PipelineSync,
 
     /** Command didn't run because of an abort earlier in a pipeline. */
     #[cfg(feature = "v14")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "v14")))]
     PipelineAborted,
 }
 
