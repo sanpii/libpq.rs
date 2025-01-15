@@ -16,7 +16,7 @@ impl Connection {
         if success == 1 {
             Ok(())
         } else {
-            Err(crate::errors::Error::Unknow)
+            self.error()
         }
     }
 

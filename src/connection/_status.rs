@@ -169,7 +169,7 @@ impl Connection {
         let socket = unsafe { pq_sys::PQsocket(self.into()) };
 
         if socket < 0 {
-            Err(crate::errors::Error::Unknow)
+            self.error()
         } else {
             Ok(socket)
         }

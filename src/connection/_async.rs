@@ -256,7 +256,7 @@ impl Connection {
         let status = unsafe { pq_sys::PQsetnonblocking(self.into(), non_blocking as i32) };
 
         if status < 0 {
-            Err(crate::errors::Error::Unknow)
+            self.error()
         } else {
             Ok(())
         }
@@ -285,7 +285,7 @@ impl Connection {
         if status == 0 {
             Ok(())
         } else {
-            Err(crate::errors::Error::Unknow)
+            self.error()
         }
     }
 
@@ -305,7 +305,7 @@ impl Connection {
         if status == 0 {
             Ok(())
         } else {
-            Err(crate::errors::Error::Unknow)
+            self.error()
         }
     }
 
@@ -326,7 +326,7 @@ impl Connection {
         if status == 1 {
             Ok(())
         } else {
-            Err(crate::errors::Error::Unknow)
+            self.error()
         }
     }
 }

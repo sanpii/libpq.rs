@@ -37,7 +37,7 @@ pub fn enter(conn: &crate::Connection) -> crate::errors::Result {
     if success == 1 {
         Ok(())
     } else {
-        Err(crate::errors::Error::Unknow)
+        conn.error()
     }
 }
 
@@ -56,7 +56,7 @@ pub fn exit(conn: &crate::Connection) -> crate::errors::Result {
     if success == 1 {
         Ok(())
     } else {
-        Err(crate::errors::Error::Unknow)
+        conn.error()
     }
 }
 
@@ -85,7 +85,7 @@ pub fn sync(conn: &crate::Connection) -> crate::errors::Result {
     if success == 1 {
         Ok(())
     } else {
-        Err(crate::errors::Error::Unknow)
+        conn.error()
     }
 }
 
@@ -101,7 +101,7 @@ pub fn flush_request(conn: &crate::Connection) -> crate::errors::Result {
     if success == 1 {
         Ok(())
     } else {
-        Err(crate::errors::Error::Unknow)
+        conn.error()
     }
 }
 
