@@ -50,6 +50,16 @@ pub fn version() -> i32 {
     unsafe { pq_sys::PQlibVersion() }
 }
 
+/**
+ * Retrieves the current time, expressed as the number of microseconds since the Unix epoch (that is, time_t times 1 million).
+ *
+ * See [PQgetCurrentTimeUSec](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQGETCURRENTTIMEUSEC).
+ */
+#[cfg(feature = "v17")]
+pub fn current_time_usec() -> std::ffi::c_long {
+    unsafe { pq_sys::PQgetCurrentTimeUSec() }
+}
+
 #[cfg(test)]
 mod test {
     static INIT: std::sync::Once = std::sync::Once::new();
