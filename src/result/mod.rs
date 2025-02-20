@@ -417,7 +417,7 @@ impl PQResult {
      * This function return a `void*` pointer.
      */
     pub unsafe fn alloc(&mut self, nbytes: usize) -> crate::errors::Result<*mut core::ffi::c_void> {
-        let space = pq_sys::PQresultAlloc(self.into(), nbytes);
+        let space = unsafe { pq_sys::PQresultAlloc(self.into(), nbytes) };
 
         if space.is_null() {
             Err(crate::errors::Error::Unknow)

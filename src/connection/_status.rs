@@ -256,7 +256,9 @@ impl Connection {
     pub unsafe fn ssl_struct(&self, struct_name: &str) -> *const std::ffi::c_void {
         let c_struct_name = crate::ffi::to_cstr(struct_name);
 
-        pq_sys::PQsslStruct(self.into(), c_struct_name.as_ptr())
+        unsafe {
+            pq_sys::PQsslStruct(self.into(), c_struct_name.as_ptr())
+        }
     }
 
     /**
@@ -269,6 +271,8 @@ impl Connection {
      * This function returns a `void*` pointer.
      */
     pub unsafe fn ssl(&self) -> *const std::ffi::c_void {
-        pq_sys::PQgetssl(self.into())
+        unsafe {
+            pq_sys::PQgetssl(self.into())
+        }
     }
 }

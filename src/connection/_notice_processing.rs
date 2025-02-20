@@ -12,7 +12,9 @@ impl Connection {
         proc: NoticeProcessor,
         arg: *mut raw::c_void,
     ) -> NoticeProcessor {
-        pq_sys::PQsetNoticeProcessor(self.into(), proc, arg)
+        unsafe {
+            pq_sys::PQsetNoticeProcessor(self.into(), proc, arg)
+        }
     }
 
     /**
@@ -25,6 +27,8 @@ impl Connection {
         proc: NoticeReceiver,
         arg: *mut raw::c_void,
     ) -> NoticeReceiver {
-        pq_sys::PQsetNoticeReceiver(self.into(), proc, arg)
+        unsafe {
+            pq_sys::PQsetNoticeReceiver(self.into(), proc, arg)
+        }
     }
 }
