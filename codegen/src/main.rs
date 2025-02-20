@@ -25,7 +25,9 @@ fn main() -> Result {
 }
 
 fn download(file: &str, version: u8) -> Result {
-    let url = format!("https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob_plain;f={file};hb=refs/heads/REL_{version}_STABLE");
+    let url = format!(
+        "https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob_plain;f={file};hb=refs/heads/REL_{version}_STABLE"
+    );
     let path = std::path::Path::new(file);
     let file_name = path.file_name().unwrap().to_str().unwrap();
     let output = format!("{}/src/{file_name}", env!("CARGO_MANIFEST_DIR"));

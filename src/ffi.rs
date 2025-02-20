@@ -21,11 +21,7 @@ pub(crate) fn to_option_str(s: *const c_char) -> crate::errors::Result<Option<&'
 
     let s = to_str(s)?;
 
-    if s.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(s))
-    }
+    if s.is_empty() { Ok(None) } else { Ok(Some(s)) }
 }
 
 pub(crate) fn to_option_string(s: *const c_char) -> crate::errors::Result<Option<String>> {

@@ -34,11 +34,7 @@ pub fn enter(conn: &crate::Connection) -> crate::errors::Result {
 
     let success = unsafe { pq_sys::PQenterPipelineMode(conn.into()) };
 
-    if success == 1 {
-        Ok(())
-    } else {
-        conn.error()
-    }
+    if success == 1 { Ok(()) } else { conn.error() }
 }
 
 /**
@@ -53,11 +49,7 @@ pub fn exit(conn: &crate::Connection) -> crate::errors::Result {
 
     let success = unsafe { pq_sys::PQexitPipelineMode(conn.into()) };
 
-    if success == 1 {
-        Ok(())
-    } else {
-        conn.error()
-    }
+    if success == 1 { Ok(()) } else { conn.error() }
 }
 
 /**
@@ -82,11 +74,7 @@ pub fn status(conn: &crate::Connection) -> Status {
 pub fn sync(conn: &crate::Connection) -> crate::errors::Result {
     let success = unsafe { pq_sys::PQpipelineSync(conn.into()) };
 
-    if success == 1 {
-        Ok(())
-    } else {
-        conn.error()
-    }
+    if success == 1 { Ok(()) } else { conn.error() }
 }
 
 /**
@@ -98,11 +86,7 @@ pub fn sync(conn: &crate::Connection) -> crate::errors::Result {
 pub fn flush_request(conn: &crate::Connection) -> crate::errors::Result {
     let success = unsafe { pq_sys::PQsendFlushRequest(conn.into()) };
 
-    if success == 1 {
-        Ok(())
-    } else {
-        conn.error()
-    }
+    if success == 1 { Ok(()) } else { conn.error() }
 }
 
 /**
@@ -115,11 +99,7 @@ pub fn flush_request(conn: &crate::Connection) -> crate::errors::Result {
 pub fn send_sync(conn: &crate::Connection) -> crate::errors::Result {
     let success = unsafe { pq_sys::PQsendPipelineSync(conn.into()) };
 
-    if success == 1 {
-        Ok(())
-    } else {
-        conn.error()
-    }
+    if success == 1 { Ok(()) } else { conn.error() }
 }
 
 #[cfg(test)]

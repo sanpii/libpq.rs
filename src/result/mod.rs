@@ -162,11 +162,7 @@ impl PQResult {
     pub fn field_mod(&self, column: usize) -> Option<i32> {
         let raw = unsafe { pq_sys::PQfmod(self.into(), column as i32) };
 
-        if raw < 0 {
-            None
-        } else {
-            Some(raw)
-        }
+        if raw < 0 { None } else { Some(raw) }
     }
 
     /**
@@ -179,11 +175,7 @@ impl PQResult {
     pub fn field_size(&self, column: usize) -> Option<usize> {
         let raw = unsafe { pq_sys::PQfsize(self.into(), column as i32) };
 
-        if raw < 0 {
-            None
-        } else {
-            Some(raw as usize)
-        }
+        if raw < 0 { None } else { Some(raw as usize) }
     }
 
     /**
