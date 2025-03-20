@@ -6,7 +6,7 @@ thiserror = "2.0"
 
 [package]
 name = "libpq"
-version = "5.0.0"
+version = "5.0.1"
 authors = ["Sanpi <sanpi@homecomputing.fr>"]
 edition = "2024"
 license = "MIT"
