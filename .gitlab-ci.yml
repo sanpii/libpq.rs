@@ -19,7 +19,7 @@ lint:fmt:
         - apt update
         - apt install bc sudo postgresql-$PG postgresql-server-dev-$PG clang valgrind -y
         - sudo -u postgres pg_ctlcluster "$PG" main start
-        - sudo -u postgres psql --command "create role root WITH LOGIN ENCRYPTED PASSWORD '1234';";
+        - sudo -u postgres psql --command "create role root WITH LOGIN SUPERUSER ENCRYPTED PASSWORD '1234';";
         - sudo -u postgres psql --command "create database root with owner root;";
         - export PQ_DSN='host=localhost password=1234'
 
