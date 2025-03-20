@@ -705,6 +705,7 @@ B	5	ReadyForQuery	 I
         let conn = crate::test::new_conn();
 
         let results = conn.change_password("postgres", "1234");
+        dbg!(&results);
         assert_eq!(results.status(), crate::Status::CommandOk);
     }
 
