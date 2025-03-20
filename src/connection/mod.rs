@@ -123,7 +123,7 @@ impl Connection {
         let c_passwd = crate::ffi::to_cstr(passwd);
         let c_user = crate::ffi::to_cstr(user);
 
-        unsafe { pq_sys::PQchangePassword(self.into(), c_passwd.as_ptr(), c_user.as_ptr()) }.into()
+        unsafe { pq_sys::PQchangePassword(self.into(), c_user.as_ptr(), c_passwd.as_ptr()) }.into()
     }
 
     /**
