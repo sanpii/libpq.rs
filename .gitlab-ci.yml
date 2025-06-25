@@ -14,9 +14,9 @@ lint:fmt:
 .pg: &pg
     stage: test
     before_script:
-        - echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-        - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc > /etc/apt/trusted.gpg.d/ACCC4CF8.asc
         - apt update
+        - apt install postgresql-common
+        - /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
         - apt install bc sudo postgresql-$PG postgresql-server-dev-$PG clang valgrind -y
         - sudo -u postgres pg_ctlcluster "$PG" main start
         - sudo -u postgres psql --command "create role root WITH LOGIN SUPERUSER ENCRYPTED PASSWORD '1234';";
