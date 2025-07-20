@@ -15,7 +15,7 @@ lint:fmt:
     stage: test
     before_script:
         - apt update
-        - apt install postgresql-common
+        - apt install postgresql-common -y
         - /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
         - apt install bc sudo postgresql-$PG postgresql-server-dev-$PG clang valgrind -y
         - sudo -u postgres pg_ctlcluster "$PG" main start
