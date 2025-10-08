@@ -26,6 +26,12 @@ pub enum Status {
     /** Check if we have a proper target connection */
     #[cfg(feature = "v11")]
     CheckTarget,
+    /** Checking if server is in standby mode. */
+    #[cfg(feature = "v14")]
+    CheckStandby,
+    /** Waiting for connection attempt to be started.  */
+    #[cfg(feature = "v14")]
+    Allocated,
 }
 
 impl From<pq_sys::ConnStatusType> for Status {
@@ -46,6 +52,10 @@ impl From<pq_sys::ConnStatusType> for Status {
             pq_sys::ConnStatusType::CONNECTION_GSS_STARTUP => Self::GssStartup,
             #[cfg(feature = "v11")]
             pq_sys::ConnStatusType::CONNECTION_CHECK_TARGET => Self::CheckTarget,
+            #[cfg(feature = "v14")]
+            pq_sys::ConnStatusType::CONNECTION_CHECK_STANDBY => Self::CheckStandby,
+            #[cfg(feature = "v17")]
+            pq_sys::ConnStatusType::CONNECTION_ALLOCATED => Self::Allocated,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
