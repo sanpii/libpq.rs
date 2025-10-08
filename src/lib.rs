@@ -21,6 +21,7 @@ pub mod state;
 pub mod transaction;
 pub mod types;
 
+mod control_visibility;
 mod encoding;
 mod format;
 mod oid;
@@ -30,6 +31,7 @@ mod trace;
 mod verbosity;
 
 pub use connection::Connection;
+pub use control_visibility::ContextVisibility;
 pub use encoding::*;
 pub use format::*;
 pub use lo::LargeObject;

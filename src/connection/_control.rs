@@ -38,4 +38,17 @@ impl Connection {
 
         unsafe { pq_sys::PQsetErrorVerbosity(self.into(), verbosity.into()) }.into()
     }
+
+
+    /**
+     * Determines the handling of CONTEXT fields in messages returned by
+     * `libpq::Connection::error_message` and `libpq::PQResult::error_message`.
+     *
+     * See [PQsetErrorContextVisibility](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQSETERRORCONTEXTVISIBILITY).
+     */
+    pub fn set_error_context_visibility(&self, visibility: crate::ContextVisibility) -> crate::ContextVisibility {
+        log::trace!("Setting client context visibility to '{visibility:?}'");
+
+        unsafe { pq_sys::PQsetErrorContextVisibility(self.into(), visibility.into()) }.into()
+    }
 }
