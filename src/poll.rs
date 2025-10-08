@@ -1,6 +1,6 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Status {
-    Failed = 0,
+    Failed,
     Reading,
     Writing,
     Ok,
