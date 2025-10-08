@@ -55,6 +55,6 @@ impl From<i32> for Encoding {
 
 impl std::fmt::Display for Encoding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{self:?}"))
+        write!(f, "{self:?}")
     }
 }
