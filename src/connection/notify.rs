@@ -33,13 +33,6 @@ impl From<*mut pq_sys::pgNotify> for Notify {
     }
 }
 
-#[doc(hidden)]
-impl From<&Notify> for *mut pq_sys::pgNotify {
-    fn from(notify: &Notify) -> *mut pq_sys::pgNotify {
-        notify.notify
-    }
-}
-
 impl Drop for Notify {
     fn drop(&mut self) {
         unsafe {
