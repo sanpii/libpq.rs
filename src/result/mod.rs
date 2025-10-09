@@ -43,6 +43,21 @@ impl PQResult {
     }
 
     /**
+     * Returns a reformatted version of the error message associated with a `Result` object.
+     *
+     * See [PQresultVerboseErrorMessage](https://www.postgresql.org/docs/18/libpq-exec.html#LIBPQ-PQRESULTVERBOSEERRORMESSAGE).
+     */
+    pub fn verbose_error_message(
+        &self,
+        verbosity: crate::Verbosity,
+        show_context: crate::ContextVisibility,
+    ) -> crate::errors::Result<Option<String>> {
+        crate::ffi::to_option_string(unsafe {
+            pq_sys::PQresultVerboseErrorMessage(self.into(), verbosity.into(), show_context.into())
+        })
+    }
+
+    /**
      * Returns a reformatted version of the error message associated with a `libpq::Result` object.
      *
      * See [PQresultErrorField](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORFIELD).
