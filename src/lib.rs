@@ -63,7 +63,7 @@ pub fn version() -> i32 {
  * See [PQgetCurrentTimeUSec](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQGETCURRENTTIMEUSEC).
  */
 #[cfg(feature = "v17")]
-pub fn current_time_usec() -> std::ffi::c_long {
+pub fn current_time_usec() -> i64 {
     unsafe { pq_sys::PQgetCurrentTimeUSec() }
 }
 

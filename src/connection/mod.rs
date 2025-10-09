@@ -26,7 +26,7 @@ pub fn socket_poll(
     sock: i32,
     for_read: bool,
     for_write: bool,
-    end_time: Option<std::ffi::c_long>,
+    end_time: Option<i64>,
 ) -> crate::errors::Result {
     log::trace!("Socket poll {sock}");
 
@@ -134,7 +134,7 @@ impl Connection {
         &self,
         for_read: bool,
         for_write: bool,
-        end_time: Option<std::ffi::c_long>,
+        end_time: Option<i64>,
     ) -> crate::errors::Result {
         socket_poll(self.socket()?, for_read, for_write, end_time)
     }
