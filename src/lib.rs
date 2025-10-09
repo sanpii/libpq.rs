@@ -21,6 +21,8 @@ pub mod state;
 pub mod transaction;
 pub mod types;
 
+#[cfg(feature = "v17")]
+mod cancel;
 mod control_visibility;
 mod encoding;
 mod format;
@@ -30,6 +32,8 @@ mod status;
 mod trace;
 mod verbosity;
 
+#[cfg(feature = "v17")]
+pub use cancel::Cancel;
 pub use connection::Connection;
 pub use control_visibility::ContextVisibility;
 pub use encoding::*;
