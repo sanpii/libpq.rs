@@ -35,7 +35,7 @@ jobs:
       matrix:
         rust: ["stable", "beta", "nightly"]
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pg: ["10", "11", "12", "13", "14", "15", "16", "17", "18"]
+        pg: ["14", "15", "16", "17", "18"]
         mode: ["debug", "release"]
     runs-on: ${{ matrix.os }}
 
@@ -45,35 +45,22 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - uses: ikalnytskyi/action-setup-postgres@v6
+      - uses: ikalnytskyi/action-setup-postgres@v8
         with:
           username: postgres
           password: root
           postgres-version: ${{ matrix.pg }}
-
-      - name: Sets feature variable
-        shell: bash
-        run: |
-          if [[ ${{ matrix.pg }} -ge 14 ]]
-          then
-            echo "feature=v14" >> $GITHUB_ENV
-          elif [[ ${{ matrix.pg }} -ge 11 ]]
-          then
-            echo "feature=v$(echo ${{ matrix.pg }} | sed 's/\./_/')" >> $GITHUB_ENV
-          else
-            echo "feature=default" >> $GITHUB_ENV
-          fi
 
       - name: Rustup update
         run: rustup update
 
       - name: Run tests (debug)
         if: matrix.mode == 'debug'
-        run: cargo test --workspace --features "${{ env.feature }}"
+        run: cargo test --workspace --features "v${{ matrix.pg }}"
 
       - name: Run tests (release)
         if: matrix.mode == 'release'
-        run: cargo test --workspace --features "${{ env.feature }}" --release
+        run: cargo test --workspace --features "v${{ matrix.pg }}" --release
 
   valgrind:
     name: Memory check
