@@ -27,7 +27,7 @@ lint:clippy:
     <<: *pg
     variables:
         MODE: debug
-        PG: "16"
+        PG: "18"
     stage: lint
     script:
         - rustup component add clippy
@@ -57,7 +57,7 @@ test:
 valgrind:
     <<: *pg
     variables:
-        PG: "14"
+        PG: "18"
     script:
         - cargo test --no-run --features "v$PG"
         - valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
@@ -65,7 +65,7 @@ valgrind:
 mimalloc:
     <<: *pg
     variables:
-        PG: "16"
+        PG: "18"
     script: |
         cargo add mimalloc
         sed -i '3 s/^/#[global_allocator] static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;\n/' src/lib.rs

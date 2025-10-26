@@ -32,6 +32,9 @@ pub enum Status {
     /** Waiting for connection attempt to be started.  */
     #[cfg(feature = "v14")]
     Allocated,
+    /** Authentication is in progress with some external system. */
+    #[cfg(feature = "v18")]
+    Authenticating,
 }
 
 impl From<pq_sys::ConnStatusType> for Status {
@@ -56,6 +59,8 @@ impl From<pq_sys::ConnStatusType> for Status {
             pq_sys::ConnStatusType::CONNECTION_CHECK_STANDBY => Self::CheckStandby,
             #[cfg(feature = "v17")]
             pq_sys::ConnStatusType::CONNECTION_ALLOCATED => Self::Allocated,
+            #[cfg(feature = "v18")]
+            pq_sys::ConnStatusType::CONNECTION_AUTHENTICATING => Self::Authenticating,
             #[allow(unreachable_patterns)]
             _ => unreachable!(),
         }
