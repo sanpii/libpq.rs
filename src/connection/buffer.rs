@@ -14,7 +14,7 @@ use std::os::raw;
  * ```
  * // Connect to postgres
  * let dsn = "host=localhost";
- * # let dsn = std::env::var("PQ_DSN").unwrap_or_else(|_| "host=localhost".to_string());
+ * # let dsn = std::env::var("PGSERVICE").map(|x| format!("service={x}")).or_else(|_| std::env::var("PQ_DSN")).unwrap_or_else(|_| "host=localhost".to_string());
  * let conn = libpq::Connection::new(&dsn).expect("Failed to connect to postgres");
  *
  * // Create temporary table

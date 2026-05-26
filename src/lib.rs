@@ -72,7 +72,10 @@ mod test {
     static INIT: std::sync::Once = std::sync::Once::new();
 
     pub fn dsn() -> String {
-        std::env::var("PQ_DSN").unwrap_or_else(|_| "host=localhost".to_string())
+        std::env::var("PGSERVICE")
+            .map(|x| format!("service={x}"))
+            .or_else(|_| std::env::var("PQ_DSN"))
+            .unwrap_or_else(|_| "host=localhost".to_string())
     }
 
     pub fn new_conn() -> crate::Connection {

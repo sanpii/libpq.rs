@@ -319,7 +319,10 @@ mod test {
 
     #[test]
     fn poll() {
-        let dsn = std::env::var("PQ_DSN").unwrap_or_else(|_| "host=localhost".to_string());
+        let dsn = std::env::var("PGSERVICE")
+            .map(|x| format!("service={x}"))
+            .or_else(|_| std::env::var("PQ_DSN"))
+            .unwrap_or_else(|_| "host=localhost".to_string());
         let conn = crate::Connection::start(&dsn).unwrap();
         assert_eq!(conn.poll(), crate::poll::Status::Writing);
         conn.reset_start();

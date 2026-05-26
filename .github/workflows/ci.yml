@@ -2,7 +2,6 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  PQ_DSN: postgres://postgres:root@localhost/
 
 jobs:
   lint_fmt:
@@ -44,11 +43,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
-
       - uses: ikalnytskyi/action-setup-postgres@v8
+        id: postgres
         with:
-          username: postgres
-          password: root
           postgres-version: ${{ matrix.pg }}
 
       - name: Rustup update
@@ -57,10 +54,14 @@ jobs:
       - name: Run tests (debug)
         if: matrix.mode == 'debug'
         run: cargo test --workspace --features "v${{ matrix.pg }}"
+        env:
+          PGSERVICE: ${{ steps.postgres.outputs.service-name }}
 
       - name: Run tests (release)
         if: matrix.mode == 'release'
         run: cargo test --workspace --features "v${{ matrix.pg }}" --release
+        env:
+          PGSERVICE: ${{ steps.postgres.outputs.service-name }}
 
   valgrind:
     name: Memory check
@@ -68,18 +69,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
+      - uses: ikalnytskyi/action-setup-postgres@v8
+        id: postgres
 
-      - name: Install postgreSQL (Linux)
+      - name: Install valgrind
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql valgrind
-          sudo service postgresql start && sleep 3
-          sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
+          sudo apt-get install -y valgrind
 
       - name: build
         run: cargo test --no-run --features v14
       - name: valgrind
         run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+        env:
+          PGSERVICE: ${{ steps.postgres.outputs.service-name }}
 
   mimalloc:
     name: Allocation check
@@ -87,13 +90,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
+      - uses: ikalnytskyi/action-setup-postgres@v8
+        id: postgres
 
-      - name: Install postgreSQL (Linux)
+      - name: Install valgrind
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql valgrind
-          sudo service postgresql start && sleep 3
-          sudo -u postgres psql --command "ALTER USER postgres PASSWORD 'root';"
+          sudo apt-get install -y valgrind
 
       - name: Adds mimalloc
         run: |
@@ -103,6 +106,8 @@ jobs:
         run: cargo test --no-run --all-features
       - name: valgrind
         run: valgrind --leak-check=full --error-exitcode=1 $(find target/debug/deps -executable -type f -name 'libpq-*')
+        env:
+          PGSERVICE: ${{ steps.postgres.outputs.service-name }}
 
   arm:
     name: Compilation on ARM
