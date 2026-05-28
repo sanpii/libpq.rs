@@ -44,13 +44,18 @@ impl Info {
         }
     }
 
+    #[deprecated(since = "6.1.0", note = "Use Info::parse() instead")]
+    pub fn from(dsn: &str) -> crate::errors::Result<Vec<Self>> {
+        Self::parse(dsn)
+    }
+
     /**
      * Returns parsed connection options from the provided connection string.
      *
      * See
      * [PQconninfoParse](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNINFOPARSE).
      */
-    pub fn from(dsn: &str) -> crate::errors::Result<Vec<Self>> {
+    pub fn parse(dsn: &str) -> crate::errors::Result<Vec<Self>> {
         let c_dsn = crate::ffi::to_cstr(dsn);
 
         unsafe {
@@ -149,9 +154,9 @@ impl TryFrom<*mut pq_sys::_PQconninfoOption> for Info {
 mod test {
     #[test]
     fn parse_info() {
-        assert!(crate::connection::Info::from("host=localhost user=postgres").is_ok());
+        assert!(crate::connection::Info::parse("host=localhost user=postgres").is_ok());
         assert_eq!(
-            crate::connection::Info::from("'"),
+            crate::connection::Info::parse("'"),
             Err(crate::errors::Error::Backend(
                 "missing \"=\" after \"'\" in connection info string\n".to_string()
             ))
