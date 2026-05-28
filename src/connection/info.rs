@@ -2,12 +2,24 @@ use std::os::raw;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Info {
+    /** The keyword of the option */
     pub keyword: String,
+    /** Fallback environment variable name */
     pub envvar: Option<String>,
+    /** Fallback compiled in default value */
     pub compiled: Option<String>,
+    /** Option's current value, or None */
     pub val: Option<String>,
+    /** Label for field in connect dialog */
     pub label: Option<String>,
+    /**
+     * Indicates how to display this field in a connect dialog. Values are:
+     *   ""        Display entered value as is
+     *   "*"       Password field - hide value
+     *   "D"       Debug option - don't show by default
+     */
     pub dispchar: String,
+    /** Field size in characters for dialog */
     pub dispsize: i32,
 }
 
