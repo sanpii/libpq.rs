@@ -93,7 +93,7 @@ impl PqBytes {
         debug_assert!(!ptr.is_null(), "Buffer ptr must be not null");
         debug_assert!(len > 0, "Buffer length must be greater than 0");
         debug_assert!(
-            len <= isize::MAX as usize,
+            isize::try_from(len).is_ok(),
             "Buffer length must be less than isize::MAX"
         );
         PqBytes { ptr, len }
