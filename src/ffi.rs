@@ -11,7 +11,7 @@ pub(crate) fn to_str(s: *const c_char) -> crate::errors::Result<&'static str> {
 }
 
 pub(crate) fn to_string(s: *const c_char) -> crate::errors::Result<String> {
-    to_str(s).map(|x| x.to_string())
+    to_str(s).map(ToString::to_string)
 }
 
 pub(crate) fn to_option_str(s: *const c_char) -> crate::errors::Result<Option<&'static str>> {
