@@ -489,7 +489,7 @@ impl PQResult {
 
             pq_sys::PQdisplayTuples(
                 self.into(),
-                fp as *mut _,
+                fp.cast(),
                 fill_align as i32,
                 sep,
                 print_header as i32,
