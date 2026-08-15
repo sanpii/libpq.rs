@@ -41,10 +41,10 @@ pub(crate) fn vec_from_nta(raw: *const *const c_char) -> crate::errors::Result<V
         unsafe {
             if (*raw.offset(x)).is_null() {
                 break;
-            } else {
-                let s = to_string(*raw.offset(x))?;
-                vec.push(s);
             }
+
+            let s = to_string(*raw.offset(x))?;
+            vec.push(s);
         }
     }
 

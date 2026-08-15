@@ -66,11 +66,11 @@ impl Info {
             if raw.is_null() {
                 if errmsg.is_null() {
                     return Err(crate::errors::Error::Unknow);
-                } else {
-                    let err = crate::ffi::to_string(errmsg)?;
-                    pq_sys::PQfreemem(errmsg as *mut std::ffi::c_void);
-                    return Err(crate::errors::Error::Backend(err));
                 }
+
+                let err = crate::ffi::to_string(errmsg)?;
+                pq_sys::PQfreemem(errmsg as *mut std::ffi::c_void);
+                return Err(crate::errors::Error::Backend(err));
             }
 
             let info = Self::vec_from_nta(raw);
@@ -119,10 +119,10 @@ impl Info {
             unsafe {
                 if (*raw.offset(x)).keyword.is_null() {
                     break;
-                } else {
-                    let info = raw.offset(x).try_into()?;
-                    vec.push(info);
                 }
+
+                let info = raw.offset(x).try_into()?;
+                vec.push(info);
             }
         }
 
