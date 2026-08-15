@@ -215,6 +215,7 @@ impl PqString {
      * See [`Connection::set_client_encoding`](crate::Connection::set_client_encoding) and
      * [`Connection::client_encoding`](crate::Connection::client_encoding).
      */
+    #[must_use]
     pub unsafe fn to_str_unchecked(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(self.as_ref()) }
     }

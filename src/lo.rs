@@ -34,11 +34,13 @@ bitflags::bitflags! {
  *
  * See [lo_create](https://www.postgresql.org/docs/current/lo-interfaces.html#LO-CREATE)
  */
+#[must_use]
 pub fn create(conn: &crate::Connection, lobj_id: crate::Oid) -> crate::Oid {
     unsafe { pq_sys::lo_create(conn.into(), lobj_id) }
 }
 
 #[deprecated(note = "use lo::create()")]
+#[must_use]
 pub fn creat(conn: &crate::Connection, mode: Inv) -> crate::Oid {
     unsafe { pq_sys::lo_creat(conn.into(), mode.bits()) }
 }
@@ -48,6 +50,7 @@ pub fn creat(conn: &crate::Connection, mode: Inv) -> crate::Oid {
  *
  * See [lo_import](https://www.postgresql.org/docs/current/lo-interfaces.html#LO-IMPORT)
  */
+#[must_use]
 pub fn import(conn: &crate::Connection, filename: &str) -> crate::Oid {
     let c_filename = crate::ffi::to_cstr(filename);
 
@@ -59,6 +62,7 @@ pub fn import(conn: &crate::Connection, filename: &str) -> crate::Oid {
  *
  * See [lo_import_with_oid](https://www.postgresql.org/docs/current/lo-interfaces.html#LO-IMPORT)
  */
+#[must_use]
 pub fn import_with_oid(
     conn: &crate::Connection,
     filename: &str,

@@ -53,6 +53,7 @@ pub use verbosity::*;
  *
  * See [PQlibVersion](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQLIBVERSION).
  */
+#[must_use]
 pub fn version() -> i32 {
     unsafe { pq_sys::PQlibVersion() }
 }

@@ -1830,6 +1830,7 @@ pub const INDEX_CORRUPTED: State = State {
 
 impl State {
     /// Creates a `State` from its error code.
+    #[must_use]
     pub fn from_code(s: &str) -> State {
         match s {
             "00000" => SUCCESSFUL_COMPLETION,

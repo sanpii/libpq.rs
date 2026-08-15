@@ -25,6 +25,7 @@ pub struct Info {
 
 impl Info {
     #[deprecated(since = "4.1.0", note = "Use Info::defaults() instead")]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

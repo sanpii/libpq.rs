@@ -6,6 +6,7 @@ impl Connection {
      * Returns the next notification from a list of unhandled notification messages received from
      * the server.
      */
+    #[must_use]
     pub fn notifies(&self) -> Option<crate::connection::Notify> {
         let raw = unsafe { pq_sys::PQnotifies(self.into()) };
 

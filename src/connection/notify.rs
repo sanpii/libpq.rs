@@ -14,6 +14,7 @@ impl Notify {
     /**
      * process ID of notifying server process
      */
+    #[must_use]
     pub fn be_pid(&self) -> u32 {
         unsafe { (*self.notify).be_pid as u32 }
     }

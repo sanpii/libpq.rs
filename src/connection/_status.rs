@@ -99,6 +99,7 @@ impl Connection {
      *
      * See [PQtransactionStatus](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQTRANSACTIONSTATUS).
      */
+    #[must_use]
     pub fn transaction_status(&self) -> crate::transaction::Status {
         unsafe { pq_sys::PQtransactionStatus(self.into()) }.into()
     }
@@ -119,6 +120,7 @@ impl Connection {
      *
      * See [PQprotocolVersion](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQPROTOCOLVERSION).
      */
+    #[must_use]
     pub fn protocol_version(&self) -> i32 {
         unsafe { pq_sys::PQprotocolVersion(self.into()) }
     }
@@ -180,6 +182,7 @@ impl Connection {
      *
      * See [PQbackendPID](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQBACKENDPID).
      */
+    #[must_use]
     pub fn backend_pid(&self) -> u32 {
         unsafe { pq_sys::PQbackendPID(self.into()) as u32 }
     }
@@ -190,6 +193,7 @@ impl Connection {
      *
      * See [PQconnectionNeedsPassword](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQCONNECTIONNEEDSPASSWORD).
      */
+    #[must_use]
     pub fn needs_password(&self) -> bool {
         unsafe { pq_sys::PQconnectionNeedsPassword(self.into()) == 1 }
     }
@@ -200,6 +204,7 @@ impl Connection {
      *
      * See [PQconnectionUsedPassword](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQCONNECTIONUSEDPASSWORD).
      */
+    #[must_use]
     pub fn used_password(&self) -> bool {
         unsafe { pq_sys::PQconnectionUsedPassword(self.into()) == 1 }
     }
@@ -209,6 +214,7 @@ impl Connection {
      *
      * See [PQsslInUse](https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQSSLINUSE).
      */
+    #[must_use]
     pub fn ssl_in_use(&self) -> bool {
         unsafe { pq_sys::PQsslInUse(self.into()) == 1 }
     }
@@ -253,6 +259,7 @@ impl Connection {
      *
      * This function returns a `void*` pointer.
      */
+    #[must_use]
     pub unsafe fn ssl_struct(&self, struct_name: &str) -> *const std::ffi::c_void {
         let c_struct_name = crate::ffi::to_cstr(struct_name);
 
@@ -270,6 +277,7 @@ impl Connection {
      *
      * This function returns a `void*` pointer.
      */
+    #[must_use]
     pub unsafe fn ssl(&self) -> *const std::ffi::c_void {
         unsafe {
             pq_sys::PQgetssl(self.into())

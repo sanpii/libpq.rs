@@ -126,6 +126,7 @@ impl Connection {
     /**
      * See [PQconnectPoll](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQCONNECTPOLL).
      */
+    #[must_use]
     pub fn poll(&self) -> crate::poll::Status {
         unsafe { pq_sys::PQconnectPoll(self.into()) }.into()
     }
@@ -152,6 +153,7 @@ impl Connection {
      * See
      * [PQresetPoll](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQRESETPOLL).
      */
+    #[must_use]
     pub fn reset_poll(&self) -> crate::poll::Status {
         unsafe { pq_sys::PQresetPoll(self.into()) }.into()
     }
@@ -166,6 +168,7 @@ impl Connection {
      *
      * See [PQpingParams](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQPINGPARAMS).
      */
+    #[must_use]
     pub fn ping_params(
         params: &std::collections::HashMap<String, String>,
         expand_dbname: bool,
@@ -189,6 +192,7 @@ impl Connection {
      *
      * See [PQping](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PQPING).
      */
+    #[must_use]
     pub fn ping(dsn: &str) -> crate::ping::Status {
         log::trace!("Ping '{dsn}'");
 

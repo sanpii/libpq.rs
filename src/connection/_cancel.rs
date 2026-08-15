@@ -9,6 +9,7 @@ impl Connection {
      * See
      * [PQgetCancel](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQGETCANCEL).
      */
+    #[must_use]
     pub fn cancel(&self) -> crate::connection::Cancel {
         unsafe { pq_sys::PQgetCancel(self.into()) }.into()
     }

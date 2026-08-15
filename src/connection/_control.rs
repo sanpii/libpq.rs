@@ -8,6 +8,7 @@ impl Connection {
      * See
      * [PQclientEncoding](https://www.postgresql.org/docs/current/libpq-control.html#LIBPQ-PQCLIENTENCODING).
      */
+    #[must_use]
     pub fn client_encoding(&self) -> crate::Encoding {
         unsafe { pq_sys::PQclientEncoding(self.into()) }.into()
     }

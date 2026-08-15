@@ -18,6 +18,7 @@ impl PQResult {
      * See
      * [PQmakeEmptyPGresult](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQmakeEmptyPGresult).
      */
+    #[must_use]
     pub fn new(conn: &crate::Connection, status: crate::Status) -> Self {
         let result = unsafe { pq_sys::PQmakeEmptyPGresult(conn.into(), status.into()) };
 
@@ -29,6 +30,7 @@ impl PQResult {
      *
      * See [PQresultStatus](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTSTATUS).
      */
+    #[must_use]
     pub fn status(&self) -> crate::Status {
         unsafe { pq_sys::PQresultStatus(self.into()) }.into()
     }
@@ -82,6 +84,7 @@ impl PQResult {
      *
      * See [PQntuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNTUPLES).
      */
+    #[must_use]
     pub fn ntuples(&self) -> usize {
         unsafe { pq_sys::PQntuples(self.into()) as usize }
     }
@@ -91,6 +94,7 @@ impl PQResult {
      *
      * See [PQnfields](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNFIELDS).
      */
+    #[must_use]
     pub fn nfields(&self) -> usize {
         unsafe { pq_sys::PQnfields(self.into()) as usize }
     }
@@ -115,6 +119,7 @@ impl PQResult {
      *
      * See [PQfnumber](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFNUMBER).
      */
+    #[must_use]
     pub fn field_number(&self, name: &str) -> Option<usize> {
         let c_name = crate::ffi::to_cstr(name);
         let number = unsafe { pq_sys::PQfnumber(self.into(), c_name.as_ptr()) };
@@ -131,6 +136,7 @@ impl PQResult {
      *
      * See [PQftable](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTABLE).
      */
+    #[must_use]
     pub fn field_table(&self, column: usize) -> Option<crate::Oid> {
         let oid = unsafe { pq_sys::PQftable(self.into(), column as i32) };
 
@@ -147,6 +153,7 @@ impl PQResult {
      *
      * See [PQftablecol](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTABLECOL).
      */
+    #[must_use]
     pub fn field_tablecol(&self, column: usize) -> usize {
         unsafe { pq_sys::PQftablecol(self.into(), column as i32) as usize }
     }
@@ -156,6 +163,7 @@ impl PQResult {
      *
      * See [PQfformat](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFFORMAT).
      */
+    #[must_use]
     pub fn field_format(&self, column: usize) -> crate::Format {
         unsafe { pq_sys::PQfformat(self.into(), column as i32) }.into()
     }
@@ -165,6 +173,7 @@ impl PQResult {
      *
      * See [PQftype](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTYPE).
      */
+    #[must_use]
     pub fn field_type(&self, column: usize) -> crate::Oid {
         unsafe { pq_sys::PQftype(self.into(), column as i32) }
     }
@@ -174,6 +183,7 @@ impl PQResult {
      *
      * See [PQfmod](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFMOD).
      */
+    #[must_use]
     pub fn field_mod(&self, column: usize) -> Option<i32> {
         let raw = unsafe { pq_sys::PQfmod(self.into(), column as i32) };
 
@@ -187,6 +197,7 @@ impl PQResult {
      *
      * See [PQfsize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFSIZE).
      */
+    #[must_use]
     pub fn field_size(&self, column: usize) -> Option<usize> {
         let raw = unsafe { pq_sys::PQfsize(self.into(), column as i32) };
 
@@ -199,6 +210,7 @@ impl PQResult {
      * See
      * [PQbinaryTuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQBINARYTUPLES).
      */
+    #[must_use]
     pub fn binary_tuples(&self) -> bool {
         unsafe { pq_sys::PQbinaryTuples(self.into()) == 1 }
     }
@@ -208,6 +220,7 @@ impl PQResult {
      *
      * See [PQgetvalue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE).
      */
+    #[must_use]
     pub fn value(&self, row: usize, column: usize) -> Option<&[u8]> {
         if self.is_null(row, column) {
             None
@@ -228,6 +241,7 @@ impl PQResult {
      *
      * See [PQgetisnull](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETISNULL).
      */
+    #[must_use]
     pub fn is_null(&self, row: usize, column: usize) -> bool {
         unsafe { pq_sys::PQgetisnull(self.into(), row as i32, column as i32) == 1 }
     }
@@ -237,6 +251,7 @@ impl PQResult {
      *
      * See [PQgetlength](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETLENGTH).
      */
+    #[must_use]
     pub fn length(&self, row: usize, column: usize) -> usize {
         unsafe { pq_sys::PQgetlength(self.into(), row as i32, column as i32) as usize }
     }
@@ -246,6 +261,7 @@ impl PQResult {
      *
      * See [PQnparams](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNPARAMS).
      */
+    #[must_use]
     pub fn nparams(&self) -> usize {
         unsafe { pq_sys::PQnparams(self.into()) as usize }
     }
@@ -255,6 +271,7 @@ impl PQResult {
      *
      * See [PQparamtype](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQPARAMTYPE).
      */
+    #[must_use]
     pub fn param_type(&self, param: usize) -> Option<crate::Oid> {
         let oid = unsafe { pq_sys::PQparamtype(self.into(), param as i32) };
 
@@ -325,6 +342,7 @@ impl PQResult {
      *
      * See [PQoidValue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQOIDVALUE).
      */
+    #[must_use]
     pub fn oid_value(&self) -> Option<crate::Oid> {
         let oid = unsafe { pq_sys::PQoidValue(self.into()) };
 

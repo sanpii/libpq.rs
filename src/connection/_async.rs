@@ -236,6 +236,7 @@ impl Connection {
      *
      * See [PQisBusy](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQISBUSY).
      */
+    #[must_use]
     pub fn is_busy(&self) -> bool {
         unsafe { pq_sys::PQisBusy(self.into()) == 1 }
     }
@@ -268,6 +269,7 @@ impl Connection {
      * See
      * [PQisnonblocking](https://www.postgresql.org/docs/current/libpq-async.html#LIBPQ-PQISNONBLOCKING).
      */
+    #[must_use]
     pub fn is_non_blocking(&self) -> bool {
         unsafe { pq_sys::PQisnonblocking(self.into()) == 1 }
     }

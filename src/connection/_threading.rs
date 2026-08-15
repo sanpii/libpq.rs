@@ -8,6 +8,7 @@ impl Connection {
      * See
      * [PQisthreadsafe](https://www.postgresql.org/docs/current/libpq-threading.html#LIBPQ-PQISTHREADSAFE).
      */
+    #[must_use]
     pub fn is_thread_safe() -> bool {
         unsafe { pq_sys::PQisthreadsafe() != 0 }
     }
