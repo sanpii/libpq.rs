@@ -223,8 +223,9 @@ impl Connection {
     pub(crate) fn error<T>(&self) -> crate::errors::Result<T> {
         Err(self
             .error_message()
-            .map(|x| crate::errors::Error::Backend(x.to_string()))
-            .unwrap_or(crate::errors::Error::Unknow))
+            .map_or(crate::errors::Error::Unknow, |x| {
+                crate::errors::Error::Backend(x.to_string())
+            }))
     }
 }
 
