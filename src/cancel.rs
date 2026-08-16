@@ -57,6 +57,7 @@ impl Cancel {
      *
      * See [PQcancelStatus](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQCANCELSTATUS).
      */
+    #[must_use]
     pub fn status(&self) -> crate::connection::Status {
         unsafe { pq_sys::PQcancelStatus(self.into()) }.into()
     }
@@ -83,6 +84,7 @@ impl Cancel {
      *
      * See [PQcancelErrorMessage](https://www.postgresql.org/docs/current/libpq-cancel.html#LIBPQ-PQCANCELERRORMESSAGE).
      */
+    #[must_use]
     pub fn error_message(&self) -> String {
         let error = unsafe { pq_sys::PQcancelErrorMessage(self.into()) };
 

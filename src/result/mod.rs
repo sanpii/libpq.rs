@@ -457,6 +457,7 @@ impl PQResult {
      * See [PQresultMemorySize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTMEMORYSIZE)
      */
     #[cfg(feature = "v12")]
+    #[must_use]
     pub fn memory_size(&self) -> u64 {
         unsafe { pq_sys::PQresultMemorySize(self.into()) as u64 }
     }

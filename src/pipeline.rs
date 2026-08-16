@@ -58,6 +58,7 @@ pub fn exit(conn: &crate::Connection) -> crate::errors::Result {
  * See
  * [PQpipelineStatus](https://www.postgresql.org/docs/current/libpq-pipeline-mode.html#LIBPQ-PQPIPELINESTATUS)
  */
+#[must_use]
 pub fn status(conn: &crate::Connection) -> Status {
     let status = unsafe { pq_sys::PQpipelineStatus(conn.into()) };
 
