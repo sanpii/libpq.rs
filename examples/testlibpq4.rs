@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for j in 0..nfields {
             let s = res1
                 .value(i, j)
-                .map(|x| String::from_utf8(x.to_vec()).unwrap())
+                .map(|x| String::from_utf8_lossy(x))
                 .unwrap_or_default();
             print!("{s:15}");
         }

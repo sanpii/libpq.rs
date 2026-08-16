@@ -125,35 +125,33 @@ pub fn unescape_bytea(from: &[u8]) -> crate::errors::Result<PqBytes> {
 #[cfg(test)]
 mod test {
     #[test]
-    fn literal() {
-        let conn = crate::test::new_conn();
+    fn literal() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
-        assert_eq!(
-            crate::escape::literal(&conn, "foo").unwrap().as_ref(),
-            b"'foo'"
-        );
+        assert_eq!(crate::escape::literal(&conn, "foo")?.as_ref(), b"'foo'");
+
+        Ok(())
     }
 
     #[test]
-    fn identifier() {
-        let conn = crate::test::new_conn();
+    fn identifier() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert_eq!(
-            crate::escape::identifier(&conn, "foo")
-                .unwrap()
-                .to_string_lossy(),
+            crate::escape::identifier(&conn, "foo")?.to_string_lossy(),
             "\"foo\""
         );
+
+        Ok(())
     }
 
     #[test]
-    fn string_conn() {
-        let conn = crate::test::new_conn();
+    fn string_conn() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
-        assert_eq!(
-            crate::escape::string_conn(&conn, "'foo'").unwrap(),
-            "''foo''"
-        );
+        assert_eq!(crate::escape::string_conn(&conn, "'foo'")?, "''foo''");
+
+        Ok(())
     }
 
     #[test]
@@ -163,30 +161,30 @@ mod test {
     }
 
     #[test]
-    fn bytea_conn() {
-        let conn = crate::test::new_conn();
+    fn bytea_conn() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert_eq!(
-            crate::escape::bytea_conn(&conn, b"\0").unwrap().as_ref(),
+            crate::escape::bytea_conn(&conn, b"\0")?.as_ref(),
             b"\\x00\0"
         );
+
+        Ok(())
     }
 
     #[test]
-    fn bytea() {
+    fn bytea() -> crate::errors::Result {
         #![allow(deprecated)]
-        assert_eq!(
-            crate::escape::bytea(b"'foo'").unwrap().as_ref(),
-            b"''foo''\0"
-        );
+        assert_eq!(crate::escape::bytea(b"'foo'")?.as_ref(), b"''foo''\0");
+
+        Ok(())
     }
 
     #[test]
-    fn unescape_bytea() {
+    fn unescape_bytea() -> crate::errors::Result {
         #![allow(deprecated)]
-        assert_eq!(
-            crate::escape::bytea(b"'foo'").unwrap().as_ref(),
-            b"''foo''\0"
-        );
+        assert_eq!(crate::escape::bytea(b"'foo'")?.as_ref(), b"''foo''\0");
+
+        Ok(())
     }
 }

@@ -301,8 +301,8 @@ impl std::fmt::Debug for Connection {
 #[cfg(test)]
 mod test {
     #[test]
-    fn thread() {
-        let conn = crate::test::new_conn();
+    fn thread() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         assert!(crate::Connection::is_thread_safe());
 
         let thread = std::thread::spawn(move || {
@@ -310,29 +310,35 @@ mod test {
         });
 
         thread.join().ok();
+
+        Ok(())
     }
 
     #[test]
-    fn reset() {
-        let conn = crate::test::new_conn();
+    fn reset() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         conn.reset();
+
+        Ok(())
     }
 
     #[test]
-    fn poll() {
+    fn poll() -> crate::errors::Result {
         let dsn = std::env::var("PGSERVICE")
             .map(|x| format!("service={x}"))
             .or_else(|_| std::env::var("PQ_DSN"))
             .unwrap_or_else(|_| "host=localhost".to_string());
-        let conn = crate::Connection::start(&dsn).unwrap();
+        let conn = crate::Connection::start(&dsn)?;
         assert_eq!(conn.poll(), crate::poll::Status::Writing);
         conn.reset_start();
         assert_eq!(conn.reset_poll(), crate::poll::Status::Writing);
+
+        Ok(())
     }
 
     #[test]
-    fn exec() {
-        let conn = crate::test::new_conn();
+    fn exec() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         let results = conn.exec("SELECT 1 as one, 2 as two from generate_series(1,2)");
         assert_eq!(results.status(), crate::Status::TuplesOk);
         assert_eq!(results.ntuples(), 2);
@@ -340,19 +346,23 @@ mod test {
 
         assert_eq!(results.value(0, 0), Some(&b"1"[..]));
         assert_eq!(results.value(0, 1), Some(&b"2"[..]));
+
+        Ok(())
     }
 
     #[test]
-    fn exec_null() {
-        let conn = crate::test::new_conn();
+    fn exec_null() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         let results = conn.exec("SELECT null");
 
         assert!(results.value(0, 0).is_none());
+
+        Ok(())
     }
 
     #[test]
-    fn exec_params() {
-        let conn = crate::test::new_conn();
+    fn exec_params() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         let results = conn.exec_params(
             "SELECT $1",
             &[crate::types::INT4.oid],
@@ -363,11 +373,13 @@ mod test {
         assert_eq!(results.status(), crate::Status::TuplesOk);
 
         assert_eq!(results.value(0, 0), Some(&b"1"[..]));
+
+        Ok(())
     }
 
     #[test]
-    fn exec_invalid_type() {
-        let conn = crate::test::new_conn();
+    fn exec_invalid_type() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         let results = conn.exec_params(
             "SELECT $1",
             &[crate::types::INT4.oid],
@@ -376,18 +388,23 @@ mod test {
             crate::Format::Text,
         );
         assert_eq!(results.status(), crate::Status::FatalError);
+
+        Ok(())
     }
 
     #[test]
     #[should_panic]
     fn exec_text() {
-        let conn = crate::test::new_conn();
+        let Ok(conn) = crate::test::new_conn() else {
+            return;
+        };
+
         let _ = conn.exec_params("SELECT $1", &[], &[Some(b"foo")], &[], crate::Format::Text);
     }
 
     #[test]
-    fn exec_prepared() {
-        let conn = crate::test::new_conn();
+    fn exec_prepared() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         let results = conn.prepare(Some("test1"), "SELECT $1", &[crate::types::TEXT.oid]);
         assert_eq!(results.status(), crate::Status::CommandOk);
 
@@ -403,22 +420,25 @@ mod test {
             let results = conn.close_prepared(Some("test1"));
             assert_eq!(results.status(), crate::Status::CommandOk);
         }
+
+        Ok(())
     }
 
     #[test]
-    fn send_query() {
-        let conn = crate::test::new_conn();
-        conn.send_query("SELECT 1 as one, 2 as two from generate_series(1,2)")
-            .unwrap();
+    fn send_query() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
+        conn.send_query("SELECT 1 as one, 2 as two from generate_series(1,2)")?;
 
         while let Some(result) = conn.result() {
             assert_eq!(result.value(0, 0), Some(&b"1"[..]));
         }
+
+        Ok(())
     }
 
     #[test]
-    fn send_query_params() {
-        let conn = crate::test::new_conn();
+    fn send_query_params() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         assert!(conn.set_single_row_mode().is_err());
 
         conn.send_query_params(
@@ -427,12 +447,14 @@ mod test {
             &[Some(b"fooo\0")],
             &[],
             crate::Format::Text,
-        )
-        .unwrap();
+        )?;
 
         assert!(conn.set_single_row_mode().is_ok());
 
-        let result = conn.result().unwrap();
+        let Some(result) = conn.result() else {
+            panic!("No result");
+        };
+
         assert_eq!(result.value(0, 0), Some(&b"fooo"[..]));
 
         #[cfg(unix)]
@@ -452,32 +474,38 @@ mod test {
 
             result.print(&std::io::stdout(), &options);
         }
+
+        Ok(())
     }
 
     #[test]
-    fn send_prepare() {
-        let conn = crate::test::new_conn();
-        conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid])
-            .unwrap();
+    fn send_prepare() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
+        conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid])?;
         while conn.result().is_some() {}
 
-        conn.send_query_prepared(None, &[Some(b"fooo\0")], &[], crate::Format::Text)
-            .unwrap();
-        assert_eq!(conn.result().unwrap().value(0, 0), Some(&b"fooo"[..]));
+        conn.send_query_prepared(None, &[Some(b"fooo\0")], &[], crate::Format::Text)?;
+        assert_eq!(
+            conn.result()
+                .and_then(|x| x.value(0, 0).map(<[u8]>::to_vec)),
+            Some(b"fooo".to_vec())
+        );
         assert!(conn.result().is_none());
 
-        conn.send_describe_prepared(None).unwrap();
-        assert_eq!(conn.result().unwrap().nfields(), 1);
+        conn.send_describe_prepared(None)?;
+        assert_eq!(conn.result().map(|x| x.nfields()), Some(1));
 
         #[cfg(feature = "v17")]
-        conn.send_close_prepared(None).unwrap();
+        conn.send_close_prepared(None)?;
+
+        Ok(())
     }
 
     #[test]
-    fn send_error() {
-        let conn = crate::test::new_conn();
-        conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid])
-            .unwrap();
+    fn send_error() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
+        conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid])?;
+
         let result = conn.send_prepare(None, "SELECT $1", &[crate::types::TEXT.oid]);
         assert_eq!(
             result,
@@ -485,25 +513,33 @@ mod test {
                 "another command is already in progress\n".to_string()
             ))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn client_encoding() {
-        let conn = crate::test::new_conn();
+    fn client_encoding() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         assert_eq!(conn.client_encoding(), crate::Encoding::UTF8);
+
+        Ok(())
     }
 
     #[test]
-    fn set_client_encoding() {
-        let conn = crate::test::new_conn();
+    fn set_client_encoding() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         conn.set_client_encoding(crate::Encoding::SQL_ASCII);
         assert_eq!(conn.client_encoding(), crate::Encoding::SQL_ASCII);
+
+        Ok(())
     }
 
     #[test]
-    fn info() {
-        let conn = crate::test::new_conn();
+    fn info() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         let _ = conn.info();
+
+        Ok(())
     }
 
     #[test]
@@ -515,64 +551,77 @@ mod test {
     }
 
     #[test]
-    fn ssl_attribute_names() {
-        let conn = crate::test::new_conn();
+    fn ssl_attribute_names() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert!(conn.ssl_attribute_names().is_ok());
+
+        Ok(())
     }
 
     #[test]
-    fn blocking() {
-        let conn = crate::test::new_conn();
+    fn blocking() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         assert!(!conn.is_non_blocking());
-        conn.set_non_blocking(true).unwrap();
+        conn.set_non_blocking(true)?;
         assert!(conn.is_non_blocking());
+
+        Ok(())
     }
 
     #[test]
-    fn cancel() {
-        let conn = crate::test::new_conn();
+    fn cancel() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         conn.exec("SELECT 1");
 
         let cancel = conn.cancel();
         assert!(cancel.request().is_ok());
+
+        Ok(())
     }
 
     #[test]
-    fn notifies() {
-        let conn = crate::test::new_conn();
+    fn notifies() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         assert!(conn.notifies().is_none());
 
         conn.exec("LISTEN test");
         conn.exec("NOTIFY test, 'foo'");
 
-        let notify = conn.notifies().unwrap();
+        let Some(notify) = conn.notifies() else {
+            panic!("No notification");
+        };
+
         assert_eq!(notify.relname(), Ok("test".to_string()));
         assert_eq!(notify.extra(), Ok("foo".to_string()));
+
+        Ok(())
     }
 
     #[test]
-    fn copy() {
-        let conn = crate::test::new_conn();
+    fn copy() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
         conn.exec("create temporary table tmp (id integer)");
         let result = conn.exec("copy tmp (id) from stdin;");
         assert_eq!(result.status(), crate::Status::CopyIn);
-        conn.put_copy_data(b"1\n2\n3\n4\n5\n").unwrap();
-        conn.put_copy_end(None).unwrap();
+        conn.put_copy_data(b"1\n2\n3\n4\n5\n")?;
+        conn.put_copy_end(None)?;
         let result = conn.exec("select * from tmp");
         assert_eq!(result.ntuples(), 5);
 
         conn.exec("copy tmp (id) from stdin;");
-        conn.put_copy_end(Some("foo")).unwrap();
+        conn.put_copy_end(Some("foo"))?;
         assert!(conn.put_copy_data(b"1\n2\n3\n4\n5\n").is_err());
 
         let result = conn.exec("copy tmp to stdout");
         assert_eq!(result.status(), crate::Status::CopyOut);
-        assert_eq!(&*conn.copy_data(false).unwrap(), b"1\n");
+        assert_eq!(&*conn.copy_data(false)?, b"1\n");
+
+        Ok(())
     }
 
     #[test]
-    fn copy_binary() {
+    fn copy_binary() -> crate::errors::Result {
         /* Construct binary data with only one tuple */
         /* see Binary Format in https://www.postgresql.org/docs/current/sql-copy.html */
         let binary_data = {
@@ -585,7 +634,7 @@ mod test {
                     .iter()
                     .chain(header_flags.iter())
                     .chain(header_extension_length.iter())
-                    .cloned()
+                    .copied()
                     .collect::<Vec<u8>>()
             };
             let tuples = {
@@ -597,34 +646,36 @@ mod test {
                     .iter()
                     .chain(tuple_0_field_0_length.iter())
                     .chain(tuple_0_field_0_data.iter())
-                    .cloned()
+                    .copied()
                     .collect::<Vec<u8>>()
             };
             header
                 .iter()
                 .chain(tuples.iter())
-                .cloned()
+                .copied()
                 .collect::<Vec<u8>>()
         };
 
-        let conn = crate::test::new_conn();
+        let conn = crate::test::new_conn()?;
         conn.exec("create temporary table tmp (code bytea);");
 
         let result = conn.exec("copy tmp (code) from stdin binary;");
         assert_eq!(result.status(), crate::Status::CopyIn);
-        conn.put_copy_data(&binary_data).unwrap();
-        conn.put_copy_end(None).unwrap();
+        conn.put_copy_data(&binary_data)?;
+        conn.put_copy_end(None)?;
         let result = conn.exec("select * from tmp");
         assert_eq!(result.ntuples(), 1);
 
         let result = conn.exec("copy tmp to stdout binary;");
         assert_eq!(result.status(), crate::Status::CopyOut);
-        assert_eq!(&*conn.copy_data(false).unwrap(), binary_data);
+        assert_eq!(&*conn.copy_data(false)?, binary_data);
+
+        Ok(())
     }
 
     #[test]
-    fn verbosity() {
-        let conn = crate::test::new_conn();
+    fn verbosity() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert_eq!(
             conn.set_error_verbosity(crate::Verbosity::Verbose),
@@ -634,13 +685,17 @@ mod test {
             conn.set_error_verbosity(crate::Verbosity::Terse),
             crate::Verbosity::Verbose
         );
+
+        Ok(())
     }
 
     #[test]
     #[cfg(unix)]
-    fn trace() {
-        let conn = crate::test::new_conn();
-        let file = std::fs::File::create("trace.txt").unwrap();
+    fn trace() -> crate::errors::Result {
+        use std::io::Read as _;
+
+        let conn = crate::test::new_conn()?;
+        let file = std::fs::File::create("trace.txt").expect("Unable to create trace.txt file");
 
         conn.trace(file);
         #[cfg(feature = "v14")]
@@ -650,10 +705,10 @@ mod test {
         conn.untrace();
         conn.exec("SELECT 1");
 
-        use std::io::Read;
-        let mut file = std::fs::File::open("trace.txt").unwrap();
+        let mut file = std::fs::File::open("trace.txt").expect("Unable to open trace.txt file");
         let mut trace = String::new();
-        file.read_to_string(&mut trace).unwrap();
+        file.read_to_string(&mut trace)
+            .map_err(|_| crate::errors::Error::Unknow)?;
 
         /*
          * https://github.com/postgres/postgres/commit/198b3716dba68544b55cb97bd120738a86d5df2d
@@ -668,23 +723,26 @@ B	13	CommandComplete	 "SELECT 1"
 B	5	ReadyForQuery	 I
 "#
         );
+
+        Ok(())
     }
 
     #[test]
-    fn encrypt_password() {
-        let conn = crate::test::new_conn();
+    fn encrypt_password() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert_eq!(
-            conn.encrypt_password("1234", "postgres", Some("md5"))
-                .unwrap()
+            conn.encrypt_password("1234", "postgres", Some("md5"))?
                 .to_string_lossy(),
             "md524bb002702969490e41e26e1a454036c"
         );
+
+        Ok(())
     }
 
     #[test]
-    fn invalid_encrypt_password() {
-        let conn = crate::test::new_conn();
+    fn invalid_encrypt_password() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert_eq!(
             conn.encrypt_password("1234", "postgres", Some("test"))
@@ -693,29 +751,35 @@ B	5	ReadyForQuery	 I
                 "unrecognized password encryption algorithm \"test\"\n".to_string()
             ),
         );
+
+        Ok(())
     }
 
     #[test]
     #[cfg(feature = "v16")]
-    fn used_gssapi() {
-        let conn = crate::test::new_conn();
+    fn used_gssapi() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert!(!conn.used_gssapi());
+
+        Ok(())
     }
 
     #[test]
     #[cfg(feature = "v17")]
-    fn change_password() {
-        let conn = crate::test::new_conn();
+    fn change_password() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         let results = conn.change_password("postgres", "1234");
         assert_eq!(results.status(), crate::Status::CommandOk);
+
+        Ok(())
     }
 
     #[test]
     #[cfg(feature = "v17")]
-    fn close_portal() {
-        let conn = crate::test::new_conn();
+    fn close_portal() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         let results = conn.exec("begin");
         assert_eq!(results.status(), crate::Status::CommandOk);
@@ -724,12 +788,14 @@ B	5	ReadyForQuery	 I
 
         let results = conn.close_portal(Some("curs1"));
         assert_eq!(results.status(), crate::Status::CommandOk);
+
+        Ok(())
     }
 
     #[test]
     #[cfg(feature = "v17")]
-    fn send_close_portal() {
-        let conn = crate::test::new_conn();
+    fn send_close_portal() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         let results = conn.exec("begin");
         assert_eq!(results.status(), crate::Status::CommandOk);
@@ -737,17 +803,22 @@ B	5	ReadyForQuery	 I
         assert_eq!(results.status(), crate::Status::CommandOk);
 
         assert!(conn.send_close_portal(Some("curs2")).is_ok());
+
+        Ok(())
     }
 
     #[test]
     #[cfg(feature = "v17")]
     fn set_chunked_rows_mode() -> crate::errors::Result {
-        let conn = crate::test::new_conn();
+        let conn = crate::test::new_conn()?;
 
         conn.send_query("select generate_series(1, 5)")?;
         conn.set_chunked_rows_mode(3)?;
 
-        let results = conn.result().unwrap();
+        let Some(results) = conn.result() else {
+            panic!("No result");
+        };
+
         assert_eq!(results.ntuples(), 3);
 
         Ok(())
@@ -756,7 +827,7 @@ B	5	ReadyForQuery	 I
     #[test]
     #[cfg(feature = "v17")]
     fn socket_poll() -> crate::errors::Result {
-        let conn = crate::test::new_conn();
+        let conn = crate::test::new_conn()?;
         let current_time = crate::current_time_usec();
 
         conn.socket_poll(false, true, Some(current_time + 1_000_000))

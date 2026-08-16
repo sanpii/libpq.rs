@@ -79,12 +79,12 @@ mod test {
             .unwrap_or_else(|_| "host=localhost".to_string())
     }
 
-    pub fn new_conn() -> crate::Connection {
+    pub fn new_conn() -> crate::errors::Result<crate::Connection> {
         INIT.call_once(|| {
             env_logger::init();
         });
 
-        crate::Connection::new(&dsn()).unwrap()
+        crate::Connection::new(&dsn())
     }
 
     #[test]

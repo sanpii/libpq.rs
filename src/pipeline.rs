@@ -105,54 +105,66 @@ pub fn send_sync(conn: &crate::Connection) -> crate::errors::Result {
 #[cfg(test)]
 mod test {
     #[test]
-    fn enter() {
-        let conn = crate::test::new_conn();
+    fn enter() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert!(crate::pipeline::enter(&conn).is_ok());
+
+        Ok(())
     }
 
     #[test]
-    fn exit() {
-        let conn = crate::test::new_conn();
+    fn exit() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert!(crate::pipeline::exit(&conn).is_ok());
+
+        Ok(())
     }
 
     #[test]
-    fn status() {
-        let conn = crate::test::new_conn();
+    fn status() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert_eq!(crate::pipeline::status(&conn), crate::pipeline::Status::Off);
 
-        crate::pipeline::enter(&conn).unwrap();
+        crate::pipeline::enter(&conn)?;
         assert_eq!(crate::pipeline::status(&conn), crate::pipeline::Status::On);
 
-        crate::pipeline::exit(&conn).unwrap();
+        crate::pipeline::exit(&conn)?;
         assert_eq!(crate::pipeline::status(&conn), crate::pipeline::Status::Off);
+
+        Ok(())
     }
 
     #[test]
-    fn sync() {
-        let conn = crate::test::new_conn();
+    fn sync() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert!(crate::pipeline::sync(&conn).is_err());
-        crate::pipeline::enter(&conn).unwrap();
+        crate::pipeline::enter(&conn)?;
         assert!(crate::pipeline::sync(&conn).is_ok());
+
+        Ok(())
     }
 
     #[test]
-    fn flush_request() {
-        let conn = crate::test::new_conn();
+    fn flush_request() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
         assert!(crate::pipeline::flush_request(&conn).is_ok());
+
+        Ok(())
     }
 
     #[test]
     #[cfg(feature = "v17")]
-    fn send_sync() {
-        let conn = crate::test::new_conn();
+    fn send_sync() -> crate::errors::Result {
+        let conn = crate::test::new_conn()?;
 
-        crate::pipeline::enter(&conn).unwrap();
+        crate::pipeline::enter(&conn)?;
         assert_eq!(crate::pipeline::send_sync(&conn), Ok(()));
+
+        Ok(())
     }
 }

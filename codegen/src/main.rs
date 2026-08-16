@@ -29,7 +29,11 @@ fn download(file: &str, version: u8) -> Result {
         "https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob_plain;f={file};hb=refs/heads/REL_{version}_STABLE"
     );
     let path = std::path::Path::new(file);
-    let file_name = path.file_name().unwrap().to_str().unwrap();
+    let file_name = path
+        .file_name()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
     let output = format!("{}/src/{file_name}", env!("CARGO_MANIFEST_DIR"));
     let file = std::fs::File::create(output)?;
 
