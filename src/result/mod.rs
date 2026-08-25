@@ -13,7 +13,7 @@ pub struct PQResult {
 
 impl PQResult {
     /**
-     * Constructs an empty `Result` object with the given status.
+     * Constructs an empty `PQResult` object with the given status.
      *
      * See
      * [PQmakeEmptyPGresult](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQmakeEmptyPGresult).
@@ -45,7 +45,7 @@ impl PQResult {
     }
 
     /**
-     * Returns a reformatted version of the error message associated with a `Result` object.
+     * Returns a reformatted version of the error message associated with a `PQResult` object.
      *
      * See [PQresultVerboseErrorMessage](https://www.postgresql.org/docs/18/libpq-exec.html#LIBPQ-PQRESULTVERBOSEERRORMESSAGE).
      */
@@ -60,7 +60,7 @@ impl PQResult {
     }
 
     /**
-     * Returns a reformatted version of the error message associated with a `libpq::Result` object.
+     * Returns an individual field of an error report.
      *
      * See [PQresultErrorField](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTERRORFIELD).
      */
@@ -205,7 +205,7 @@ impl PQResult {
     }
 
     /**
-     * Returns `true` if the `Result` contains binary data and `false` if it contains text data.
+     * Returns `true` if the `PQResult` contains binary data and `false` if it contains text data.
      *
      * See
      * [PQbinaryTuples](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQBINARYTUPLES).
@@ -216,7 +216,7 @@ impl PQResult {
     }
 
     /**
-     * Returns a single field value of one row of a `Result`.
+     * Returns a single field value of one row of a `PQResult`.
      *
      * See [PQgetvalue](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE).
      */
@@ -318,7 +318,7 @@ impl PQResult {
     }
 
     /**
-     * Returns the command status tag from the SQL command that generated the `Result`.
+     * Returns the command status tag from the SQL command that generated the `PQResult`.
      *
      * See [PQcmdStatus](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQCMDSTATUS).
      */
@@ -364,7 +364,7 @@ impl PQResult {
     }
 
     /**
-     * Makes a copy of a `Result` object.
+     * Makes a copy of a `PQResult` object.
      *
      * See
      * [PQcopyResult](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQCOPYRESULT).
@@ -404,7 +404,7 @@ impl PQResult {
     }
 
     /**
-     * Sets a tuple field value of a `Result` object.
+     * Sets a tuple field value of a `PQResult` object.
      *
      * See [PQsetvalue](https://www.postgresql.org/docs/current/libpq-misc.html#LIBPQ-PQSETVALUE).
      */
@@ -432,7 +432,7 @@ impl PQResult {
     }
 
     /**
-     * Allocate subsidiary storage for a `Result` object.
+     * Allocate subsidiary storage for a `PQResult` object.
      *
      * See
      * [PQresultAlloc](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTALLOC).
@@ -452,7 +452,7 @@ impl PQResult {
     }
 
     /**
-     * Retrieves the number of bytes allocated for a `Result` object.
+     * Retrieves the number of bytes allocated for a `PQResult` object.
      *
      * See [PQresultMemorySize](https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQRESULTMEMORYSIZE)
      */
