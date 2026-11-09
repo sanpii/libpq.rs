@@ -55,7 +55,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: ikalnytskyi/action-setup-postgres@v8
+      - uses: ikalnytskyi/action-setup-postgres@v9
         id: postgres
         with:
           postgres-version: ${{ matrix.pg }}
@@ -81,7 +81,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - uses: ikalnytskyi/action-setup-postgres@v8
+      - uses: ikalnytskyi/action-setup-postgres@v9
         id: postgres
 
       - name: Install valgrind
@@ -102,7 +102,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - uses: ikalnytskyi/action-setup-postgres@v8
+      - uses: ikalnytskyi/action-setup-postgres@v9
         id: postgres
 
       - name: Install valgrind
